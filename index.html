@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pulsewise | Patient health data</title>
+  <style>
+    :root {
+      --ink: #17211b;
+      --muted: #6d786f;
+      --line: #dfe5df;
+      --paper: #f5f7f2;
+      --surface: #ffffff;
+      --forest: #174a3b;
+      --mint: #d8eee2;
+      --lime: #b9e67d;
+      --coral: #ec7d68;
+      --gold: #edc45c;
+      --shadow: 0 18px 44px rgba(28, 50, 38, .08);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+      transcript.value = exampleTranscript;
+      voiceStatus.innerHTML = 'Review your check-in<small>Edit the preview or speak again when microphone access is available.</small>';
+      if (recognition) {
+        try { recognition.start(); } catch (error) { }
+      }
+    .app-shell { min-height: 100vh; display: grid; grid-template-columns: 244px minmax(0, 1fr); }
+    .sidebar { background: var(--forest); color: #edf6ef; padding: 28px 18px 20px; display: flex; flex-direction: column; }
+    .brand { display: flex; align-items: center; gap: 10px; margin: 0 10px 46px; font: 700 21px/1.1 Georgia, serif; letter-spacing: -.5px; }
+    .brand-mark { display: grid; place-items: center; width: 29px; height: 29px; border-radius: 9px; background: var(--lime); color: var(--forest); font: 700 16px Arial, sans-serif; }
+    .eyebrow { color: #9fb7a6; font: 700 10px/1 Arial, sans-serif; letter-spacing: 1.5px; text-transform: uppercase; }
+    .nav { display: grid; gap: 6px; margin-top: 14px; }
+    .nav-button { display: flex; gap: 12px; align-items: center; border: 0; border-radius: 9px; padding: 12px 12px; color: #c4d9ca; background: transparent; text-align: left; font: 600 13px Arial, sans-serif; }
+    .nav-button.active { color: var(--forest); background: var(--lime); }
+    .nav-icon { width: 20px; text-align: center; font-size: 15px; }
+    .sidebar-spacer { flex: 1; }
+    .privacy-card { border-top: 1px solid rgba(255,255,255,.17); padding: 18px 10px 0; }
+    .privacy-card p { color: #c4d9ca; font: 12px/1.55 Arial, sans-serif; margin: 8px 0 0; }
+    .main { min-width: 0; padding: 28px 36px 44px; }
+    .topbar { display: flex; justify-content: space-between; gap: 20px; align-items: center; margin-bottom: 40px; }
+    .crumb { color: var(--muted); font: 12px Arial, sans-serif; }
+    .top-actions { display: flex; gap: 12px; align-items: center; }
+    .icon-button { border: 1px solid var(--line); background: var(--surface); border-radius: 9px; width: 38px; height: 38px; color: var(--forest); }
+    .avatar { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: #d2e6d8; color: var(--forest); font: 700 12px Arial, sans-serif; }
+    .hero-row { display: flex; justify-content: space-between; gap: 28px; align-items: flex-end; margin-bottom: 25px; }
+    h1 { font: 400 40px/.98 Georgia, serif; letter-spacing: -1.8px; margin: 7px 0 11px; }
+    .subtitle { color: var(--muted); font: 14px Arial, sans-serif; margin: 0; }
+    .patient-picker { min-width: 235px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 10px 13px; }
+    .patient-picker label { display: block; color: var(--muted); font: 10px Arial, sans-serif; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+    .patient-picker select { width: 100%; border: 0; outline: none; color: var(--ink); background: transparent; font: 600 14px Arial, sans-serif; }
+    .status-strip { display: flex; align-items: center; gap: 10px; border: 1px solid #cce1d2; border-radius: 10px; background: #edf7ef; padding: 11px 14px; margin-bottom: 22px; color: #326247; font: 12px Arial, sans-serif; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #4caa6a; box-shadow: 0 0 0 4px rgba(76,170,106,.12); }
+    .status-strip span:last-child { margin-left: auto; color: #6c8b74; }
+    .grid { display: grid; gap: 18px; }
+    .metric-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 18px; }
+    .card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+    .metric-card { padding: 19px; min-height: 142px; }
+    .metric-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .metric-name { color: var(--muted); font: 11px Arial, sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+    .metric-icon { width: 25px; height: 25px; border-radius: 8px; display: grid; place-items: center; font: 12px Arial, sans-serif; }
+    .heart { background: #fde5df; color: #bd5141; }
+    .sleep { background: #e6e2fa; color: #6958ae; }
+    .steps { background: #e4f2c9; color: #5f7e25; }
+    .temp { background: #fceec4; color: #967128; }
+    .metric-value { margin: 18px 0 5px; font: 400 29px Georgia, serif; letter-spacing: -.7px; }
+    .metric-foot { color: var(--muted); font: 11px Arial, sans-serif; }
+    .up { color: #3d9660; }
+    .down { color: #c7604e; }
+    .main-grid { grid-template-columns: minmax(0, 1.45fr) minmax(300px, .8fr); align-items: start; }
+    .panel { padding: 21px; }
+    .panel-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; margin-bottom: 22px; }
+    .panel-title { margin: 0; font: 400 20px Georgia, serif; letter-spacing: -.4px; }
+    .panel-meta { color: var(--muted); font: 11px Arial, sans-serif; margin-top: 5px; }
+    .text-button { border: 0; background: transparent; color: var(--forest); padding: 3px 0; font: 700 11px Arial, sans-serif; }
+    .chart-wrap { height: 190px; position: relative; padding: 9px 0 27px 34px; }
+    .chart-grid { position: absolute; inset: 9px 0 27px 34px; display: flex; flex-direction: column; justify-content: space-between; }
+    .chart-grid span { display: block; border-top: 1px dashed #e5e9e4; }
+    .bars { height: 100%; position: relative; z-index: 1; display: flex; align-items: flex-end; justify-content: space-around; gap: 10px; border-bottom: 1px solid #cfd9d0; }
+    .bar-group { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 8px; flex: 1; }
+    .bar { width: min(32px, 68%); border-radius: 5px 5px 0 0; background: #8fc9a2; transition: height .35s ease, background .2s ease; }
+    .bar.highlight { background: var(--forest); }
+    .bar-label { color: var(--muted); font: 10px Arial, sans-serif; }
+    .axis-labels { position: absolute; left: 0; top: 4px; bottom: 31px; display: flex; flex-direction: column; justify-content: space-between; color: #97a39a; font: 10px Arial, sans-serif; }
+    .legend { display: flex; gap: 19px; align-items: center; margin-top: 18px; color: var(--muted); font: 11px Arial, sans-serif; }
+    .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; background: #8fc9a2; }
+    .legend i.dark { background: var(--forest); }
+    .source-list { display: grid; gap: 0; }
+    .source-row { display: flex; gap: 11px; align-items: center; border-top: 1px solid #edf0ec; padding: 14px 0; }
+    .source-logo { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; color: white; font: 700 14px Arial, sans-serif; }
+    .source-logo.apple { background: #252525; }
+    .source-logo.google { background: #4d8cfc; }
+    .source-logo.fitbit { background: #36a0d2; }
+    .source-copy { flex: 1; min-width: 0; }
+    .source-name { font: 700 13px Arial, sans-serif; }
+    .source-detail { color: var(--muted); font: 10px Arial, sans-serif; margin-top: 3px; }
+    .source-state { color: #429362; font: 700 10px Arial, sans-serif; }
+    .connect { border: 1px solid #bfd7c5; border-radius: 7px; color: var(--forest); background: #f5fbf6; padding: 7px 9px; font: 700 10px Arial, sans-serif; }
+    .connect:hover { background: var(--mint); }
+    .bottom-grid { grid-template-columns: minmax(0, 1.45fr) minmax(300px, .8fr); margin-top: 18px; }
+    .timeline { display: grid; gap: 0; }
+    .event { display: grid; grid-template-columns: 69px 14px 1fr; gap: 11px; min-height: 59px; }
+    .event-time { color: var(--muted); font: 10px Arial, sans-serif; padding-top: 3px; }
+    .event-marker { position: relative; display: flex; justify-content: center; }
+    .event-marker::before { content: ''; width: 9px; height: 9px; border: 2px solid var(--forest); border-radius: 50%; background: var(--surface); z-index: 1; }
+    .event:not(:last-child) .event-marker::after { content: ''; position: absolute; top: 11px; bottom: -1px; border-left: 1px solid #cbd9ce; }
+    .event-title { font: 700 12px Arial, sans-serif; }
+    .event-copy { color: var(--muted); font: 11px/1.45 Arial, sans-serif; margin-top: 4px; }
+    .insight { background: #eef7e0; border-color: #d4e7ba; box-shadow: none; }
+    .insight .panel-title { color: #365223; }
+    .insight p { color: #536b3e; font: 13px/1.6 Georgia, serif; margin: 17px 0 19px; }
+    .insight-tag { display: inline-flex; align-items: center; gap: 7px; color: #67854b; font: 700 10px Arial, sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+    .insight-tag::before { content: ''; width: 7px; height: 7px; background: var(--lime); border-radius: 50%; }
+    .modal-backdrop { position: fixed; inset: 0; display: none; place-items: center; padding: 20px; background: rgba(18, 38, 27, .38); z-index: 4; }
+    .modal-backdrop.open { display: grid; }
+    .modal { width: min(440px, 100%); border-radius: 15px; background: var(--surface); padding: 26px; box-shadow: 0 30px 80px rgba(18,38,27,.25); }
+    .modal h2 { margin: 0 0 9px; font: 400 25px Georgia, serif; }
+    .modal p { color: var(--muted); font: 13px/1.55 Arial, sans-serif; margin: 0 0 20px; }
+    .scope-list { display: grid; gap: 9px; padding: 14px; border-radius: 9px; background: var(--paper); margin-bottom: 21px; }
+    .scope-list label { display: flex; align-items: center; gap: 9px; color: var(--ink); font: 12px Arial, sans-serif; }
+    .scope-list input { accent-color: var(--forest); }
+    .modal-actions { display: flex; gap: 9px; justify-content: flex-end; }
+    .modal-actions button { border-radius: 8px; padding: 10px 14px; font: 700 11px Arial, sans-serif; }
+    .cancel { border: 1px solid var(--line); background: white; color: var(--muted); }
+    .confirm { border: 1px solid var(--forest); background: var(--forest); color: white; }
+    .patient-home { max-width: 720px; margin: 0 auto 26px; }
+    .patient-greeting { margin-bottom: 24px; }
+    .patient-greeting h1 { margin: 7px 0 8px; font-size: 34px; }
+    .patient-date { color: var(--muted); font: 13px Arial, sans-serif; }
+    .patient-prompt { margin: 0 0 13px; font: 400 21px Georgia, serif; letter-spacing: -.3px; }
+    .daily-checkin { display: block; width: 100%; border: 1px solid #d7e8dc; border-radius: 16px; padding: 31px 20px 27px; color: var(--forest); background: #f7fcf7; text-align: center; box-shadow: none; cursor: pointer; }
+    .daily-checkin:hover { border-color: #a9cdb3; background: #f0f9f1; }
+    .daily-checkin-icon { display: grid; place-items: center; width: 56px; height: 56px; margin: 0 auto 13px; border-radius: 50%; color: white; background: var(--coral); box-shadow: 0 0 0 7px #ffede8; font-size: 22px; }
+    .daily-checkin-button { border: 0; background: transparent; color: var(--forest); font: 700 16px Arial, sans-serif; }
+    .daily-checkin-note { color: var(--muted); font: 11px Arial, sans-serif; margin: 8px 0 0; }
+    .today-heading { margin: 28px 0 12px; color: var(--muted); font: 700 10px Arial, sans-serif; letter-spacing: 1.2px; text-transform: uppercase; }
+    .patient-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .patient-metric { min-height: 116px; border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: var(--surface); box-shadow: none; }
+    .patient-metric-label { display: flex; align-items: center; gap: 6px; color: var(--muted); font: 11px Arial, sans-serif; }
+    .patient-metric-icon { font-size: 15px; }
+    .patient-metric-value { margin-top: 19px; font: 400 21px Georgia, serif; }
+    .patient-metric-foot { color: var(--muted); font: 10px Arial, sans-serif; line-height: 1.35; margin-top: 8px; }
+    .mobile-nav { display: none; }
+    .mobile-nav-item { border: 0; background: transparent; color: var(--muted); font: 18px Arial, sans-serif; }
+    .mobile-nav-item span { display: block; margin-top: 4px; font: 10px Arial, sans-serif; }
+    .mobile-nav-item.active { color: var(--forest); }
+    .flow-overlay { position: fixed; inset: 0; z-index: 8; display: none; place-items: center; padding: 20px; background: rgba(18,38,27,.42); }
+    .flow-overlay.open { display: grid; }
+    .flow-panel { width: min(540px, 100%); max-height: min(720px, 92vh); overflow: auto; border-radius: 18px; background: var(--surface); box-shadow: 0 30px 80px rgba(18,38,27,.24); }
+    .flow-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 18px 22px; border-bottom: 1px solid var(--line); }
+    .flow-back { width: 30px; border: 0; color: var(--forest); background: transparent; font-size: 22px; text-align: left; }
+    .flow-title { flex: 1; color: var(--ink); font: 700 13px Arial, sans-serif; text-align: center; }
+    .flow-step { color: var(--muted); font: 10px Arial, sans-serif; letter-spacing: 1px; text-transform: uppercase; }
+    .flow-close { border: 0; color: var(--muted); background: transparent; font-size: 20px; }
+    .flow-progress { height: 4px; background: #edf1eb; }
+    .flow-progress span { display: block; width: 20%; height: 100%; background: var(--coral); transition: width .25s ease; }
+    .flow-screen { padding: 30px 28px 26px; }
+    .flow-screen[hidden] { display: none; }
+    .flow-screen h2 { margin: 0 0 10px; font: 400 29px/1.1 Georgia, serif; letter-spacing: -.7px; }
+    .flow-screen > p { color: var(--muted); font: 13px/1.55 Arial, sans-serif; margin: 0 0 24px; }
+    .flow-center { text-align: center; }
+    .flow-icon { display: grid; place-items: center; width: 78px; height: 78px; margin: 5px auto 22px; border-radius: 50%; color: white; background: var(--coral); box-shadow: 0 0 0 9px #fff0ec; font-size: 28px; }
+    .flow-intro h2 { text-align: center; }
+    .flow-intro > p { text-align: center; margin-bottom: 13px; }
+    .flow-intro-list { display: grid; gap: 10px; margin: 0 auto 30px; max-width: 320px; }
+    .flow-intro-item { display: flex; align-items: center; gap: 11px; color: var(--ink); font: 13px Arial, sans-serif; }
+    .flow-intro-item span { display: grid; place-items: center; width: 29px; height: 29px; border-radius: 8px; background: #f4eee8; font-size: 16px; }
+    .flow-intro-mic { display: grid; place-items: center; width: 104px; height: 104px; margin: 0 auto 18px; border: 0; border-radius: 50%; color: white; background: var(--coral); box-shadow: 0 0 0 10px #fff0ec, 0 10px 22px rgba(189,81,65,.18); font-size: 32px; }
+    .flow-intro-mic:hover { background: #bd5141; }
+    .flow-mic-label { color: var(--ink); font: 700 12px Arial, sans-serif; text-align: center; }
+    .flow-type { display: block; border: 0; margin: 14px auto 0; color: var(--forest); background: transparent; font: 700 11px Arial, sans-serif; text-decoration: underline; }
+    .flow-primary, .flow-secondary { width: 100%; border-radius: 9px; padding: 12px 15px; font: 700 12px Arial, sans-serif; }
+    .flow-primary { border: 1px solid var(--forest); color: white; background: var(--forest); }
+    .flow-secondary { border: 1px solid var(--line); color: var(--forest); background: white; margin-top: 9px; }
+    .flow-choice-list { display: grid; gap: 9px; margin-bottom: 22px; }
+    .flow-choice { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 9px; padding: 12px; color: var(--ink); font: 12px Arial, sans-serif; }
+    .flow-choice:has(input:checked) { border-color: #a9cdb3; background: #f2f9f2; }
+    .flow-choice input { accent-color: var(--forest); }
+    .flow-reading { display: grid; gap: 10px; margin: 0 0 22px; }
+    .flow-reading div { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px solid #e6eee6; padding: 10px 0; font: 12px Arial, sans-serif; }
+    .flow-reading span { color: var(--muted); }
+    .flow-reading strong { color: var(--forest); }
+    .flow-detected-list { display: grid; gap: 10px; margin: 22px 0 16px; }
+    .flow-topic-card { display: flex; align-items: center; gap: 12px; border: 1px solid #d7e8dc; border-radius: 11px; padding: 14px; background: #f7fcf7; color: var(--ink); font: 700 14px Arial, sans-serif; }
+    .flow-topic-card input { width: 18px; height: 18px; margin-left: auto; accent-color: var(--forest); order: 3; }
+    .flow-topic-card > span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; background: #f4eee8; font-size: 18px; }
+    .flow-topic-note { color: var(--muted); font: 12px Arial, sans-serif; margin: 0 0 21px; text-align: center; }
+    .flow-edit { display: block; border: 0; margin: 12px auto 0; color: var(--forest); background: transparent; font: 700 11px Arial, sans-serif; text-decoration: underline; }
+    .guided-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 23px; }
+    .guided-context { color: var(--muted); font: 11px Arial, sans-serif; margin-top: 5px; }
+    .guided-count { color: var(--forest); font: 700 11px Arial, sans-serif; }
+    .severity-list { display: grid; gap: 11px; margin: 23px 0 28px; }
+    .severity-card { display: block; width: 100%; border: 1px solid var(--line); border-radius: 11px; padding: 16px; color: var(--ink); background: white; text-align: left; }
+    .severity-card:hover { border-color: #a9cdb3; background: #f5fbf5; }
+    .severity-card strong { display: block; font: 700 14px Arial, sans-serif; }
+    .severity-card span { display: block; color: var(--muted); font: 11px Arial, sans-serif; margin-top: 5px; }
+    .severity-voice { display: flex; align-items: center; justify-content: center; gap: 9px; border: 0; margin: 0 auto; color: var(--forest); background: transparent; font: 700 11px Arial, sans-serif; }
+    .severity-voice-icon { display: grid; place-items: center; width: 31px; height: 31px; border-radius: 50%; color: white; background: var(--coral); font-size: 13px; }
+    .severity-voice-status { color: var(--muted); font: 10px Arial, sans-serif; text-align: center; margin-top: 8px; }
+    .pain-score-prompt { margin-bottom: 22px !important; color: var(--ink) !important; font: 16px/1.45 Georgia, serif !important; }
+    .pain-score-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 9px; margin-bottom: 10px; }
+    .pain-score-grid:last-of-type { grid-template-columns: repeat(6, 1fr); }
+    .pain-score-button { min-height: 52px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); background: white; font: 700 16px Arial, sans-serif; }
+    .pain-score-button:hover, .pain-score-button.selected { border-color: var(--coral); color: white; background: var(--coral); }
+    .pain-score-scale { display: flex; justify-content: space-between; color: var(--muted); font: 10px Arial, sans-serif; margin: 8px 2px 24px; }
+    .pain-score-skip { display: block; border: 0; margin: 11px auto 0; color: var(--muted); background: transparent; font: 11px Arial, sans-serif; text-decoration: underline; }
+    .impact-list { display: grid; gap: 9px; margin: 20px 0 22px; }
+    .impact-choice { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 9px; padding: 12px; color: var(--ink); background: white; font: 12px Arial, sans-serif; }
+    .impact-choice:has(input:checked) { border-color: #a9cdb3; background: #f2f9f2; }
+    .impact-choice input { width: 17px; height: 17px; accent-color: var(--forest); }
+    .impact-voice { display: flex; align-items: center; justify-content: center; gap: 8px; border: 0; margin: 20px auto 0; color: var(--forest); background: transparent; font: 700 11px Arial, sans-serif; }
+    .impact-voice-icon { font-size: 17px; }
+    .impact-voice-status { color: var(--muted); font: 11px/1.45 Arial, sans-serif; margin-top: 8px; text-align: center; }
+    .med-list { display: grid; gap: 10px; margin: 20px 0 18px; }
+    .med-list[hidden], .med-ambiguity[hidden] { display: none; }
+    .med-card { display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: 11px; padding: 14px; background: white; cursor: pointer; }
+    .med-card:has(input:checked) { border-color: #a9cdb3; background: #f2f9f2; }
+    .med-card input { width: 18px; height: 18px; accent-color: var(--forest); }
+    .med-card-copy { display: grid; gap: 4px; }
+    .med-card-copy strong { color: var(--ink); font: 700 14px Arial, sans-serif; }
+    .med-card-copy span { color: var(--muted); font: 11px Arial, sans-serif; }
+    .med-voice { display: flex; align-items: center; justify-content: center; gap: 8px; border: 0; margin: 18px auto; color: var(--forest); background: transparent; font: 700 11px Arial, sans-serif; }
+    .med-voice-icon { font-size: 17px; }
+    .med-voice-status { color: var(--muted); font: 11px Arial, sans-serif; margin: -10px 0 14px; text-align: center; }
+    .med-ambiguity { margin: 5px 0 17px; padding: 15px; border: 1px solid #f0dca1; border-radius: 10px; background: #fff9e8; }
+    .med-ambiguity p { margin: 0 0 8px; color: var(--ink); font: 13px/1.4 Arial, sans-serif; }
+    .med-ambiguity p:first-child { font-weight: 700; }
+    .med-ambiguity-list { display: grid; gap: 8px; margin-top: 12px; }
+    .med-ambiguity-choice { border: 1px solid #e2d19b; border-radius: 8px; padding: 10px; color: var(--ink); background: white; text-align: left; font: 700 12px Arial, sans-serif; }
+    .med-ambiguity-choice:hover { border-color: var(--forest); background: #f2f9f2; }
+    .measurement-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin: 18px 0 20px; }
+    .measurement-switch button { border: 1px solid var(--line); border-radius: 8px; padding: 10px; color: var(--muted); background: white; font: 700 11px Arial, sans-serif; }
+    .measurement-switch button.active { border-color: var(--forest); color: white; background: var(--forest); }
+    .vital-source-note { border-left: 3px solid #9fc7aa; padding: 10px 12px; color: #4d7258; background: #f1f8ee; font: 11px/1.45 Arial, sans-serif; }
+    .vital-actions { display: grid; gap: 9px; margin: 20px 0; }
+    .vital-action { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 9px; padding: 13px; color: var(--ink); background: white; text-align: left; font: 700 12px Arial, sans-serif; }
+    .vital-action:hover { border-color: #a9cdb3; background: #f2f9f2; }
+    .vital-action-icon { width: 25px; color: var(--forest); text-align: center; font-size: 17px; }
+    .vital-entry { display: none; }
+    .vital-entry.open { display: block; }
+    .vital-confirm { display: none; border: 1px solid #c8ddd0; border-radius: 11px; padding: 16px; margin: 19px 0; background: #f3faf1; text-align: center; }
+    .vital-confirm.open { display: block; }
+    .vital-confirm-label { color: var(--muted); font: 10px Arial, sans-serif; text-transform: uppercase; letter-spacing: .9px; }
+    .vital-confirm-value { margin: 9px 0 15px; color: var(--forest); font: 400 28px Georgia, serif; }
+    .vital-confirm-actions { display: flex; gap: 8px; }
+    .vital-confirm-actions button { flex: 1; border-radius: 8px; padding: 10px; font: 700 11px Arial, sans-serif; }
+    .vital-correct { border: 1px solid var(--forest); color: white; background: var(--forest); }
+    .vital-edit { border: 1px solid var(--line); color: var(--forest); background: white; }
+    .review-date { color: var(--muted); font: 12px Arial, sans-serif; margin: -4px 0 22px; }
+    .review-section { margin: 22px 0; }
+    .review-section-title { color: var(--muted); font: 700 10px Arial, sans-serif; letter-spacing: 1.1px; text-transform: uppercase; margin-bottom: 9px; }
+    .review-card { border: 1px solid var(--line); border-radius: 10px; padding: 13px; margin-bottom: 8px; background: #fbfdfb; }
+    .review-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .review-card strong { color: var(--ink); font: 700 13px Arial, sans-serif; }
+    .review-card p { color: var(--muted); font: 11px/1.5 Arial, sans-serif; margin: 6px 0 0; white-space: pre-line; }
+    .review-edit { border: 0; color: var(--forest); background: transparent; font: 700 10px Arial, sans-serif; text-decoration: underline; }
+    .review-editable[contenteditable="true"] { outline: 2px solid #b7d7bf; border-radius: 4px; padding: 3px; background: white; }
+    .review-vitals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .review-vital { border: 1px solid var(--line); border-radius: 9px; padding: 11px; background: #fbfdfb; }
+    .review-vital span { display: block; color: var(--muted); font: 10px Arial, sans-serif; }
+    .review-vital strong { display: block; margin-top: 7px; color: var(--ink); font: 700 13px Arial, sans-serif; }
+    .review-source { color: #4d7258; font: 10px Arial, sans-serif; margin-top: 9px; }
+    .review-confirm { margin-top: 26px; font-size: 13px; }
+    .flow-field { display: grid; gap: 6px; margin-bottom: 15px; }
+    .flow-field label { color: var(--muted); font: 10px Arial, sans-serif; text-transform: uppercase; letter-spacing: .8px; }
+    .flow-field input, .flow-field select, .flow-field textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 11px; color: var(--ink); background: #fbfcfa; font: 12px Arial, sans-serif; }
+    .flow-field textarea { min-height: 82px; resize: vertical; }
+    .flow-listening { display: grid; place-items: center; min-height: 215px; text-align: center; }
+    .flow-listening .mic-button { margin-bottom: 18px; }
+    .flow-listening p { color: var(--muted); font: 12px Arial, sans-serif; }
+    .flow-listening h2 { margin-bottom: 17px; }
+    .voice-wave { display: flex; align-items: center; justify-content: center; gap: 5px; height: 38px; margin: 0 auto 24px; }
+    .voice-wave span { width: 4px; height: 14px; border-radius: 5px; background: var(--coral); animation: wave 1s ease-in-out infinite alternate; }
+    .voice-wave span:nth-child(2) { animation-delay: -.2s; height: 26px; }
+    .voice-wave span:nth-child(3) { animation-delay: -.4s; height: 36px; }
+    .voice-wave span:nth-child(4) { animation-delay: -.6s; height: 23px; }
+    .voice-wave span:nth-child(5) { animation-delay: -.8s; height: 31px; }
+    .voice-wave span:nth-child(6) { animation-delay: -.4s; height: 19px; }
+    .voice-wave span:nth-child(7) { animation-delay: -.1s; height: 28px; }
+    @keyframes wave { to { transform: scaleY(.42); opacity: .55; } }
+    .flow-transcript { min-height: 128px; color: var(--ink); background: #fbfdfb; font: 18px/1.5 Georgia, serif; text-align: left; }
+    .flow-done { margin-top: 22px; font-size: 14px; }
+    .flow-cancel { display: block; border: 0; margin: 13px auto 0; color: var(--muted); background: transparent; font: 11px Arial, sans-serif; text-decoration: underline; }
+    .flow-warning { border-left: 3px solid var(--gold); padding: 12px 13px; margin: 0 0 20px; color: #7a652a; background: #fff8df; font: 12px/1.5 Arial, sans-serif; }
+    .voice-checkin { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(290px, .8fr); gap: 0; overflow: hidden; margin-bottom: 22px; border-color: #c8ddd0; background: var(--surface); }
+    .voice-main { padding: 25px; }
+    .voice-kicker { display: flex; align-items: center; gap: 8px; color: #478060; font: 700 10px Arial, sans-serif; letter-spacing: 1.3px; text-transform: uppercase; }
+    .voice-kicker::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--coral); box-shadow: 0 0 0 5px rgba(236,125,104,.12); }
+    .voice-title { margin: 12px 0 8px; font: 400 27px/1.1 Georgia, serif; letter-spacing: -.6px; }
+    .voice-copy { max-width: 500px; color: var(--muted); font: 13px/1.5 Arial, sans-serif; margin: 0; }
+    .speak-button { display: inline-flex; align-items: center; gap: 7px; border: 1px solid #c8ddd0; border-radius: 8px; padding: 8px 10px; margin-top: 14px; color: var(--forest); background: #f6fbf6; font: 700 11px Arial, sans-serif; }
+    .speak-button:hover { background: var(--mint); }
+    .voice-row { display: flex; align-items: center; gap: 16px; margin-top: 22px; }
+    .mic-button { width: 62px; height: 62px; border: 0; border-radius: 50%; color: white; background: var(--coral); box-shadow: 0 0 0 7px #fff1ed, 0 8px 19px rgba(189,81,65,.2); font-size: 24px; }
+    .mic-button.recording { animation: pulse 1.3s infinite; background: #bd5141; }
+    @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 7px #fff1ed, 0 8px 19px rgba(189,81,65,.2); } 50% { box-shadow: 0 0 0 13px #ffe4dd, 0 8px 19px rgba(189,81,65,.2); } }
+    .voice-status { color: var(--ink); font: 700 12px Arial, sans-serif; }
+    .voice-status small { display: block; color: var(--muted); font: 11px Arial, sans-serif; margin-top: 4px; }
+    .transcript { width: 100%; min-height: 70px; border: 1px solid #d8e5dc; border-radius: 9px; padding: 12px; color: var(--ink); background: #f8fbf8; font: 13px/1.5 Georgia, serif; margin-top: 18px; resize: vertical; }
+    .voice-review { padding: 25px; background: #f1f8ee; border-left: 1px solid #d5e8d8; }
+    .review-title { margin: 0 0 5px; font: 700 12px Arial, sans-serif; }
+    .review-copy { color: var(--muted); font: 11px/1.45 Arial, sans-serif; margin: 0 0 14px; }
+    .understood-list { display: grid; gap: 8px; }
+    .understood-item { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid #dbe9da; padding-bottom: 8px; font: 11px Arial, sans-serif; }
+    .understood-item span:first-child { color: #6c7c6e; }
+    .understood-item strong { color: var(--forest); text-align: right; }
+    .confirm-checkin { width: 100%; border: 0; border-radius: 8px; padding: 11px; margin-top: 17px; background: var(--forest); color: white; font: 700 11px Arial, sans-serif; }
+    .guided { margin-top: 15px; border-top: 1px solid #dbe9da; padding-top: 14px; }
+    .guided summary { cursor: pointer; color: var(--forest); font: 700 11px Arial, sans-serif; }
+    .guided-fields { display: grid; gap: 9px; margin-top: 12px; }
+    .guided-fields label { color: var(--muted); font: 10px Arial, sans-serif; }
+    .guided-fields select { width: 100%; border: 1px solid var(--line); border-radius: 7px; padding: 8px; margin-top: 4px; background: white; font: 11px Arial, sans-serif; }
+    .journal-shell { margin-top: 18px; }
+    .journal-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin: 34px 0 18px; }
+    .journal-heading h2 { margin: 6px 0 7px; font: 400 28px Georgia, serif; letter-spacing: -.8px; }
+    .journal-heading p { margin: 0; color: var(--muted); font: 13px Arial, sans-serif; }
+    .journal-actions { display: flex; gap: 9px; }
+    .action-button { border: 1px solid var(--forest); border-radius: 8px; padding: 10px 13px; color: white; background: var(--forest); font: 700 11px Arial, sans-serif; }
+    .action-button.secondary { border-color: var(--line); color: var(--forest); background: var(--surface); }
+    .journal-grid { grid-template-columns: minmax(0, 1fr) minmax(300px, .85fr); align-items: start; }
+    .form-stack { display: grid; gap: 13px; }
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+    .field label { display: block; color: var(--muted); font: 10px Arial, sans-serif; text-transform: uppercase; letter-spacing: .8px; margin: 0 0 6px; }
+    .field input, .field select, .field textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 10px 11px; color: var(--ink); background: #fbfcfa; outline: none; font: 12px Arial, sans-serif; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: #78a889; box-shadow: 0 0 0 3px rgba(120,168,137,.13); }
+    .field textarea { min-height: 76px; resize: vertical; line-height: 1.45; }
+    .range-row { display: flex; align-items: center; gap: 12px; }
+    .range-row input { accent-color: var(--coral); padding: 0; }
+    .range-value { min-width: 28px; color: #bd5141; font: 700 12px Arial, sans-serif; }
+    .form-submit { justify-self: start; border: 0; border-radius: 8px; padding: 10px 14px; background: var(--lime); color: var(--forest); font: 700 11px Arial, sans-serif; }
+    .checkin-note { border-left: 3px solid var(--coral); padding: 11px 13px; background: #fff5f1; color: #84554b; font: 12px/1.5 Georgia, serif; }
+    .journal-chart { min-height: 244px; }
+    .mini-chart { height: 147px; display: flex; align-items: flex-end; gap: 8px; padding: 17px 4px 26px; border-bottom: 1px solid #cfd9d0; position: relative; }
+    .mini-chart::before, .mini-chart::after { content: ''; position: absolute; left: 0; right: 0; border-top: 1px dashed #e5e9e4; }
+    .mini-chart::before { top: 47px; }
+    .mini-chart::after { top: 94px; }
+    .mini-bar { position: relative; z-index: 1; flex: 1; min-width: 12px; border-radius: 4px 4px 0 0; background: #efa28f; }
+    .mini-bar span { position: absolute; left: 50%; bottom: -21px; transform: translateX(-50%); color: var(--muted); font: 9px Arial, sans-serif; }
+    .log-table { width: 100%; border-collapse: collapse; margin-top: 19px; font: 11px Arial, sans-serif; }
+    .log-table th { color: var(--muted); font-size: 9px; letter-spacing: .6px; text-align: left; text-transform: uppercase; padding: 0 0 8px; }
+    .log-table td { border-top: 1px solid #edf0ec; padding: 10px 4px 10px 0; vertical-align: top; }
+    .log-table td:last-child { color: var(--muted); text-align: right; }
+    .tag { display: inline-block; border-radius: 5px; padding: 4px 6px; background: #fff0eb; color: #a65343; font-size: 9px; font-weight: 700; }
+    .empty-log { color: var(--muted); font: 11px Arial, sans-serif; margin: 15px 0 0; }
+    @media print { .sidebar, .topbar, .patient-picker, .status-strip, .journal-actions, .form-stack, .connect, .text-button { display: none !important; } .app-shell { display: block; } .main { padding: 20px; } .card { box-shadow: none; } .journal-shell { margin-top: 0; } }
+    @media (max-width: 1000px) { .app-shell { grid-template-columns: 70px minmax(0, 1fr); } .sidebar { padding: 22px 10px; } .brand { margin: 0 auto 46px; } .brand span, .nav-button span:not(.nav-icon), .privacy-card { display: none; } .nav-button { justify-content: center; padding: 12px 5px; } .main { padding: 25px 22px 40px; } }
+    @media (max-width: 760px) { .metric-grid, .main-grid, .bottom-grid { grid-template-columns: 1fr 1fr; } .main-grid > :first-child, .bottom-grid > :first-child { grid-column: 1 / -1; } .hero-row { align-items: flex-start; flex-direction: column; } .patient-picker { width: 100%; } h1 { font-size: 34px; } }
+    @media (max-width: 520px) { .app-shell { display: block; } .sidebar { height: auto; padding: 15px 18px; flex-direction: row; align-items: center; gap: 13px; } .brand { margin: 0; } .brand-mark { width: 26px; height: 26px; } .nav { display: flex; margin: 0 0 0 auto; gap: 3px; } .nav-button { padding: 8px; } .nav-button.active { background: transparent; color: var(--lime); } .sidebar-spacer, .privacy-card { display: none; } .main { padding: 22px 15px 86px; } .topbar { margin-bottom: 29px; } .crumb { display: none; } .patient-home { margin-bottom: 0; } .patient-greeting h1 { font-size: 32px; } .patient-prompt { font-size: 20px; } .patient-metrics { grid-template-columns: 1fr 1fr; gap: 10px; } .patient-metric { min-height: 112px; } .patient-metric-value { margin-top: 17px; font-size: 19px; } .mobile-nav { position: fixed; z-index: 3; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 10px 14px 9px; border-top: 1px solid var(--line); background: rgba(255,255,255,.96); box-shadow: 0 -6px 18px rgba(28,50,38,.06); } .hero-row, .status-strip, .metric-grid, .main-grid, .bottom-grid, .journal-shell { display: none; } .voice-checkin { margin-top: 22px; grid-template-columns: 1fr; } .voice-review { border-top: 1px solid #d5e8d8; border-left: 0; } .panel { padding: 17px; } .status-strip { align-items: flex-start; } .status-strip span:last-child { display: none; } .journal-heading { display: block; } .journal-heading h2 { font-size: 25px; } .journal-actions { margin-top: 14px; } .journal-grid { grid-template-columns: 1fr; } .field-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">+</span><span>pulsewise</span></div>
+      <div class="eyebrow">Workspace</div>
+      <nav class="nav" aria-label="Primary navigation">
+        <button class="nav-button active"><span class="nav-icon">◉</span><span>Overview</span></button>
+        <button class="nav-button"><span class="nav-icon">↗</span><span>Patients</span></button>
+        <button class="nav-button"><span class="nav-icon">⌁</span><span>Data streams</span></button>
+        <button class="nav-button"><span class="nav-icon">▣</span><span>Reports</span></button>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="privacy-card"><div class="eyebrow">Protected workspace</div><p>Encrypted in transit and at rest. Access is logged for every care team member.</p></div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar"><div class="crumb">Patients / Overview</div><div class="top-actions"><button class="icon-button" aria-label="Notifications">♢</button><div class="avatar">AL</div></div></header>
+      <section class="patient-home" aria-label="Patient home">
+        <div class="patient-greeting"><div class="eyebrow" style="color: var(--forest)">Your health today</div><h1>Good morning, Mary</h1><div class="patient-date" id="patientDate">Friday, September 18</div></div>
+        <p class="patient-prompt">How are you feeling today?</p>
+        <button class="daily-checkin" id="dailyCheckinButton" aria-label="Start Daily Check-in"><div class="daily-checkin-icon">●</div><span class="daily-checkin-button">Start Daily Check-in</span><div class="daily-checkin-note">Usually takes 1–2 minutes</div></button>
+        <div class="today-heading">Today's health</div>
+        <div class="patient-metrics"><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">♥</span>Heart Rate</div><div class="patient-metric-value">72 bpm</div><div class="patient-metric-foot">Updated 8:42 AM<br>Apple Health</div></article><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">♢</span>Blood Pressure</div><div class="patient-metric-value">132 / 81</div><div class="patient-metric-foot">Updated 8:42 AM<br>Apple Health</div></article><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">●</span>Blood Glucose</div><div class="patient-metric-value">108 mg/dL</div><div class="patient-metric-foot">Updated 7:55 AM<br>Apple Health</div></article><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">▣</span>Medication</div><div class="patient-metric-value">2 of 3 taken</div><div class="patient-metric-foot">Updated 8:10 AM<br>Pulsewise</div></article></div>
+      </section>
+      <section class="hero-row">
+        <div><div class="eyebrow" style="color: var(--forest)">Patient overview · demo record</div><h1>Good morning, Alex.</h1><p class="subtitle">A calm view of the signals that matter today.</p></div>
+        <div class="patient-picker"><label for="patient">Viewing patient</label><select id="patient"><option>Alex Morgan · PT-2048</option><option>Jamie Lee · PT-1981</option><option>Riley Chen · PT-2160</option></select></div>
+      </section>
+      <nav class="mobile-nav" aria-label="Patient navigation"><button class="mobile-nav-item active" id="homeNav">⌂<span>Home</span></button><button class="mobile-nav-item" id="checkinNav">●<span>Check-in</span></button><button class="mobile-nav-item" id="trendsNav">⌁<span>Trends</span></button><button class="mobile-nav-item" id="moreNav">•••<span>More</span></button></nav>
+      <div class="status-strip"><span class="status-dot"></span><strong>All connected sources are current</strong><span>Last sync 4 minutes ago</span></div>
+
+      <section class="card voice-checkin" aria-labelledby="voiceTitle">
+        <div class="voice-main">
+          <div class="voice-kicker">Daily check-in</div>
+          <h2 class="voice-title" id="voiceTitle">Tell me how you are feeling.</h2>
+          <p class="voice-copy">Speak naturally. You can mention symptoms, medications, meals, or measurements in the same sentence.</p>
+          <button class="speak-button" id="speakPrompt" aria-label="Read check-in prompt aloud">◖ Read prompt aloud</button>
+          <div class="voice-row"><button class="mic-button" id="micButton" aria-label="Start voice check-in">●</button><div class="voice-status" id="voiceStatus">Tap to speak<small>Example: “My blood pressure was 135 over 82, and I feel more tired today.”</small></div></div>
+          <textarea class="transcript" id="transcript" aria-label="Your check-in transcript" placeholder="Your words will appear here. You can edit them before confirming."></textarea>
+        </div>
+        <div class="voice-review">
+          <h3 class="review-title">I heard</h3><p class="review-copy">Review these details before they are added to your record.</p>
+          <div class="understood-list" id="understoodList"><div class="understood-item"><span>Blood pressure</span><strong>135 / 82 mmHg</strong></div><div class="understood-item"><span>Medication</span><strong>Taken after breakfast</strong></div><div class="understood-item"><span>Symptom</span><strong>More fatigue than usual</strong></div><div class="understood-item"><span>When</span><strong>This morning</strong></div></div>
+          <details class="guided"><summary>Answer guided symptom questions</summary><div class="guided-fields"><label>Where is the discomfort?<select><option>Not applicable</option><option>Head</option><option>Chest</option><option>Abdomen</option><option>Back</option><option>Arms or legs</option></select></label><label>How severe is it?<select><option>Mild</option><option>Moderate</option><option>Severe</option></select></label><label>Compared with yesterday?<select><option>About the same</option><option>Better</option><option>Worse</option></select></label></div></details>
+          <button class="confirm-checkin" id="confirmCheckin">Confirm and save</button>
+        </div>
+      </section>
+
+      <section class="grid metric-grid" aria-label="Today's health metrics">
+        <article class="card metric-card"><div class="metric-top"><span class="metric-name">Resting heart rate</span><span class="metric-icon heart">♥</span></div><div class="metric-value">62 <small>bpm</small></div><div class="metric-foot"><span class="up">↓ 3 bpm</span> from 7-day avg.</div></article>
+        <article class="card metric-card"><div class="metric-top"><span class="metric-name">Sleep quality</span><span class="metric-icon sleep">☾</span></div><div class="metric-value">8h 12m</div><div class="metric-foot"><span class="up">↑ 12%</span> from last night</div></article>
+        <article class="card metric-card"><div class="metric-top"><span class="metric-name">Steps</span><span class="metric-icon steps">✣</span></div><div class="metric-value">6,842</div><div class="metric-foot">68% of daily target</div></article>
+        <article class="card metric-card"><div class="metric-top"><span class="metric-name">Skin temperature</span><span class="metric-icon temp">∿</span></div><div class="metric-value">36.6°</div><div class="metric-foot"><span class="down">↑ 0.2°</span> from baseline</div></article>
+      </section>
+
+      <section class="flow-overlay" id="checkinFlow" aria-label="Voice check-in flow" aria-modal="true" role="dialog">
+        <div class="flow-panel">
+          <div class="flow-top"><button class="flow-back" id="flowBack" aria-label="Go back">←</button><span class="flow-title">Daily Check-in</span><span class="flow-step" id="flowStep">Step 2 of 10</span><button class="flow-close" id="flowClose" aria-label="Close check-in">×</button></div>
+          <div class="flow-progress"><span id="flowProgress"></span></div>
+          <section class="flow-screen flow-intro" data-screen="intro"><h2>How are you feeling today?</h2><p>You can tell me about:</p><div class="flow-intro-list"><div class="flow-intro-item"><span>🤕</span>Pain or discomfort</div><div class="flow-intro-item"><span>😴</span>Fatigue or sleep</div><div class="flow-intro-item"><span>💊</span>Medication</div><div class="flow-intro-item"><span>🍽</span>Food or appetite</div><div class="flow-intro-item"><span>🙂</span>Anything different today</div></div><button class="flow-intro-mic" id="flowIntroMic" aria-label="Tap to start speaking" data-next="listening">●</button><div class="flow-mic-label">Tap to start speaking</div><button class="flow-type" id="flowType" data-next="listening">Or type instead</button></section>
+          <section class="flow-screen flow-listening" data-screen="listening" hidden><div><h2>I'm listening</h2><div class="voice-wave" aria-label="Voice recording active"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><textarea class="transcript flow-transcript" id="flowTranscript" aria-label="Live transcript" placeholder="Your words will appear here..."></textarea><button class="flow-primary flow-done" data-next="topics">■ Done</button><button class="flow-cancel" data-close>Cancel recording</button></div></section>
+          <section class="flow-screen" data-screen="topics" hidden><h2>I heard you mention:</h2><p>Here is what I understood from what you said.</p><div class="flow-detected-list"><label class="flow-topic-card"><span>🤕</span>Knee pain<input type="checkbox" name="topic" value="symptom" checked></label><label class="flow-topic-card"><span>😴</span>Fatigue<input type="checkbox" name="topic" value="symptom-detail" checked></label><label class="flow-topic-card"><span>💊</span>Missed medication<input type="checkbox" name="topic" value="medication" checked></label><label class="flow-topic-card"><span>♥</span>Blood pressure<input type="checkbox" name="topic" value="vital" checked></label></div><p class="flow-topic-note">Let’s go through these together.</p><button class="flow-primary" data-next="guided">Continue</button><button class="flow-edit" id="editTopics">Something isn’t right? Edit</button></section>
+          <section class="flow-screen" data-screen="guided" hidden><div class="guided-header"><div><div class="guided-context">About your knee pain</div></div><span class="guided-count">1 of 3</span></div><h2>How severe is your pain right now?</h2><div class="severity-list"><button class="severity-card" data-severity="mild"><strong>Mild</strong><span>Noticeable, but manageable</span></button><button class="severity-card" data-severity="moderate"><strong>Moderate</strong><span>Interferes with some activities</span></button><button class="severity-card" data-severity="severe"><strong>Severe</strong><span>Difficult to do normal activities</span></button></div><button class="severity-voice" id="severityVoice"><span class="severity-voice-icon">●</span>Or tell me in your own words</button><div class="severity-voice-status" id="severityVoiceStatus"></div></section>
+          <section class="flow-screen" data-screen="pain-score" hidden><div class="guided-header"><div><div class="guided-context">Optional detail · About your knee pain</div></div><span class="guided-count">Optional</span></div><h2>How does the pain feel on a scale?</h2><p class="pain-score-prompt">If 0 means no pain and 10 means the worst pain you can imagine, what number feels closest?</p><div class="pain-score-grid"><button class="pain-score-button">0</button><button class="pain-score-button">1</button><button class="pain-score-button">2</button><button class="pain-score-button">3</button><button class="pain-score-button">4</button></div><div class="pain-score-grid"><button class="pain-score-button">5</button><button class="pain-score-button">6</button><button class="pain-score-button">7</button><button class="pain-score-button">8</button><button class="pain-score-button">9</button><button class="pain-score-button">10</button></div><div class="pain-score-scale"><span>No pain</span><span>Worst pain</span></div><button class="flow-primary" id="painScoreContinue">Continue</button><button class="pain-score-skip" id="painScoreSkip">Skip this optional question</button></section>
+          <section class="flow-screen" data-screen="additional" hidden><div class="guided-context">About your knee pain</div><h2>Is the pain making anything harder today?</h2><p>Select all that apply.</p><div class="impact-list"><label class="impact-choice"><input type="checkbox" name="impact" value="walking">Walking</label><label class="impact-choice"><input type="checkbox" name="impact" value="sleeping">Sleeping</label><label class="impact-choice"><input type="checkbox" name="impact" value="eating">Eating</label><label class="impact-choice"><input type="checkbox" name="impact" value="dressing">Getting dressed</label><label class="impact-choice"><input type="checkbox" name="impact" value="other">Other</label><label class="impact-choice"><input type="checkbox" name="impact" value="none">No major impact</label></div><button class="flow-primary" data-next="medication">Continue</button><button class="impact-voice" id="impactVoice"><span class="impact-voice-icon">🎤</span>Tell me in your own words</button><div class="impact-voice-status" id="impactVoiceStatus"></div></section>
+          <section class="flow-screen" data-screen="medication" hidden><div class="guided-context">Medication list</div><h2>Which medication did you miss?</h2><p>Choose from your saved medications, or tell me if you are not sure.</p><div class="med-list" id="medList"><label class="med-card"><input type="radio" name="missedMedication" value="prednisone"><span class="med-card-copy"><strong>Prednisone</strong><span>5 mg · Morning</span></span></label><label class="med-card"><input type="radio" name="missedMedication" value="lisinopril"><span class="med-card-copy"><strong>Lisinopril</strong><span>10 mg · Morning</span></span></label><label class="med-card"><input type="radio" name="missedMedication" value="unknown"><span class="med-card-copy"><strong>I don’t know</strong><span>We can add more detail later</span></span></label></div><button class="med-voice" id="medVoice"><span class="med-voice-icon">🎤</span>Tell me</button><div class="med-voice-status" id="medVoiceStatus"></div><div class="med-ambiguity" id="medAmbiguity" hidden><p>I’m not sure which medication you mean.</p><p>Was it:</p><div class="med-ambiguity-list"><button class="med-ambiguity-choice" data-med-choice="prednisone">Prednisone 5 mg</button><button class="med-ambiguity-choice" data-med-choice="lisinopril">Lisinopril 10 mg</button><button class="med-ambiguity-choice" data-med-choice="unknown">I’m not sure</button></div></div><button class="flow-primary" data-next="vital">Continue</button></section>
+          <section class="flow-screen" data-screen="vital" hidden><div class="guided-context">Connected health data</div><div class="measurement-switch"><button id="pressureTab" class="active">Blood pressure</button><button id="glucoseTab">Blood glucose</button></div><h2 id="vitalMissingTitle">I don’t have a blood pressure reading from today.</h2><p id="vitalQuestion">Did you measure it?</p><div class="vital-source-note">I checked Apple Health and your other connected sources first.</div><div class="vital-actions" id="vitalActions"><button class="vital-action" id="enterVital"><span class="vital-action-icon">＋</span>Enter reading</button><button class="vital-action" id="sayVital"><span class="vital-action-icon">🎤</span>Say my reading</button><button class="vital-action" id="notTodayVital"><span class="vital-action-icon">—</span>Not today</button></div><div class="vital-entry" id="vitalEntry"><div class="field-grid"><div class="flow-field"><label for="flowSystolic" id="firstVitalLabel">Top number</label><input id="flowSystolic" placeholder="138" inputmode="numeric" /></div><div class="flow-field"><label for="flowDiastolic" id="secondVitalLabel">Bottom number</label><input id="flowDiastolic" placeholder="85" inputmode="numeric" /></div></div><button class="flow-primary" id="saveVital">Save reading</button></div><div class="vital-confirm" id="vitalConfirm"><div class="vital-confirm-label">I heard:</div><div class="vital-confirm-value" id="vitalConfirmValue">138 / 85 mmHg</div><div class="vital-confirm-actions"><button class="vital-correct" id="vitalCorrect">Correct</button><button class="vital-edit" id="vitalEdit">Edit</button></div></div></section>
+          <section class="flow-screen" data-screen="review" hidden><h2>Today’s Check-in</h2><div class="review-date">Friday, September 18</div><div class="review-section"><div class="review-section-title">Symptoms</div><div class="review-card"><div class="review-card-head"><strong class="review-editable">Knee Pain</strong><button class="review-edit" data-edit-review>Edit</button></div><p class="review-editable">Moderate
+Worse than yesterday
+Makes walking difficult</p></div><div class="review-card"><div class="review-card-head"><strong class="review-editable">Fatigue</strong><button class="review-edit" data-edit-review>Edit</button></div><p class="review-editable">More than usual
+Started this morning
+Mild impact on daily activities</p></div></div><div class="review-section"><div class="review-section-title">Medication</div><div class="review-card"><div class="review-card-head"><strong class="review-editable">Prednisone 5 mg</strong><button class="review-edit" data-edit-review>Edit</button></div><p class="review-editable">Missed this morning</p></div><div class="review-card"><div class="review-card-head"><strong class="review-editable">Lisinopril 10 mg</strong><span style="color:#429362;font:700 10px Arial,sans-serif">Taken</span></div></div></div><div class="review-section"><div class="review-section-title">Vitals</div><div class="review-vitals"><div class="review-vital"><span>Blood Pressure</span><strong>132 / 81 mmHg</strong></div><div class="review-vital"><span>Heart Rate</span><strong>72 bpm</strong></div><div class="review-vital"><span>Blood Glucose</span><strong>108 mg/dL</strong></div></div><div class="review-source">Imported from Apple Health</div></div><div class="review-section"><div class="review-section-title">Diet</div><div class="review-card"><div class="review-card-head"><strong class="review-editable">Lunch</strong><button class="review-edit" data-edit-review>Edit</button></div><p class="review-editable">Chicken soup
+Rice
+Half an apple</p></div></div><button class="flow-primary review-confirm" data-next="trends">Confirm &amp; Save</button></section>
+          <section class="flow-screen flow-center" data-screen="trends" hidden><div class="flow-icon" style="background: var(--forest)">✓</div><h2>Saved to your record</h2><p>You can see how this check-in connects with your measurements and symptoms over time.</p><button class="flow-primary" data-close>View today's health</button><button class="flow-secondary" data-close>Done</button></section>
+        </div>
+      </section>
+
+      <section class="grid main-grid">
+        <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Heart rate this week</h2><div class="panel-meta">Resting heart rate · beats per minute</div></div><button class="text-button">7 days⌄</button></div><div class="chart-wrap"><div class="axis-labels"><span>80</span><span>70</span><span>60</span><span>50</span></div><div class="chart-grid"><span></span><span></span><span></span><span></span></div><div class="bars"><div class="bar-group"><div class="bar" style="height: 57%"></div><span class="bar-label">Mon</span></div><div class="bar-group"><div class="bar" style="height: 50%"></div><span class="bar-label">Tue</span></div><div class="bar-group"><div class="bar" style="height: 66%"></div><span class="bar-label">Wed</span></div><div class="bar-group"><div class="bar" style="height: 43%"></div><span class="bar-label">Thu</span></div><div class="bar-group"><div class="bar" style="height: 53%"></div><span class="bar-label">Fri</span></div><div class="bar-group"><div class="bar highlight" style="height: 36%"></div><span class="bar-label">Sat</span></div><div class="bar-group"><div class="bar" style="height: 46%"></div><span class="bar-label">Sun</span></div></div></div><div class="legend"><span><i></i>Daily resting average</span><span><i class="dark"></i>Today</span></div></article>
+        <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Connected sources</h2><div class="panel-meta">Patient-authorized data streams</div></div><button class="text-button" id="manageButton">Manage</button></div><div class="source-list"><div class="source-row"><div class="source-logo apple"></div><div class="source-copy"><div class="source-name">Apple Health</div><div class="source-detail">Steps, sleep, heart rate</div></div><span class="source-state">Synced</span></div><div class="source-row"><div class="source-logo google">G</div><div class="source-copy"><div class="source-name">Health Connect</div><div class="source-detail">Activity, vitals, nutrition</div></div><span class="source-state">Synced</span></div><div class="source-row"><div class="source-logo fitbit">fit</div><div class="source-copy"><div class="source-name">Fitbit</div><div class="source-detail">Sleep stages, readiness</div></div><button class="connect" data-source="Fitbit">Connect</button></div></div></article>
+      </section>
+
+      <section class="grid bottom-grid">
+        <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Recent activity</h2><div class="panel-meta">A normalized stream across all connected devices</div></div><button class="text-button">View all</button></div><div class="timeline"><div class="event"><div class="event-time">Today · 08:20</div><div class="event-marker"></div><div><div class="event-title">Morning walk recorded</div><div class="event-copy">2,140 steps · Apple Health · consistent with recent baseline</div></div></div><div class="event"><div class="event-time">Today · 07:10</div><div class="event-marker"></div><div><div class="event-title">Sleep session completed</div><div class="event-copy">8h 12m · 91% efficiency · Health Connect</div></div></div><div class="event"><div class="event-time">Yesterday · 22:45</div><div class="event-marker"></div><div><div class="event-title">Heart rate measurement</div><div class="event-copy">62 bpm resting average · Apple Health</div></div></div></div></article>
+        <article class="card panel insight"><div class="insight-tag">Signal worth a look</div><h2 class="panel-title" style="margin-top: 13px">Recovery is trending up.</h2><p>Alex's resting heart rate has moved down for three days while sleep duration is up. That combination may point to improved recovery this week.</p><button class="text-button" style="color:#365223">Open recovery report →</button></article>
+      </section>
+
+      <section class="journal-shell" id="journal">
+        <div class="journal-heading"><div><div class="eyebrow" style="color: var(--forest)">Your health journal</div><h2>Bring the whole picture to your next visit.</h2><p>Pair device readings with what only you can describe.</p></div><div class="journal-actions"><button class="action-button secondary" id="printButton">Print view</button><button class="action-button" id="exportButton">Export provider summary</button></div></div>
+        <div class="grid journal-grid">
+          <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Add a check-in</h2><div class="panel-meta">Your notes stay alongside your connected health data.</div></div></div><form class="form-stack" id="checkinForm"><div class="field-grid"><div class="field"><label for="checkinDate">Date</label><input id="checkinDate" type="date" required></div><div class="field"><label for="symptomType">Main symptom</label><select id="symptomType"><option>Pain</option><option>Fatigue</option><option>Nausea</option><option>Mood</option><option>Other</option></select></div></div><div class="field"><label for="painLevel">Pain or symptom intensity · 0 to 10</label><div class="range-row"><input id="painLevel" type="range" min="0" max="10" value="4"><span class="range-value" id="painValue">4 / 10</span></div></div><div class="field"><label for="dietNote">Food, hydration, or triggers</label><input id="dietNote" type="text" placeholder="e.g. skipped breakfast, 2L water"></div><div class="field"><label for="medicationNote">Medications or changes</label><input id="medicationNote" type="text" placeholder="e.g. took 400mg ibuprofen at 9am"></div><div class="field"><label for="journalNote">How are you feeling?</label><textarea id="journalNote" placeholder="Describe what changed, what helped, or what you want to remember..."></textarea></div><div class="checkin-note">A short, specific note can help your provider spot patterns that sensors cannot measure.</div><button class="form-submit" type="submit">Save check-in</button></form></article>
+          <article class="card panel journal-chart"><div class="panel-header"><div><h2 class="panel-title">Symptom pattern</h2><div class="panel-meta">Pain intensity over the last 7 entries</div></div><button class="text-button" id="clearLogButton">Clear log</button></div><div class="mini-chart" id="symptomChart"><div class="mini-bar" style="height: 35%"><span>12</span></div><div class="mini-bar" style="height: 52%"><span>13</span></div><div class="mini-bar" style="height: 42%"><span>14</span></div><div class="mini-bar" style="height: 72%"><span>15</span></div><div class="mini-bar" style="height: 48%"><span>16</span></div><div class="mini-bar" style="height: 62%"><span>17</span></div><div class="mini-bar" style="height: 40%"><span>18</span></div></div><table class="log-table"><thead><tr><th>Date</th><th>Entry</th><th>Intensity</th></tr></thead><tbody id="logRows"><tr><td>Sep 18</td><td><span class="tag">Pain</span><br>Lower back ache</td><td>4 / 10</td></tr><tr><td>Sep 17</td><td><span class="tag">Fatigue</span><br>Low energy after lunch</td><td>6 / 10</td></tr></tbody></table><p class="empty-log" id="emptyLog" hidden>No saved check-ins yet.</p></article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="consentModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal"><h2 id="modalTitle">Connect a health source</h2><p id="modalDescription">Choose the data Alex has agreed to share. You can change this scope at any time.</p><div class="scope-list"><label><input type="checkbox" checked> Activity and movement</label><label><input type="checkbox" checked> Heart rate and vitals</label><label><input type="checkbox" checked> Sleep and recovery</label><label><input type="checkbox"> Nutrition and body measurements</label></div><div class="modal-actions"><button class="cancel" id="cancelButton">Cancel</button><button class="confirm" id="confirmButton">Authorize connection</button></div></div>
+  </div>
+  <script>
+    const modal = document.getElementById('consentModal');
+    const description = document.getElementById('modalDescription');
+    const closeModal = () => modal.classList.remove('open');
+    document.querySelectorAll('[data-source]').forEach((button) => button.addEventListener('click', () => {
+      description.textContent = `Choose the data Alex has agreed to share from ${button.dataset.source}. You can change this scope at any time.`;
+      modal.classList.add('open');
+    }));
+    document.getElementById('manageButton').addEventListener('click', () => {
+      description.textContent = 'Choose the data Alex has agreed to share. You can change this scope at any time.';
+      modal.classList.add('open');
+    });
+    document.getElementById('cancelButton').addEventListener('click', closeModal);
+    document.getElementById('confirmButton').addEventListener('click', () => {
+      closeModal();
+      const button = document.querySelector('[data-source]');
+      button.textContent = 'Pending';
+      button.disabled = true;
+      button.style.opacity = '.65';
+    });
+    modal.addEventListener('click', (event) => { if (event.target === modal) closeModal(); });
+
+    const checkinDate = document.getElementById('checkinDate');
+    const painLevel = document.getElementById('painLevel');
+    const painValue = document.getElementById('painValue');
+    const logRows = document.getElementById('logRows');
+    const symptomChart = document.getElementById('symptomChart');
+    const emptyLog = document.getElementById('emptyLog');
+    const today = new Date();
+    checkinDate.value = today.toISOString().slice(0, 10);
+    painLevel.addEventListener('input', () => { painValue.textContent = `${painLevel.value} / 10`; });
+    document.getElementById('checkinForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const date = new Date(`${checkinDate.value}T12:00:00`);
+      const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const symptom = document.getElementById('symptomType').value;
+      const note = document.getElementById('journalNote').value.trim() || 'No written note';
+      const diet = document.getElementById('dietNote').value.trim();
+      const medication = document.getElementById('medicationNote').value.trim();
+      const context = [diet && `Diet / triggers: ${diet}`, medication && `Medication: ${medication}`].filter(Boolean).join(' | ');
+      const row = document.createElement('tr');
+      row.innerHTML = `<td>${formattedDate}</td><td><span class="tag">${symptom}</span><br>${note}${context ? `<br><small>${context}</small>` : ''}</td><td>${painLevel.value} / 10</td>`;
+      logRows.prepend(row);
+      const bar = document.createElement('div');
+      bar.className = 'mini-bar';
+      bar.style.height = `${Math.max(8, Number(painLevel.value) * 10)}%`;
+      bar.innerHTML = `<span>${date.getDate()}</span>`;
+      symptomChart.appendChild(bar);
+      while (symptomChart.children.length > 7) symptomChart.firstElementChild.remove();
+      emptyLog.hidden = true;
+      event.target.reset();
+      checkinDate.value = today.toISOString().slice(0, 10);
+      painLevel.value = 4;
+      painValue.textContent = '4 / 10';
+    });
+    document.getElementById('clearLogButton').addEventListener('click', () => {
+      logRows.innerHTML = '';
+      symptomChart.innerHTML = '';
+      emptyLog.hidden = false;
+    });
+    document.getElementById('printButton').addEventListener('click', () => window.print());
+    document.getElementById('exportButton').addEventListener('click', () => {
+      const rows = [...logRows.querySelectorAll('tr')].map((row) => [...row.children].map((cell) => cell.innerText.replace(/\n/g, ' - ')).join('\t'));
+      const report = ['PULSEWISE PATIENT HEALTH SUMMARY', `Generated: ${new Date().toLocaleString()}`, '', 'QUANTITATIVE DATA', 'Resting heart rate: 62 bpm', 'Sleep: 8h 12m', 'Steps: 6,842', 'Skin temperature: 36.6 degrees', '', 'QUALITATIVE CHECK-INS', 'Date\tEntry\tIntensity', ...rows].join('\n');
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(new Blob([report], { type: 'text/plain' }));
+      link.download = 'pulsewise-provider-summary.txt';
+      link.click();
+      URL.revokeObjectURL(link.href);
+    });
+
+    const micButton = document.getElementById('micButton');
+    const voiceStatus = document.getElementById('voiceStatus');
+    const transcript = document.getElementById('transcript');
+    const exampleTranscript = 'My blood pressure this morning was 135 over 82. I took my medication after breakfast, but I have been feeling more tired than usual today.';
+    const speakPrompt = document.getElementById('speakPrompt');
+    speakPrompt.addEventListener('click', () => {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance('Tell me how you are feeling. You can mention symptoms, medications, meals, or measurements.');
+      utterance.rate = 0.9;
+      utterance.onstart = () => { speakPrompt.textContent = '◖ Reading prompt...'; };
+      utterance.onend = () => { speakPrompt.textContent = '◖ Read prompt aloud'; };
+      window.speechSynthesis.speak(utterance);
+    });
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition;
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.onstart = () => { micButton.classList.add('recording'); micButton.textContent = '■'; voiceStatus.innerHTML = 'Listening...<small>Take your time. I will organize the details after you finish.</small>'; };
+      recognition.onresult = (event) => { transcript.value = event.results[0][0].transcript; voiceStatus.innerHTML = 'Review your check-in<small>Edit the words or details before saving.</small>'; };
+      recognition.onend = () => { micButton.classList.remove('recording'); micButton.textContent = '●'; };
+      recognition.onerror = () => { voiceStatus.innerHTML = 'I could not hear that<small>Try again, or type your check-in below.</small>'; micButton.classList.remove('recording'); micButton.textContent = '●'; };
+    }
+    micButton.addEventListener('click', () => {
+      transcript.value = exampleTranscript;
+      voiceStatus.innerHTML = 'Review your check-in<small>Edit the preview or speak again when microphone access is available.</small>';
+      if (recognition) {
+        try { recognition.start(); } catch (error) { }
+      }
+    });
+    document.getElementById('confirmCheckin').addEventListener('click', () => {
+      const savedEvent = document.createElement('div');
+      savedEvent.className = 'event';
+      savedEvent.innerHTML = '<div class="event-time">Just now</div><div class="event-marker"></div><div><div class="event-title">Voice check-in saved</div><div class="event-copy">Blood pressure, medication, and fatigue added to your health record</div></div>';
+      document.querySelector('.timeline').prepend(savedEvent);
+      voiceStatus.innerHTML = 'Saved to your health record<small>You can review or correct it in your journal.</small>';
+      document.getElementById('confirmCheckin').textContent = 'Saved';
+      document.getElementById('confirmCheckin').disabled = true;
+    });
+    const checkinFlow = document.getElementById('checkinFlow');
+    const flowScreens = [...checkinFlow.querySelectorAll('[data-screen]')];
+    const flowStep = document.getElementById('flowStep');
+    const flowProgress = document.getElementById('flowProgress');
+    let currentFlowScreen = 'intro';
+    const flowOrder = ['intro', 'listening', 'topics', 'guided', 'additional', 'medication', 'vital', 'review', 'trends'];
+    const hasTopic = (topic) => [...checkinFlow.querySelectorAll('input[name="topic"]:checked')].some((input) => input.value === topic);
+    const showFlowScreen = (screenName) => {
+      currentFlowScreen = screenName;
+      flowScreens.forEach((screen) => { screen.hidden = screen.dataset.screen !== screenName; });
+      const screenNumber = flowOrder.indexOf(screenName) + 2;
+      if (screenName === 'pain-score') {
+        flowStep.textContent = 'Optional';
+        flowProgress.style.width = '55%';
+      } else {
+        flowStep.textContent = `Step ${screenNumber} of 10`;
+        flowProgress.style.width = `${(screenNumber / 10) * 100}%`;
+      }
+      if (screenName === 'listening') {
+        const flowTranscript = document.getElementById('flowTranscript');
+        flowTranscript.value = exampleTranscript;
+        flowTranscript.focus();
+      }
+    };
+    const openCheckinFlow = () => { checkinFlow.classList.add('open'); showFlowScreen('intro'); };
+    const closeCheckinFlow = () => checkinFlow.classList.remove('open');
+    const nextFlowScreen = () => {
+      if (currentFlowScreen === 'topics') {
+        showFlowScreen(hasTopic('symptom') ? 'guided' : hasTopic('medication') ? 'medication' : hasTopic('vital') ? 'vital' : 'review');
+      } else if (currentFlowScreen === 'guided') {
+        showFlowScreen('additional');
+      } else if (currentFlowScreen === 'additional') {
+        showFlowScreen(hasTopic('medication') ? 'medication' : hasTopic('vital') ? 'vital' : 'review');
+      } else if (currentFlowScreen === 'medication') {
+        showFlowScreen(hasTopic('vital') && !connectedObjectiveData.bloodPressure ? 'vital' : 'review');
+      } else if (currentFlowScreen === 'listening') {
+        showFlowScreen('topics');
+      } else if (currentFlowScreen === 'review') {
+        showFlowScreen('trends');
+      } else {
+        showFlowScreen(flowOrder[flowOrder.indexOf(currentFlowScreen) + 1]);
+      }
+    };
+    document.getElementById('dailyCheckinButton').addEventListener('click', openCheckinFlow);
+    document.getElementById('checkinNav').addEventListener('click', openCheckinFlow);
+    checkinFlow.querySelectorAll('[data-next]').forEach((button) => button.addEventListener('click', nextFlowScreen));
+    checkinFlow.querySelectorAll('[data-edit-review]').forEach((button) => button.addEventListener('click', () => {
+      const card = button.closest('.review-card');
+      const editable = card.querySelectorAll('.review-editable');
+      const isEditing = button.textContent === 'Done';
+      editable.forEach((field) => { field.contentEditable = String(!isEditing); });
+      button.textContent = isEditing ? 'Edit' : 'Done';
+      if (!isEditing) editable[0].focus();
+    }));
+    checkinFlow.querySelectorAll('[data-severity]').forEach((button) => button.addEventListener('click', () => {
+      showFlowScreen(button.dataset.severity === 'mild' ? 'additional' : 'pain-score');
+    }));
+    checkinFlow.querySelectorAll('.pain-score-button').forEach((button) => button.addEventListener('click', () => {
+      checkinFlow.querySelectorAll('.pain-score-button').forEach((scoreButton) => scoreButton.classList.remove('selected'));
+      button.classList.add('selected');
+    }));
+    document.getElementById('painScoreContinue').addEventListener('click', () => showFlowScreen('additional'));
+    document.getElementById('painScoreSkip').addEventListener('click', () => showFlowScreen('additional'));
+    checkinFlow.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', closeCheckinFlow));
+    checkinFlow.querySelectorAll('[data-back]').forEach((button) => button.addEventListener('click', () => showFlowScreen(button.dataset.back)));
+    document.getElementById('editTopics').addEventListener('click', () => {
+      document.querySelector('.flow-topic-note').textContent = 'Choose which topics you want to discuss before continuing.';
+      document.querySelector('.flow-topic-card input').focus();
+    });
+    document.getElementById('flowClose').addEventListener('click', closeCheckinFlow);
+    document.getElementById('flowBack').addEventListener('click', () => {
+      if (currentFlowScreen === 'intro') closeCheckinFlow();
+      else showFlowScreen('intro');
+    });
+    const severityVoice = document.getElementById('severityVoice');
+    const severityVoiceStatus = document.getElementById('severityVoiceStatus');
+    const severityRecognition = SpeechRecognition ? new SpeechRecognition() : null;
+    if (severityRecognition) {
+      severityRecognition.continuous = false;
+      severityRecognition.interimResults = false;
+      severityRecognition.onstart = () => { severityVoiceStatus.textContent = 'Listening...'; };
+      severityRecognition.onresult = (event) => { severityVoiceStatus.textContent = `“${event.results[0][0].transcript}”`; };
+      severityRecognition.onerror = () => { severityVoiceStatus.textContent = 'I could not hear that. Please try again.'; };
+    }
+    severityVoice.addEventListener('click', () => {
+      if (severityRecognition) {
+        try { severityRecognition.start(); } catch (error) { severityVoiceStatus.textContent = 'Listening...'; }
+      } else {
+        severityVoiceStatus.textContent = 'Voice is unavailable here. You can choose an answer above.';
+      }
+    });
+    const impactVoice = document.getElementById('impactVoice');
+    const impactVoiceStatus = document.getElementById('impactVoiceStatus');
+    const impactRecognition = SpeechRecognition ? new SpeechRecognition() : null;
+    const markWalkingImpact = () => {
+      const walking = checkinFlow.querySelector('input[name="impact"][value="walking"]');
+      walking.checked = true;
+      impactVoiceStatus.textContent = '“It mostly hurts when I walk upstairs.”  →  Walking';
+    };
+    if (impactRecognition) {
+      impactRecognition.continuous = false;
+      impactRecognition.interimResults = false;
+      impactRecognition.onresult = (event) => {
+        const transcriptText = event.results[0][0].transcript;
+        if (/walk|stair/i.test(transcriptText)) {
+          const walking = checkinFlow.querySelector('input[name="impact"][value="walking"]');
+          walking.checked = true;
+          impactVoiceStatus.textContent = `“${transcriptText}”  →  Walking`;
+        } else {
+          impactVoiceStatus.textContent = `“${transcriptText}”  →  Other`;
+        }
+      };
+    }
+    impactVoice.addEventListener('click', () => {
+      markWalkingImpact();
+      if (impactRecognition) {
+        try { impactRecognition.start(); } catch (error) { }
+      }
+    });
+    const medVoice = document.getElementById('medVoice');
+    const medVoiceStatus = document.getElementById('medVoiceStatus');
+    const medList = document.getElementById('medList');
+    const medAmbiguity = document.getElementById('medAmbiguity');
+    const medRecognition = SpeechRecognition ? new SpeechRecognition() : null;
+    const showMedicationAmbiguity = (spokenText = 'I forgot the white pill.') => {
+      checkinFlow.querySelectorAll('input[name="missedMedication"]').forEach((input) => { input.checked = false; });
+      medList.hidden = true;
+      medAmbiguity.hidden = false;
+      medVoiceStatus.textContent = `“${spokenText}”`;
+    };
+    if (medRecognition) {
+      medRecognition.continuous = false;
+      medRecognition.interimResults = false;
+      medRecognition.onresult = (event) => {
+        const transcriptText = event.results[0][0].transcript;
+        if (/prednisone/i.test(transcriptText)) {
+          checkinFlow.querySelector('input[name="missedMedication"][value="prednisone"]').checked = true;
+          medList.hidden = false;
+          medAmbiguity.hidden = true;
+          medVoiceStatus.textContent = `“${transcriptText}”  →  Prednisone`;
+        } else {
+          showMedicationAmbiguity(transcriptText);
+        }
+      };
+    }
+    medVoice.addEventListener('click', () => {
+      showMedicationAmbiguity();
+      if (medRecognition) {
+        try { medRecognition.start(); } catch (error) { }
+      }
+    });
+    medAmbiguity.querySelectorAll('[data-med-choice]').forEach((button) => button.addEventListener('click', () => {
+      const choice = button.dataset.medChoice;
+      checkinFlow.querySelector(`input[name="missedMedication"][value="${choice}"]`).checked = true;
+      medAmbiguity.hidden = true;
+      medList.hidden = false;
+      medVoiceStatus.textContent = `You chose ${button.textContent}.`;
+    }));
+    const connectedObjectiveData = { bloodPressure: false, bloodGlucose: false, heartRate: true, sleep: true, activity: true, weight: false };
+    let vitalType = 'pressure';
+    const pressureTab = document.getElementById('pressureTab');
+    const glucoseTab = document.getElementById('glucoseTab');
+    const vitalMissingTitle = document.getElementById('vitalMissingTitle');
+    const firstVitalLabel = document.getElementById('firstVitalLabel');
+    const secondVitalField = document.getElementById('secondVitalLabel').parentElement;
+    const vitalConfirmValue = document.getElementById('vitalConfirmValue');
+    const setVitalType = (type) => {
+      vitalType = type;
+      pressureTab.classList.toggle('active', type === 'pressure');
+      glucoseTab.classList.toggle('active', type === 'glucose');
+      vitalMissingTitle.textContent = type === 'pressure' ? 'I don’t have a blood pressure reading from today.' : 'I don’t have a blood glucose reading from today.';
+      firstVitalLabel.textContent = type === 'pressure' ? 'Top number' : 'Blood glucose';
+      secondVitalField.style.display = type === 'pressure' ? '' : 'none';
+      document.getElementById('flowSystolic').placeholder = type === 'pressure' ? '138' : '142';
+    };
+    pressureTab.addEventListener('click', () => setVitalType('pressure'));
+    glucoseTab.addEventListener('click', () => setVitalType('glucose'));
+    document.getElementById('enterVital').addEventListener('click', () => {
+      document.getElementById('vitalActions').style.display = 'none';
+      document.getElementById('vitalEntry').classList.add('open');
+      document.getElementById('flowSystolic').focus();
+    });
+    document.getElementById('sayVital').addEventListener('click', () => {
+      document.getElementById('vitalActions').style.display = 'none';
+      document.getElementById('vitalConfirm').classList.add('open');
+      vitalConfirmValue.textContent = vitalType === 'pressure' ? '138 / 85 mmHg' : '142 mg/dL · After lunch';
+    });
+    document.getElementById('notTodayVital').addEventListener('click', () => showFlowScreen('review'));
+    document.getElementById('saveVital').addEventListener('click', () => {
+      const first = document.getElementById('flowSystolic').value || document.getElementById('flowSystolic').placeholder;
+      const second = document.getElementById('flowDiastolic').value || document.getElementById('flowDiastolic').placeholder;
+      vitalConfirmValue.textContent = vitalType === 'pressure' ? `${first} / ${second} mmHg` : `${first} mg/dL`;
+      document.getElementById('vitalEntry').classList.remove('open');
+      document.getElementById('vitalConfirm').classList.add('open');
+    });
+    document.getElementById('vitalCorrect').addEventListener('click', () => showFlowScreen('review'));
+    document.getElementById('vitalEdit').addEventListener('click', () => {
+      document.getElementById('vitalConfirm').classList.remove('open');
+      document.getElementById('vitalActions').style.display = 'grid';
+    });
+    checkinFlow.addEventListener('click', (event) => { if (event.target === checkinFlow) closeCheckinFlow(); });
+    document.getElementById('trendsNav').addEventListener('click', () => document.getElementById('journal').scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    document.getElementById('homeNav').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    document.getElementById('moreNav').addEventListener('click', () => document.querySelector('.sidebar').scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  </script>
+</body>
+</html>
