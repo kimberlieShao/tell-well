@@ -20,15 +20,21 @@ export const dietSchema = z.strictObject({ id, description: text, time: nullable
 export const vitalSchema = z.strictObject({
   id, name: text, value: nullableText, unit: nullableText, time: nullableText,
 });
+// An explicitly reported well day is a valid check-in, not a fabricated symptom.
+// Defaulting this additive field keeps earlier four-category clients compatible.
+export const wellnessSchema = z.strictObject({
+  status: z.enum(['well', 'normal']), statement: text,
+}).nullable();
 export const recordSchema = z.strictObject({
   symptoms: z.array(symptomSchema).max(20),
   medications: z.array(medicationSchema).max(20),
   diet: z.array(dietSchema).max(20),
   vitals: z.array(vitalSchema).max(20),
+  wellness: wellnessSchema.default(null),
 });
 export type HealthRecord = z.infer<typeof recordSchema>;
 export type Category = typeof categories[number];
-export const emptyRecord = (): HealthRecord => ({ symptoms: [], medications: [], diet: [], vitals: [] });
+export const emptyRecord = (): HealthRecord => ({ symptoms: [], medications: [], diet: [], vitals: [], wellness: null });
 
 // Models propose field updates; the server owns entity IDs and question wording.
 export const extractionSchema = z.strictObject({
@@ -36,6 +42,7 @@ export const extractionSchema = z.strictObject({
   medications: z.array(medicationSchema.extend({ id: id.nullable() })).max(20),
   diet: z.array(dietSchema.extend({ id: id.nullable() })).max(20),
   vitals: z.array(vitalSchema.extend({ id: id.nullable() })).max(20),
+  wellness: wellnessSchema.default(null),
 });
 export type Extraction = z.infer<typeof extractionSchema>;
 
@@ -49,6 +56,7 @@ export type Question = z.infer<typeof questionSchema>;
 export const analyzeInputSchema = z.strictObject({
   sessionId: id.optional(), version: z.number().int().positive().optional(),
   transcript: z.string().trim().min(1).max(8000).optional(),
+  painScale: z.literal('1-10').optional(),
   questionId: text.optional(),
   answer: z.strictObject({ questionId: text, value: text }).optional(),
   action: z.enum(['skip', 'review', 'resume']).optional(),
@@ -59,6 +67,8 @@ export const analyzeInputSchema = z.strictObject({
     ctx.addIssue({ code: 'custom', message: 'Start with transcript only; subsequent turns need sessionId and version.' });
   if (data.sessionId && data.version === undefined)
     ctx.addIssue({ code: 'custom', message: 'Include the version from the latest response.' });
+  if (data.sessionId && data.painScale !== undefined)
+    ctx.addIssue({ code: 'custom', path: ['painScale'], message: 'Choose a pain scale only when starting a check-in.' });
   if (data.questionId && !(data.transcript || data.action === 'skip'))
     ctx.addIssue({ code: 'custom', message: 'questionId accompanies a spoken transcript answer or skip.' });
   if (data.action === 'skip' && !data.questionId)

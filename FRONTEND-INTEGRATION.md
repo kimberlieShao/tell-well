@@ -1,6 +1,10 @@
-# Frontend + backend connection
+# Version B frontend integration
 
-From the VS Code terminal, start the backend:
+The root `index.html` is the newer UI supplied as `index-2.html`. Its Home, Meals, Trends, More, check-in screens, and 1–10 pain controls remain the final interface. Its local mock health parser is not active.
+
+Work branch: `codex/connect-new-ui`. The earlier committed implementation is preserved on `codex/backup-before-new-ui-c222f48` at commit `c222f48`.
+
+## Run
 
 ```sh
 cd "/Users/toan/HopHacks 2026/HopHacks/backend"
@@ -8,63 +12,58 @@ npm install
 npm start
 ```
 
-Open **http://127.0.0.1:3001/app** and keep the terminal running. The backend serves the page and API together, so do not double-click `index.html` or use Live Server for this version. The text-only API tester remains at `/test/`.
+Open **http://127.0.0.1:3001/app** and keep the terminal running. Control+C stops it. Open the page through this server, not by double-clicking HTML or through Live Server. The text-only API tester remains at `/test/`.
 
-To test the connection without Google availability or quota, run this in a second terminal from the same backend folder:
+For deterministic extraction without Gemini quota, start a second server with `EXTRACTION_MODE=demo PORT=3002 npm start`, then open **http://127.0.0.1:3002/app**. Demo mode changes extraction only: microphone input still uses ElevenLabs if configured. Typing requires no speech service. Gemini errors never silently switch to demo extraction.
 
-```sh
-EXTRACTION_MODE=demo PORT=3002 npm start
-```
-
-Then open **http://127.0.0.1:3002/app**. This uses a limited example parser and is clearly labeled Demo; it does not change `.env` or replace the Gemini server on port 3001. Stop either server with Control+C in its terminal.
-
-Try this fictional example: “My knees hurt more today and I forgot my prednisone this morning.” Answer the follow-ups, finish and review, edit or remove incorrect details, then confirm and save. Your saved check-ins appear in the current page's journal and can be exported as text or printed. Other dashboard measurements and device panels are labeled sample designs.
-
-## Connection files
+## Active files
 
 | File | Responsibility |
 | --- | --- |
-| `index.html` | Teammate's layout and visual styles |
-| `frontend/main.js` | Starts the controller |
-| `frontend/checkin-controller.js` | Questions, editable review, save, and current-page journal |
-| `frontend/checkin-api.js` | Requests, session ID/version, errors, one request at a time |
-| `frontend/speech.js` | Optional browser speech, final transcripts, microphone cleanup |
-| `frontend/checkin.css` | Styles for connected controls |
-| `backend/src/app.ts` | Serves `/app`, `/frontend/*`, `/test/`, and the two APIs |
+| `index.html` | Version B layout, screens, and original visual styles |
+| `frontend/main.js` | Mounts Version B once |
+| `frontend/new-ui.js` | Central state, navigation, check-in events, review, save |
+| `frontend/version-b-adapter.js` | API response → `checkinState`; edited state → API record |
+| `frontend/checkin-api.js` | API requests, session/version/question IDs, errors |
+| `frontend/elevenlabs-speech.js` | Microphone, temporary token, Scribe Realtime, final transcript |
+| `frontend/pcm-worklet.js` | Mono 16 kHz PCM audio capture, limited to 30 seconds |
+| `frontend/integration.css` | API status, errors, and editable review styles |
+| `backend/src/speech.ts` | Private ElevenLabs key → single-use Scribe token |
 
-The original demo's inline script has been removed. It no longer independently advances mock questions or shows a simulated save.
+The old `checkin-controller.js`, `speech.js`, and `checkin.css` remain reference/test files; `main.js` does not load them. Version A used browser speech recognition. Real ElevenLabs integration was added during this merge.
 
-## When your new index.html arrives
+```text
+Version B microphone → ElevenLabs Scribe → editable transcript
+→ /api/analyze → Gemini (or explicitly selected demo extraction)
+→ normalizeBackendResponse → checkinState → Version B screens
+→ answers in the same session → editable review → /api/checkin/save
+```
 
-Keep the `frontend` folder and backend. Preserve these elements in the new HTML:
+Done stops capture and waits for a final committed transcript before analysis. Closing/leaving the flow cancels capture. Clips are limited to 30 seconds; typed input remains available. The existing read-prompt control uses browser speech synthesis, not ElevenLabs text-to-speech.
+
+Daily Check-in starts with `painScale: "1-10"`. Each symptom keeps its own ID/score, and a category such as “mild” does not suppress the numeric pain question. Explicit “I feel fine today” produces `wellness`, not a fake symptom. See [backend/API.md](backend/API.md).
+
+## Keys and storage
+
+Keep both provider keys in `backend/.env`; `.env.example` contains placeholders. The browser gets a single-use speech token, never an ElevenLabs or Gemini key. Audio goes directly to ElevenLabs. The health backend and Gemini receive transcript text and check-in context.
+
+Saved records live in one server process's memory. Sessions expire after two hours of inactivity; restarting the backend clears everything. Recent Check-ins displays records saved in the current page; refreshing clears that frontend state. Manual profile/Meals controls remain page-local. This branch has no database, accounts, history retrieval, or wearable connection.
+
+## Future HTML updates
+
+Preserve these includes:
 
 ```html
-<!-- In <head> -->
-<link rel="stylesheet" href="/frontend/checkin.css">
-
-<!-- Start button -->
-<button id="dailyCheckinButton">Start Daily Check-in</button>
-
-<!-- Modal populated by the controller -->
-<section class="flow-overlay" id="checkinFlow"
-  aria-label="Check-in" aria-modal="true" role="dialog"></section>
-
-<!-- Before </body> -->
+<link rel="stylesheet" href="/frontend/integration.css">
 <script type="module" src="/frontend/main.js"></script>
 ```
 
-The controller uses the current `.flow-*`, `.transcript`, and `.review-*` styles plus `frontend/checkin.css`. A different design may need styles or controller markup adapted. Do not reintroduce the old inline demo script: it would compete with the API flow. Keep new JavaScript in external files; the page blocks inline scripts and `onclick` attributes.
+Keep the full Version B structure and DOM hooks used by `new-ui.js`: navigation/Meals IDs, `dailyCheckinButton`, `checkinFlow`, `flowIntroMic`, `flowType`, `flowTranscript`, `.flow-done`, `editTopics`, pain/impact controls, review containers, `reviewConfirmSave`, and the `data-screen` sections. This is not an exhaustive replacement HTML skeleton. If IDs or screens change, update the controller and integration tests together.
 
-Optional dashboard IDs: `checkinNav`, `micButton`, `confirmCheckin`, `journalStartButton` launch the dialog; `transcript` supplies initial text; `understoodList`, `logRows`, `symptomChart`, `emptyLog`, `printButton`, and `exportButton` show or export saved check-ins.
+Do not load the old controller alongside Version B or restore its inline mock parser. Continue routing API responses through `normalizeBackendResponse()` into central state and edited records through `toBackendRecord()`.
 
-## Voice teammate handoff
+## Verification
 
-The current Speak button uses browser speech recognition when supported. **It does not call ElevenLabs.** Your teammate can replace `frontend/speech.js` while keeping the API connection. Its adapter exposes `available`, `isActive`, `mode` (`spoken` or `form`), `start()`, `finish()` (waits for final transcription), `cancel()`, and `destroy()`. Status callbacks receive `{type, message}`.
+TypeScript checking and all 68 automated tests passed at completion of this merge. Run `npm run check` and `npm test` inside `backend`. Tests cover extraction cases, actual Version B events against a local API, per-symptom scores, review edits, failed saves, microphone cleanup, and simulated audio/WebSockets.
 
-Her separate interface can also import `createCheckinClient` from `frontend/checkin-api.js`: call `start(finalTranscript)`, then `answer(finalTranscript, {spoken: true})` for spoken follow-ups. Typed field answers and buttons use `answer(value)`. Call `review()` before `save(editedRecord)`. The client attaches session, version and question IDs. Preserve all four record arrays and item IDs. Full schemas are in `backend/API.md`. Keep API keys in server `.env`, never browser JavaScript.
-
-## Checks and limits
-
-Run `npm run check` and `npm test` inside `backend`. Tests exercise the actual controller against a demo HTTP backend and a simulated speech recognizer; they do not test a physical microphone or ElevenLabs.
-
-The server uses your existing extraction setting in `.env`. Demo mode is a limited parser; Gemini mode uses your configured provider. Sessions expire after two hours of inactivity; restarting the backend clears all records. Refreshing the page clears its journal and session reference. No database, authentication, wearable integration, or persistent history was added. Stale sessions and uncertain network failures preserve visible details and require a new check-in instead of blindly replaying updates.
+Live checks verified ElevenLabs with synthetic audio, plus Gemini wellness, separate arm/leg pain, and unnamed missed medication. The actual browser Gemini flow completed scores 7/3, impact/trend follow-ups, review, and save. Live refusal and meals checks hit provider busy/quota limits (503/429), so not all live cases passed. A physical microphone still needs a manual check in a supported browser on localhost or HTTPS.

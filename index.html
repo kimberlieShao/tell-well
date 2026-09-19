@@ -140,6 +140,92 @@
     .mobile-nav-item { border: 0; background: transparent; color: var(--muted); font: 18px Arial, sans-serif; }
     .mobile-nav-item span { display: block; margin-top: 4px; font: 10px Arial, sans-serif; }
     .mobile-nav-item.active { color: var(--forest); }
+    .legacy-dashboard { display: none !important; }
+    .patient-secondary-view { max-width: 720px; margin: 0 auto 26px; }
+    .trend-range { display: flex; gap: 8px; margin: 4px 0 22px; }
+    .trend-range-button { flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 12px 10px; color: var(--forest); background: var(--surface); font: 700 13px Arial, sans-serif; }
+    .trend-range-button.active { border-color: var(--forest); background: var(--forest); color: white; }
+    .trend-summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .trend-summary-card { padding: 16px; }
+    .trend-summary-label { color: var(--muted); font: 700 11px Arial, sans-serif; text-transform: uppercase; letter-spacing: .8px; }
+    .trend-summary-value { margin: 12px 0 8px; font: 400 26px Georgia, serif; color: var(--ink); }
+    .trend-summary-value span { font: 14px Arial, sans-serif; color: var(--muted); }
+    .trend-summary-trend { font: 700 13px Arial, sans-serif; }
+    .trend-summary-trend.good { color: #3d9660; }
+    .trend-summary-trend.bad { color: #c7604e; }
+    .trend-summary-trend.stable { color: var(--muted); }
+    .trend-summary-trend.warn { color: #a66a1f; }
+    .trend-panel { padding: 22px; margin-bottom: 16px; }
+    .trend-panel-title { margin: 0 0 4px; font: 400 21px Georgia, serif; letter-spacing: -.3px; }
+    .trend-panel-meta { color: var(--muted); font: 13px Arial, sans-serif; margin: 0 0 20px; }
+    .trend-bars { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; height: 150px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+    .trend-bar-group { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 8px; flex: 1; height: 100%; }
+    .trend-bar-group .trend-bar-value { color: var(--forest); font: 700 13px Arial, sans-serif; }
+    .trend-bar { width: 60%; min-width: 20px; border-radius: 6px 6px 0 0; background: #a9d4b8; }
+    .trend-bar.highlight { background: var(--forest); }
+    .trend-bar-group label { color: var(--muted); font: 13px Arial, sans-serif; margin-top: 2px; }
+    .trend-bp-list, .med-adherence-list, .more-detail-list { display: grid; gap: 0; }
+    .trend-bp-row { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #edf0ec; padding: 13px 0; font: 14px Arial, sans-serif; }
+    .trend-bp-row:first-child { border-top: 0; }
+    .trend-bp-row span { color: var(--muted); }
+    .trend-bp-row strong { color: var(--ink); font: 700 15px Arial, sans-serif; }
+    .trend-bp-row.today strong, .trend-bp-row.today span { color: var(--forest); font-weight: 700; }
+    .adherence-bar { height: 12px; border-radius: 8px; background: #edf1eb; overflow: hidden; margin-bottom: 10px; }
+    .adherence-fill { height: 100%; border-radius: 8px; background: var(--forest); }
+    .adherence-label { color: var(--muted); font: 13px Arial, sans-serif; margin-bottom: 18px; }
+    .med-adherence-row { display: flex; justify-content: space-between; border-top: 1px solid #edf0ec; padding: 13px 0; font: 14px Arial, sans-serif; }
+    .med-adherence-row:first-child { border-top: 0; }
+    .med-adherence-row strong { color: var(--forest); }
+    .checkin-history { display: grid; gap: 0; }
+    .checkin-history-row { display: grid; grid-template-columns: 84px 1fr; gap: 14px; border-top: 1px solid #edf0ec; padding: 14px 0; }
+    .checkin-history-row:first-child { border-top: 0; }
+    .checkin-history-date { color: var(--muted); font: 700 13px Arial, sans-serif; padding-top: 2px; }
+    .checkin-history-copy { color: var(--ink); font: 14px/1.5 Arial, sans-serif; }
+    .checkin-history-flag { display: inline-block; margin-top: 4px; color: #a65343; font: 700 12px Arial, sans-serif; }
+    .meal-card { margin-bottom: 14px; }
+    .meal-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+    .meal-card-time { color: var(--muted); font: 700 12px Arial, sans-serif; white-space: nowrap; }
+    .meal-item-list { margin: 0 0 4px; padding-left: 20px; color: var(--ink); font: 15px/1.7 Georgia, serif; }
+    #mealsMain[hidden], #mealFormPanel[hidden], #mealVoicePanel[hidden] { display: none; }
+    .water-tracker { display: flex; align-items: center; gap: 14px; }
+    .water-step-button { width: 50px; height: 50px; border-radius: 50%; border: 1px solid var(--line); background: white; color: var(--forest); font: 700 24px Arial, sans-serif; flex-shrink: 0; }
+    .water-step-button:hover { border-color: var(--forest); background: var(--mint); }
+    .water-display { flex: 1; text-align: center; }
+    .water-count { font: 400 36px Georgia, serif; color: var(--forest); line-height: 1; }
+    .water-unit { color: var(--muted); font: 700 11px Arial, sans-serif; text-transform: uppercase; letter-spacing: 1px; margin: 4px 0 12px; }
+    .water-slider { width: 100%; accent-color: var(--forest); margin-bottom: 10px; }
+    .water-drops { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; font-size: 18px; }
+    .water-drop { opacity: .2; }
+    .water-drop.filled { opacity: 1; }
+    .voice-preview-section { margin-bottom: 16px; }
+    .voice-preview-title { color: var(--forest); font: 700 11px Arial, sans-serif; text-transform: uppercase; letter-spacing: .9px; margin-bottom: 6px; }
+    .more-menu { display: grid; gap: 10px; }
+    .more-menu[hidden], .more-detail[hidden] { display: none; }
+    .more-card { display: flex; align-items: center; gap: 14px; padding: 18px; text-align: left; width: 100%; }
+    .more-card-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 11px; background: var(--mint); color: var(--forest); font-size: 19px; flex-shrink: 0; }
+    .more-card-copy { flex: 1; display: grid; gap: 3px; min-width: 0; }
+    .more-card-copy strong { color: var(--ink); font: 700 15px Arial, sans-serif; }
+    .more-card-copy span { color: var(--muted); font: 13px/1.4 Arial, sans-serif; }
+    .more-card-chevron { color: var(--muted); font-size: 20px; }
+    .more-card:hover { border-color: #a9cdb3; background: #f7fcf7; }
+    .more-detail-back { border: 0; background: transparent; color: var(--forest); font: 700 13px Arial, sans-serif; margin-bottom: 16px; padding: 8px 0; }
+    .more-detail-panel { padding: 22px; }
+    .more-detail-panel h2 { margin: 0 0 6px; font: 400 22px Georgia, serif; }
+    .more-detail-meta { color: var(--muted); font: 13px Arial, sans-serif; margin: 0 0 18px; }
+    .more-detail-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; border-top: 1px solid #edf0ec; padding: 13px 0; font: 14px Arial, sans-serif; }
+    .more-detail-row:first-child { border-top: 0; }
+    .more-detail-row span { color: var(--muted); }
+    .more-detail-row strong { color: var(--ink); }
+    .more-toggle-row { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #edf0ec; padding: 13px 0; }
+    .more-toggle-row:first-child { border-top: 0; }
+    .more-toggle-row span { color: var(--ink); font: 14px Arial, sans-serif; }
+    .more-switch { position: relative; width: 42px; height: 24px; border: 0; border-radius: 999px; background: var(--line); flex-shrink: 0; }
+    .more-switch.on { background: var(--forest); }
+    .more-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: white; transition: left .15s ease; }
+    .more-switch.on::after { left: 21px; }
+    .more-detail-button { display: block; width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 13px; margin-top: 10px; color: var(--forest); background: white; text-align: left; font: 700 13px Arial, sans-serif; }
+    .more-detail-button:hover { border-color: #a9cdb3; background: #f7fcf7; }
+    @media (max-width: 760px) { .trend-summary-grid { grid-template-columns: repeat(2, 1fr); } }
     .flow-overlay { position: fixed; inset: 0; z-index: 8; display: none; place-items: center; padding: 20px; background: rgba(18,38,27,.42); }
     .flow-overlay.open { display: grid; }
     .flow-panel { width: min(540px, 100%); max-height: min(720px, 92vh); overflow: auto; border-radius: 18px; background: var(--surface); box-shadow: 0 30px 80px rgba(18,38,27,.24); }
@@ -343,7 +429,7 @@
     @media (max-width: 760px) { .metric-grid, .main-grid, .bottom-grid { grid-template-columns: 1fr 1fr; } .main-grid > :first-child, .bottom-grid > :first-child { grid-column: 1 / -1; } .hero-row { align-items: flex-start; flex-direction: column; } .patient-picker { width: 100%; } h1 { font-size: 34px; } }
     @media (max-width: 520px) { .app-shell { display: block; } .sidebar { height: auto; padding: 15px 18px; flex-direction: row; align-items: center; gap: 13px; } .brand { margin: 0; } .brand-mark { width: 26px; height: 26px; } .nav { display: flex; margin: 0 0 0 auto; gap: 3px; } .nav-button { padding: 8px; } .nav-button.active { background: transparent; color: var(--lime); } .sidebar-spacer, .privacy-card { display: none; } .main { padding: 22px 15px 86px; } .topbar { margin-bottom: 29px; } .crumb { display: none; } .patient-home { margin-bottom: 0; } .patient-greeting h1 { font-size: 32px; } .patient-prompt { font-size: 20px; } .patient-metrics { grid-template-columns: 1fr 1fr; gap: 10px; } .patient-metric { min-height: 112px; } .patient-metric-value { margin-top: 17px; font-size: 19px; } .mobile-nav { position: fixed; z-index: 3; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 10px 14px 9px; border-top: 1px solid var(--line); background: rgba(255,255,255,.96); box-shadow: 0 -6px 18px rgba(28,50,38,.06); } .hero-row, .status-strip, .metric-grid, .main-grid, .bottom-grid, .journal-shell { display: none; } .voice-checkin { margin-top: 22px; grid-template-columns: 1fr; } .voice-review { border-top: 1px solid #d5e8d8; border-left: 0; } .panel { padding: 17px; } .status-strip { align-items: flex-start; } .status-strip span:last-child { display: none; } .journal-heading { display: block; } .journal-heading h2 { font-size: 25px; } .journal-actions { margin-top: 14px; } .journal-grid { grid-template-columns: 1fr; } .field-grid { grid-template-columns: 1fr; } }
   </style>
-  <link rel="stylesheet" href="/frontend/checkin.css">
+  <link rel="stylesheet" href="/frontend/integration.css">
 </head>
 <body>
   <div class="app-shell">
@@ -351,79 +437,206 @@
       <div class="brand"><span class="brand-mark">+</span><span>pulsewise</span></div>
       <div class="eyebrow">Workspace</div>
       <nav class="nav" aria-label="Primary navigation">
-        <button class="nav-button active"><span class="nav-icon">◉</span><span>Overview</span></button>
-        <button class="nav-button"><span class="nav-icon">↗</span><span>Patients</span></button>
-        <button class="nav-button"><span class="nav-icon">⌁</span><span>Data streams</span></button>
-        <button class="nav-button"><span class="nav-icon">▣</span><span>Reports</span></button>
+        <button class="nav-button active" id="desktopHomeNav"><span class="nav-icon">⌂</span><span>Home</span></button>
+        <button class="nav-button" id="desktopMealsNav"><span class="nav-icon">🍽</span><span>Meals</span></button>
+        <button class="nav-button" id="desktopTrendsNav"><span class="nav-icon">⌁</span><span>Trends</span></button>
+        <button class="nav-button" id="desktopMoreNav"><span class="nav-icon">•••</span><span>More</span></button>
       </nav>
       <div class="sidebar-spacer"></div>
-      <div class="privacy-card"><div class="eyebrow">Prototype workspace</div><p>Local prototype. Check-ins are stored temporarily in server memory; there is no sign-in or permanent storage.</p></div>
+      <div class="privacy-card"><div class="eyebrow">Your workspace</div><p>Prototype: check-ins are stored temporarily. Only information you report is included.</p></div>
     </aside>
 
     <main class="main">
-      <div class="integration-note"><strong>Connected check-in prototype.</strong> Start a check-in to analyze, review, and save your own fictional example. Dashboard measurements, charts, and device panels below are sample designs; wearable connections are not active.</div>
-      <header class="topbar"><div class="crumb">Patients / Overview</div><div class="top-actions"><button class="icon-button" aria-label="Notifications">♢</button><div class="avatar">AL</div></div></header>
+      <header class="topbar"><div class="crumb">Mary / Home</div><div class="top-actions"><button class="icon-button" aria-label="Notifications">♢</button><div class="avatar">M</div></div></header>
       <section class="patient-home" aria-label="Patient home">
         <div class="patient-greeting"><div class="eyebrow" style="color: var(--forest)">Your health today</div><h1>Good morning, Mary</h1><div class="patient-date" id="patientDate">Friday, September 18</div></div>
         <p class="patient-prompt">How are you feeling today?</p>
         <button class="daily-checkin" id="dailyCheckinButton" aria-label="Start Daily Check-in"><div class="daily-checkin-icon">●</div><span class="daily-checkin-button">Start Daily Check-in</span><div class="daily-checkin-note">Usually takes 1–2 minutes</div></button>
         <div class="today-heading">Today's health</div>
-        <div class="patient-metrics"><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">♥</span>Heart Rate</div><div class="patient-metric-value">72 bpm</div><div class="patient-metric-foot">Updated 8:42 AM<br>Apple Health</div></article><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">♢</span>Blood Pressure</div><div class="patient-metric-value">132 / 81</div><div class="patient-metric-foot">Updated 8:42 AM<br>Apple Health</div></article><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">●</span>Blood Glucose</div><div class="patient-metric-value">108 mg/dL</div><div class="patient-metric-foot">Updated 7:55 AM<br>Apple Health</div></article><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">▣</span>Medication</div><div class="patient-metric-value">2 of 3 taken</div><div class="patient-metric-foot">Updated 8:10 AM<br>Pulsewise</div></article></div>
+        <div class="patient-metrics"><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">♥</span>Heart Rate</div><div class="patient-metric-value">—</div><div class="patient-metric-foot">No entry recorded</div></article><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">♢</span>Blood Pressure</div><div class="patient-metric-value">—</div><div class="patient-metric-foot">No entry recorded</div></article><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">●</span>Blood Glucose</div><div class="patient-metric-value">—</div><div class="patient-metric-foot">No entry recorded</div></article><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">▣</span>Medication</div><div class="patient-metric-value">—</div><div class="patient-metric-foot">No entry recorded</div></article></div>
       </section>
-      <section class="hero-row">
+      <section id="trendsView" class="patient-secondary-view" hidden>
+        <div class="eyebrow" style="color: var(--forest)">Your health</div>
+        <h1>Health Trends</h1>
+        <p class="patient-prompt" style="font-size: 16px">See how your health has changed over time.</p>
+
+        <div class="trend-range" role="group" aria-label="Time range">
+          <button class="trend-range-button active" data-range="7d">7 Days</button>
+          <button class="trend-range-button" data-range="30d">30 Days</button>
+          <button class="trend-range-button" data-range="3m">3 Months</button>
+        </div>
+
+        <div class="trend-summary-grid">
+          <article class="card trend-summary-card"><div class="trend-summary-label">Pain</div><div class="trend-summary-value"><span id="trendPainAvg">—</span> <span>/ 10 avg.</span></div><div class="trend-summary-trend good" id="trendPainTrend">No recorded data</div></article>
+          <article class="card trend-summary-card"><div class="trend-summary-label">Blood Pressure</div><div class="trend-summary-value"><span id="trendBPAvg">—</span></div><div class="trend-summary-trend stable" id="trendBPTrend">No recorded data</div></article>
+          <article class="card trend-summary-card"><div class="trend-summary-label">Blood Glucose</div><div class="trend-summary-value"><span id="trendGlucoseAvg">—</span> <span>mg/dL avg.</span></div><div class="trend-summary-trend stable" id="trendGlucoseTrend">No recorded data</div></article>
+          <article class="card trend-summary-card"><div class="trend-summary-label">Medication</div><div class="trend-summary-value"><span id="trendMedAdherence">—</span><span>% taken</span></div><div class="trend-summary-trend warn" id="trendMedMissed">No recorded data</div></article>
+        </div>
+
+        <article class="card trend-panel">
+          <h2 class="trend-panel-title">Pain &amp; Symptoms</h2>
+          <p class="trend-panel-meta">Daily pain level · <span class="trend-range-label">Last 7 days</span></p>
+          <div class="trend-bars" id="trendBars"></div>
+        </article>
+
+        <article class="card trend-panel">
+          <h2 class="trend-panel-title">Blood Pressure</h2>
+          <p class="trend-panel-meta">Latest reading: <strong style="color: var(--forest)">No reading recorded</strong></p>
+          <div class="trend-bp-list"><p class="trend-panel-meta">No blood pressure readings recorded.</p></div>
+        </article>
+
+        <article class="card trend-panel">
+          <h2 class="trend-panel-title">Medication</h2>
+          <p class="trend-panel-meta" id="trendMedMeta">No recorded data</p>
+          <div class="adherence-bar"><div class="adherence-fill" id="trendAdherenceFill" style="width: 0%"></div></div>
+          <div class="adherence-label" id="trendAdherenceLabel">No recorded data</div>
+          <div class="med-adherence-list" id="trendMedAdherenceList"></div>
+        </article>
+
+        <article class="card trend-panel">
+          <h2 class="trend-panel-title">Recent Check-ins</h2>
+          <p class="trend-panel-meta">What you've shared in your daily check-ins</p>
+          <div class="checkin-history"><p class="trend-panel-meta">No check-ins saved during this visit.</p></div>
+        </article>
+      </section>
+      <section id="moreView" class="patient-secondary-view" hidden>
+        <div class="eyebrow" style="color: var(--forest)">Account</div>
+        <h1>More</h1>
+        <p class="patient-prompt" style="font-size: 16px">Profile, medications, connected health data, and settings.</p>
+
+        <div class="more-menu">
+          <button class="card more-card" data-more="profile"><div class="more-card-icon">👤</div><div class="more-card-copy"><strong>Profile</strong><span>Mary · Personal information and preferences</span></div><div class="more-card-chevron">›</div></button>
+          <button class="card more-card" data-more="medications"><div class="more-card-icon">💊</div><div class="more-card-copy"><strong>Medications</strong><span>0 active medications</span></div><div class="more-card-chevron">›</div></button>
+          <button class="card more-card" data-more="connected"><div class="more-card-icon">⌁</div><div class="more-card-copy"><strong>Connected Health Data</strong><span>No health source connected</span></div><div class="more-card-chevron">›</div></button>
+          <button class="card more-card" data-more="accessibility"><div class="more-card-icon">🔎</div><div class="more-card-copy"><strong>Accessibility</strong><span>Text size, voice input, read aloud</span></div><div class="more-card-chevron">›</div></button>
+          <button class="card more-card" data-more="notifications"><div class="more-card-icon">🔔</div><div class="more-card-copy"><strong>Notifications</strong><span>Medication and check-in reminders</span></div><div class="more-card-chevron">›</div></button>
+          <button class="card more-card" data-more="privacy"><div class="more-card-icon">🔒</div><div class="more-card-copy"><strong>Privacy &amp; Data</strong><span>Manage connected data, export summary</span></div><div class="more-card-chevron">›</div></button>
+          <button class="card more-card" data-more="settings"><div class="more-card-icon">⚙</div><div class="more-card-copy"><strong>Settings</strong><span>Language, account preferences</span></div><div class="more-card-chevron">›</div></button>
+        </div>
+
+        <div class="more-detail" id="moreDetail" hidden>
+          <button class="more-detail-back" id="moreDetailBack" aria-label="Back to More">← Back to More</button>
+          <div id="moreDetailBody"></div>
+        </div>
+      </section>
+      <section id="mealsView" class="patient-secondary-view" hidden>
+        <div class="eyebrow" style="color: var(--forest)">Your health</div>
+        <h1>Meals</h1>
+        <p class="patient-prompt" style="font-size: 16px">Keep track of what you eat and how it may relate to how you feel.</p>
+
+        <div id="mealsMain">
+          <div class="today-heading" id="mealsToday">Today</div>
+          <button class="daily-checkin" id="mealsVoiceCTA" style="margin-bottom: 22px">
+            <div class="daily-checkin-icon" style="background: var(--forest)">🎤</div>
+            <span class="daily-checkin-button">Tell me what you ate today</span>
+            <div class="daily-checkin-note">Speak naturally — I'll sort it into your meals</div>
+          </button>
+          <div id="mealCards"></div>
+          <article class="card trend-panel">
+            <h2 class="trend-panel-title">Water today</h2>
+            <div class="water-tracker">
+              <button class="water-step-button" data-action="water-minus" aria-label="Remove a glass of water">−</button>
+              <div class="water-display">
+                <div class="water-count" id="waterCountValue">0</div>
+                <div class="water-unit">glasses</div>
+                <input type="range" id="waterSlider" class="water-slider" min="0" max="12" value="0" step="1" aria-label="Glasses of water today">
+                <div class="water-drops" id="waterDrops"></div>
+              </div>
+              <button class="water-step-button" data-action="water-plus" aria-label="Add a glass of water">+</button>
+            </div>
+          </article>
+          <article class="card trend-panel">
+            <h2 class="trend-panel-title">Caffeine today</h2>
+            <div id="caffeineList"></div>
+            <button class="more-detail-button" data-action="add-caffeine" style="text-align: center">+ Add caffeine</button>
+          </article>
+          <article class="card trend-panel">
+            <h2 class="trend-panel-title">Recent Days</h2>
+            <p class="trend-panel-meta">No earlier meals recorded yet.</p>
+          </article>
+        </div>
+
+        <div id="mealFormPanel" hidden>
+          <button class="more-detail-back" data-action="cancel-meal-form">← Back to Meals</button>
+          <div id="mealFormBody"></div>
+        </div>
+
+        <div id="mealVoicePanel" hidden>
+          <button class="more-detail-back" data-action="cancel-voice-entry">← Back to Meals</button>
+          <div id="mealVoiceBody"></div>
+        </div>
+      </section>
+      <section class="hero-row legacy-dashboard">
         <div><div class="eyebrow" style="color: var(--forest)">Patient overview · demo record</div><h1>Good morning, Alex.</h1><p class="subtitle">A calm view of the signals that matter today.</p></div>
         <div class="patient-picker"><label for="patient">Viewing patient</label><select id="patient"><option>Alex Morgan · PT-2048</option><option>Jamie Lee · PT-1981</option><option>Riley Chen · PT-2160</option></select></div>
       </section>
-      <nav class="mobile-nav" aria-label="Patient navigation"><button class="mobile-nav-item active" id="homeNav">⌂<span>Home</span></button><button class="mobile-nav-item" id="checkinNav">●<span>Check-in</span></button><button class="mobile-nav-item" id="trendsNav">⌁<span>Trends</span></button><button class="mobile-nav-item" id="moreNav">•••<span>More</span></button></nav>
-      <div class="status-strip"><span class="status-dot"></span><strong>Sample dashboard data</strong><span>Device connections are not active</span></div>
+      <nav class="mobile-nav" aria-label="Patient navigation"><button class="mobile-nav-item active" id="homeNav">⌂<span>Home</span></button><button class="mobile-nav-item" id="mealsNav">🍽<span>Meals</span></button><button class="mobile-nav-item" id="trendsNav">⌁<span>Trends</span></button><button class="mobile-nav-item" id="moreNav">•••<span>More</span></button></nav>
+      <div class="status-strip legacy-dashboard"><span class="status-dot"></span><strong>No health source connected</strong><span>Only reported data is included</span></div>
 
-      <section class="card voice-checkin" aria-labelledby="voiceTitle">
+      <section class="card voice-checkin legacy-dashboard" aria-labelledby="voiceTitle">
         <div class="voice-main">
           <div class="voice-kicker">Daily check-in</div>
           <h2 class="voice-title" id="voiceTitle">Tell me how you are feeling.</h2>
           <p class="voice-copy">Speak naturally. You can mention symptoms, medications, meals, or measurements in the same sentence.</p>
           <button class="speak-button" id="speakPrompt" aria-label="Read check-in prompt aloud">◖ Read prompt aloud</button>
-          <div class="voice-row"><button class="mic-button" id="micButton" aria-label="Start voice check-in">●</button><div class="voice-status" id="voiceStatus">Open voice or text check-in<small>Example: “My blood pressure was 135 over 82, and I feel more tired today.”</small></div></div>
-          <textarea class="transcript" id="transcript" aria-label="Your check-in transcript" placeholder="Type here, then open the check-in to analyze and review."></textarea>
+          <div class="voice-row"><button class="mic-button" id="micButton" aria-label="Start voice check-in">●</button><div class="voice-status" id="voiceStatus">Tap to speak<small>Example: “My blood pressure was 135 over 82, and I feel more tired today.”</small></div></div>
+          <textarea class="transcript" id="transcript" aria-label="Your check-in transcript" placeholder="Your words will appear here. You can edit them before confirming."></textarea>
         </div>
         <div class="voice-review">
-          <h3 class="review-title">Latest saved check-in</h3><p class="review-copy">Details appear here after you review and save.</p>
-          <div class="understood-list" id="understoodList"><p>No check-in saved during this page visit.</p></div>
-          <button class="confirm-checkin" id="confirmCheckin">Open check-in</button>
+          <h3 class="review-title">I heard</h3><p class="review-copy">Review these details before they are added to your record.</p>
+          <div class="understood-list" id="understoodList"><p>No analyzed check-in yet.</p></div>
+          <details class="guided"><summary>Answer guided symptom questions</summary><div class="guided-fields"><label>Where is the discomfort?<select><option>Not applicable</option><option>Head</option><option>Chest</option><option>Abdomen</option><option>Back</option><option>Arms or legs</option></select></label><label>How severe is it?<select><option>Mild</option><option>Moderate</option><option>Severe</option></select></label><label>Compared with yesterday?<select><option>About the same</option><option>Better</option><option>Worse</option></select></label></div></details>
+          <button class="confirm-checkin" id="confirmCheckin">Review check-in</button>
         </div>
       </section>
 
-      <section class="grid metric-grid" aria-label="Today's health metrics">
-        <article class="card metric-card"><div class="metric-top"><span class="metric-name">Resting heart rate</span><span class="metric-icon heart">♥</span></div><div class="metric-value">62 <small>bpm</small></div><div class="metric-foot"><span class="up">↓ 3 bpm</span> from 7-day avg.</div></article>
-        <article class="card metric-card"><div class="metric-top"><span class="metric-name">Sleep quality</span><span class="metric-icon sleep">☾</span></div><div class="metric-value">8h 12m</div><div class="metric-foot"><span class="up">↑ 12%</span> from last night</div></article>
-        <article class="card metric-card"><div class="metric-top"><span class="metric-name">Steps</span><span class="metric-icon steps">✣</span></div><div class="metric-value">6,842</div><div class="metric-foot">68% of daily target</div></article>
-        <article class="card metric-card"><div class="metric-top"><span class="metric-name">Skin temperature</span><span class="metric-icon temp">∿</span></div><div class="metric-value">36.6°</div><div class="metric-foot"><span class="down">↑ 0.2°</span> from baseline</div></article>
+      <section class="grid metric-grid legacy-dashboard" aria-label="Today's health metrics">
+        <article class="card metric-card"><div class="metric-top"><span class="metric-name">Resting heart rate</span><span class="metric-icon heart">♥</span></div><div class="metric-value">—</div><div class="metric-foot">No measurement recorded</div></article>
+        <article class="card metric-card"><div class="metric-top"><span class="metric-name">Sleep quality</span><span class="metric-icon sleep">☾</span></div><div class="metric-value">—</div><div class="metric-foot">No measurement recorded</div></article>
+        <article class="card metric-card"><div class="metric-top"><span class="metric-name">Steps</span><span class="metric-icon steps">✣</span></div><div class="metric-value">—</div><div class="metric-foot">No measurement recorded</div></article>
+        <article class="card metric-card"><div class="metric-top"><span class="metric-name">Skin temperature</span><span class="metric-icon temp">∿</span></div><div class="metric-value">—</div><div class="metric-foot">No measurement recorded</div></article>
       </section>
 
-      <!-- The connection controller renders the check-in inside this container. -->
-      <section class="flow-overlay" id="checkinFlow" aria-label="Check-in" aria-modal="true" role="dialog"></section>
-
-      <section class="grid main-grid">
-        <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Heart rate this week</h2><div class="panel-meta">Resting heart rate · beats per minute</div></div><button class="text-button">7 days⌄</button></div><div class="chart-wrap"><div class="axis-labels"><span>80</span><span>70</span><span>60</span><span>50</span></div><div class="chart-grid"><span></span><span></span><span></span><span></span></div><div class="bars"><div class="bar-group"><div class="bar" style="height: 57%"></div><span class="bar-label">Mon</span></div><div class="bar-group"><div class="bar" style="height: 50%"></div><span class="bar-label">Tue</span></div><div class="bar-group"><div class="bar" style="height: 66%"></div><span class="bar-label">Wed</span></div><div class="bar-group"><div class="bar" style="height: 43%"></div><span class="bar-label">Thu</span></div><div class="bar-group"><div class="bar" style="height: 53%"></div><span class="bar-label">Fri</span></div><div class="bar-group"><div class="bar highlight" style="height: 36%"></div><span class="bar-label">Sat</span></div><div class="bar-group"><div class="bar" style="height: 46%"></div><span class="bar-label">Sun</span></div></div></div><div class="legend"><span><i></i>Daily resting average</span><span><i class="dark"></i>Today</span></div></article>
-        <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Connected sources</h2><div class="panel-meta">Patient-authorized data streams</div></div><button class="text-button" id="manageButton" disabled>Demo only</button></div><div class="source-list"><div class="source-row"><div class="source-logo apple"></div><div class="source-copy"><div class="source-name">Apple Health</div><div class="source-detail">Steps, sleep, heart rate</div></div><span class="source-state">Demo only</span></div><div class="source-row"><div class="source-logo google">G</div><div class="source-copy"><div class="source-name">Health Connect</div><div class="source-detail">Activity, vitals, nutrition</div></div><span class="source-state">Demo only</span></div><div class="source-row"><div class="source-logo fitbit">fit</div><div class="source-copy"><div class="source-name">Fitbit</div><div class="source-detail">Sleep stages, readiness</div></div><button class="connect" disabled title="Wearable connections are not part of this prototype">Not connected</button></div></div></article>
+      <section class="flow-overlay" id="checkinFlow" aria-label="Voice check-in flow" aria-modal="true" role="dialog">
+        <div class="flow-panel">
+          <div class="flow-top"><button class="flow-back" id="flowBack" aria-label="Go back">←</button><span class="flow-title">Daily Check-in</span><span class="flow-step" id="flowStep">Step 2 of 10</span><button class="flow-close" id="flowClose" aria-label="Close check-in">×</button></div>
+          <div class="flow-progress"><span id="flowProgress"></span></div>
+          <section class="flow-screen flow-intro" data-screen="intro"><h2>How are you feeling today?</h2><p>You can tell me about:</p><div class="flow-intro-list"><div class="flow-intro-item"><span>🤕</span>Pain or discomfort</div><div class="flow-intro-item"><span>😴</span>Fatigue or sleep</div><div class="flow-intro-item"><span>💊</span>Medication</div><div class="flow-intro-item"><span>🍽</span>Food or appetite</div><div class="flow-intro-item"><span>🙂</span>Anything different today</div></div><button class="flow-intro-mic" id="flowIntroMic" aria-label="Tap to start speaking">●</button><div class="flow-mic-label">Tap to start speaking</div><button class="flow-type" id="flowType" data-next="listening">Or type instead</button></section>
+          <section class="flow-screen flow-listening" data-screen="listening" hidden><div><h2>I'm listening</h2><div class="voice-wave" aria-label="Voice recording active"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><textarea class="transcript flow-transcript" id="flowTranscript" aria-label="Live transcript" placeholder="Your words will appear here. Record up to 30 seconds, or type your check-in."></textarea><button class="flow-primary flow-done">■ Done</button><button class="flow-cancel" data-close>Cancel recording</button></div></section>
+          <section class="flow-screen" data-screen="topics" hidden><h2>I heard you mention:</h2><p>Here is what I understood from what you said.</p><div class="flow-detected-list"></div><p class="flow-topic-note">Let’s go through these together.</p><button class="flow-primary" data-next="guided">Continue</button><button class="flow-edit" id="editTopics">Something isn’t right? Edit</button></section>
+          <section class="flow-screen" data-screen="guided" hidden><div class="guided-header"><div><div class="guided-context">About your symptom</div></div><span class="guided-count">1 of 3</span></div><h2>How severe is your pain right now?</h2><div class="severity-list"><button class="severity-card" data-severity="mild"><strong>Mild</strong><span>Noticeable, but manageable</span></button><button class="severity-card" data-severity="moderate"><strong>Moderate</strong><span>Interferes with some activities</span></button><button class="severity-card" data-severity="severe"><strong>Severe</strong><span>Difficult to do normal activities</span></button></div><button class="severity-voice" id="severityVoice"><span class="severity-voice-icon">●</span>Or tell me in your own words</button><div class="severity-voice-status" id="severityVoiceStatus"></div></section>
+          <section class="flow-screen" data-screen="pain-score" hidden><div class="guided-header"><div><div class="guided-context">About your pain</div></div><span class="guided-count">Optional</span></div><h2>How does the pain feel on a scale?</h2><p class="pain-score-prompt">If 1 means very mild pain and 10 means the worst pain you can imagine, what number feels closest?</p><div class="pain-score-grid"><button class="pain-score-button">1</button><button class="pain-score-button">2</button><button class="pain-score-button">3</button><button class="pain-score-button">4</button></div><div class="pain-score-grid"><button class="pain-score-button">5</button><button class="pain-score-button">6</button><button class="pain-score-button">7</button><button class="pain-score-button">8</button><button class="pain-score-button">9</button><button class="pain-score-button">10</button></div><div class="pain-score-scale"><span>Very mild pain</span><span>Worst pain</span></div><button class="flow-primary" id="painScoreContinue">Continue</button><button class="pain-score-skip" id="painScoreSkip">Skip this question</button></section>
+          <section class="flow-screen" data-screen="additional" hidden><div class="guided-context">About your symptom</div><h2>Is the pain making anything harder today?</h2><p>Select all that apply.</p><div class="impact-list"><label class="impact-choice"><input type="checkbox" name="impact" value="walking">Walking</label><label class="impact-choice"><input type="checkbox" name="impact" value="sleeping">Sleeping</label><label class="impact-choice"><input type="checkbox" name="impact" value="eating">Eating</label><label class="impact-choice"><input type="checkbox" name="impact" value="dressing">Getting dressed</label><label class="impact-choice"><input type="checkbox" name="impact" value="other">Other</label><label class="impact-choice"><input type="checkbox" name="impact" value="none">No major impact</label></div><button class="flow-primary" data-next="medication">Continue</button><button class="impact-voice" id="impactVoice"><span class="impact-voice-icon" id="impactVoiceIcon">🎤</span><span id="impactVoiceLabel">Start speaking</span></button><textarea class="transcript" id="impactTranscript" aria-label="Describe how pain is affecting you" placeholder="For example: It hurts when I walk upstairs."></textarea><div class="impact-voice-status" id="impactVoiceStatus"></div></section>
+          <section class="flow-screen" data-screen="medication" hidden><div class="guided-context">Medication list</div><h2>Which medication did you miss?</h2><p>Choose from your saved medications, or tell me if you are not sure.</p><div class="med-list" id="medList"></div><button class="med-voice" id="medVoice"><span class="med-voice-icon">🎤</span>Tell me</button><div class="med-voice-status" id="medVoiceStatus"></div><div class="med-ambiguity" id="medAmbiguity" hidden><p>I’m not sure which medication you mean.</p><p>Was it:</p><div class="med-ambiguity-list"></div></div><button class="flow-primary" data-next="vital">Continue</button></section>
+          <section class="flow-screen" data-screen="vital" hidden><div class="guided-context">Connected health data</div><div class="measurement-switch"><button id="pressureTab" class="active">Blood pressure</button><button id="glucoseTab">Blood glucose</button></div><h2 id="vitalMissingTitle">I don’t have a blood pressure reading from today.</h2><p id="vitalQuestion">Did you measure it?</p><div class="vital-source-note">Only readings you report or explicitly import are included.</div><div class="vital-actions" id="vitalActions"><button class="vital-action" id="enterVital"><span class="vital-action-icon">＋</span>Enter reading</button><button class="vital-action" id="sayVital"><span class="vital-action-icon">🎤</span>Say my reading</button><button class="vital-action" id="notTodayVital"><span class="vital-action-icon">—</span>Not today</button></div><div class="vital-entry" id="vitalEntry"><div class="field-grid"><div class="flow-field"><label for="flowSystolic" id="firstVitalLabel">Top number</label><input id="flowSystolic" placeholder="138" inputmode="numeric" /></div><div class="flow-field"><label for="flowDiastolic" id="secondVitalLabel">Bottom number</label><input id="flowDiastolic" placeholder="85" inputmode="numeric" /></div></div><button class="flow-primary" id="saveVital">Save reading</button></div><div class="vital-confirm" id="vitalConfirm"><div class="vital-confirm-label">I heard:</div><div class="vital-confirm-value" id="vitalConfirmValue"></div><div class="vital-confirm-actions"><button class="vital-correct" id="vitalCorrect">Correct</button><button class="vital-edit" id="vitalEdit">Edit</button></div></div></section>
+          <section class="flow-screen" data-screen="review" hidden><h2>Today’s Check-in</h2><div class="review-date">Friday, September 18</div><div class="review-section" id="reviewWellnessSection" hidden><div class="review-section-title">Health status</div><div id="reviewWellness"></div></div><div class="review-section" id="reviewSymptomsSection" hidden><div class="review-section-title">Symptoms</div><div id="reviewSymptoms"></div></div><div class="review-section" id="reviewResolvedSection" hidden><div class="review-section-title">Improved / Resolved</div><div id="reviewResolved"></div></div><div class="review-section" id="reviewMedicationsSection" hidden><div class="review-section-title">Medication</div><div id="reviewMedications"></div></div><div class="review-section" id="reviewVitalsSection" hidden><div class="review-section-title">Vitals</div><div class="review-vitals" id="reviewVitals"></div><div class="review-source" id="reviewVitalsSource"></div></div><div class="review-section" id="reviewDietSection" hidden><div class="review-section-title">Diet</div><div id="reviewDiet"></div></div><p class="more-detail-meta" id="reviewEmptyNote" hidden>You didn’t mention any symptoms, medications, vitals, or diet details in this check-in.</p><button class="flow-primary review-confirm" data-next="trends" id="reviewConfirmSave">Confirm &amp; Save</button></section>
+          <section class="flow-screen flow-center" data-screen="trends" hidden><div class="flow-icon" style="background: var(--forest)">✓</div><h2>Saved to your record</h2><p>You can see how this check-in connects with your measurements and symptoms over time.</p><button class="flow-primary" data-close>View today's health</button><button class="flow-secondary" data-close>Done</button></section>
+        </div>
       </section>
 
-      <section class="grid bottom-grid">
-        <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Recent activity</h2><div class="panel-meta">A normalized stream across all connected devices</div></div><button class="text-button">View all</button></div><div class="timeline"><div class="event"><div class="event-time">Today · 08:20</div><div class="event-marker"></div><div><div class="event-title">Morning walk recorded</div><div class="event-copy">2,140 steps · Apple Health · consistent with recent baseline</div></div></div><div class="event"><div class="event-time">Today · 07:10</div><div class="event-marker"></div><div><div class="event-title">Sleep session completed</div><div class="event-copy">8h 12m · 91% efficiency · Health Connect</div></div></div><div class="event"><div class="event-time">Yesterday · 22:45</div><div class="event-marker"></div><div><div class="event-title">Heart rate measurement</div><div class="event-copy">62 bpm resting average · Apple Health</div></div></div></div></article>
-        <article class="card panel insight"><div class="insight-tag">Signal worth a look</div><h2 class="panel-title" style="margin-top: 13px">Recovery is trending up.</h2><p>Alex's resting heart rate has moved down for three days while sleep duration is up. That combination may point to improved recovery this week.</p><button class="text-button" style="color:#365223">Open recovery report →</button></article>
+      <section class="grid main-grid legacy-dashboard">
+        <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Heart rate this week</h2><div class="panel-meta">Resting heart rate · beats per minute</div></div><button class="text-button">7 days⌄</button></div><div class="chart-wrap"><div class="axis-labels"><span>80</span><span>70</span><span>60</span><span>50</span></div><div class="chart-grid"><span></span><span></span><span></span><span></span></div><div class="bars"></div></div><div class="legend"><span><i></i>Daily resting average</span><span><i class="dark"></i>Today</span></div></article>
+        <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Connected sources</h2><div class="panel-meta">Patient-authorized data streams</div></div><button class="text-button" id="manageButton">Manage</button></div><div class="source-list"><div class="source-row"><div class="source-logo apple"></div><div class="source-copy"><div class="source-name">Apple Health</div><div class="source-detail">Steps, sleep, heart rate</div></div><span class="source-state">Not connected</span></div><div class="source-row"><div class="source-logo google">G</div><div class="source-copy"><div class="source-name">Health Connect</div><div class="source-detail">Activity, vitals, nutrition</div></div><span class="source-state">Not connected</span></div><div class="source-row"><div class="source-logo fitbit">fit</div><div class="source-copy"><div class="source-name">Fitbit</div><div class="source-detail">Sleep stages, readiness</div></div><button class="connect" data-source="Fitbit">Connect</button></div></div></article>
       </section>
 
-      <section class="journal-shell" id="journal">
-        <div class="journal-heading"><div><div class="eyebrow" style="color: var(--forest)">Your health journal</div><h2>Bring the whole picture to your next visit.</h2><p>Pair device readings with what only you can describe.</p></div><div class="journal-actions"><button class="action-button secondary" id="printButton">Print view</button><button class="action-button" id="exportButton">Export check-ins (.txt)</button></div></div>
+      <section class="grid bottom-grid legacy-dashboard">
+        <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Recent activity</h2><div class="panel-meta">A normalized stream across all connected devices</div></div><button class="text-button">View all</button></div><div class="timeline"><p>No connected activity recorded.</p></div></article>
+        <article class="card panel insight"><div class="insight-tag">Signal worth a look</div><h2 class="panel-title" style="margin-top: 13px">No recovery data recorded.</h2><p>Connect a data source to include measurements in your record.</p><button class="text-button" style="color:#365223">Open recovery report →</button></article>
+      </section>
+
+      <section class="journal-shell legacy-dashboard" id="journal">
+        <div class="journal-heading"><div><div class="eyebrow" style="color: var(--forest)">Your health journal</div><h2>Bring the whole picture to your next visit.</h2><p>Pair device readings with what only you can describe.</p></div><div class="journal-actions"><button class="action-button secondary" id="printButton">Print view</button><button class="action-button" id="exportButton">Export provider summary</button></div></div>
         <div class="grid journal-grid">
-          <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Add a check-in</h2><div class="panel-meta">Check-ins saved during this page visit.</div></div></div><div class="form-stack"><p>Use the connected check-in to describe how you feel, answer follow-up questions, and review the details before saving.</p><button class="form-submit" id="journalStartButton" type="button">Start a check-in</button></div></article>
-          <article class="card panel journal-chart"><div class="panel-header"><div><h2 class="panel-title">Symptom pattern</h2><div class="panel-meta">Reported severity scores from this page visit</div></div></div><div class="mini-chart" id="symptomChart"></div><table class="log-table"><thead><tr><th>Date</th><th>Entry</th><th>Intensity</th></tr></thead><tbody id="logRows"></tbody></table><p class="empty-log" id="emptyLog">No check-ins saved during this page visit.</p></article>
+          <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Add a check-in</h2><div class="panel-meta">Your notes stay alongside your connected health data.</div></div></div><form class="form-stack" id="checkinForm"><div class="field-grid"><div class="field"><label for="checkinDate">Date</label><input id="checkinDate" type="date" required></div><div class="field"><label for="symptomType">Main symptom</label><select id="symptomType"><option>Pain</option><option>Fatigue</option><option>Nausea</option><option>Mood</option><option>Other</option></select></div></div><div class="field"><label for="painLevel">Pain or symptom intensity · 0 to 10</label><div class="range-row"><input id="painLevel" type="range" min="0" max="10" value="4"><span class="range-value" id="painValue">4 / 10</span></div></div><div class="field"><label for="dietNote">Food, hydration, or triggers</label><input id="dietNote" type="text" placeholder="e.g. skipped breakfast, 2L water"></div><div class="field"><label for="medicationNote">Medications or changes</label><input id="medicationNote" type="text" placeholder="e.g. took 400mg ibuprofen at 9am"></div><div class="field"><label for="journalNote">How are you feeling?</label><textarea id="journalNote" placeholder="Describe what changed, what helped, or what you want to remember..."></textarea></div><div class="checkin-note">A short, specific note can help your provider spot patterns that sensors cannot measure.</div><button class="form-submit" type="submit">Save check-in</button></form></article>
+          <article class="card panel journal-chart"><div class="panel-header"><div><h2 class="panel-title">Symptom pattern</h2><div class="panel-meta">Pain intensity over the last 7 entries</div></div><button class="text-button" id="clearLogButton">Clear log</button></div><div class="mini-chart" id="symptomChart"></div><table class="log-table"><thead><tr><th>Date</th><th>Entry</th><th>Intensity</th></tr></thead><tbody id="logRows"></tbody></table><p class="empty-log" id="emptyLog">No saved check-ins yet.</p></article>
         </div>
       </section>
     </main>
   </div>
 
-<!-- Stable integration entry point: retain when updating this HTML. -->
+  <div class="modal-backdrop" id="consentModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal"><h2 id="modalTitle">Connect a health source</h2><p id="modalDescription">Choose the data Alex has agreed to share. You can change this scope at any time.</p><div class="scope-list"><label><input type="checkbox" checked> Activity and movement</label><label><input type="checkbox" checked> Heart rate and vitals</label><label><input type="checkbox" checked> Sleep and recovery</label><label><input type="checkbox"> Nutrition and body measurements</label></div><div class="modal-actions"><button class="cancel" id="cancelButton">Cancel</button><button class="confirm" id="confirmButton">Authorize connection</button></div></div>
+  </div>
   <script type="module" src="/frontend/main.js"></script>
 </body>
 </html>

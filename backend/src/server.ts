@@ -1,5 +1,6 @@
 import { createApp } from './app.js';
 import { createGeminiExtractor, demoExtractor } from './extractor.js';
+import { createSpeechTokenProvider } from './speech.js';
 
 const mode = process.env.EXTRACTION_MODE ?? 'demo';
 if (!['demo', 'gemini'].includes(mode)) throw new Error('EXTRACTION_MODE must be demo or gemini.');
@@ -11,6 +12,8 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('PORT m
 const host = process.env.HOST ?? '127.0.0.1';
 const app = createApp(extractor, {
   origins: process.env.CORS_ORIGINS?.split(',').map(s => s.trim()).filter(Boolean),
+  speechTokenProvider: process.env.ELEVENLABS_API_KEY?.trim()
+    ? createSpeechTokenProvider({ apiKey: process.env.ELEVENLABS_API_KEY }) : undefined,
 });
 const server = app.listen(port, host, () => {
   console.log(`Pulsewise API running at http://${host}:${port} (${mode} extraction)`);

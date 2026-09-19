@@ -1,6 +1,6 @@
 import type { Category, HealthRecord, Question } from './schema.js';
 
-export function questionsFor(record: HealthRecord): Question[] {
+export function questionsFor(record: HealthRecord, { numericPain = false }: { numericPain?: boolean } = {}): Question[] {
   const questions: Question[] = [];
   const add = (category: Category, entityId: string, field: string, text: string, options: string[] = []) => {
     questions.push({ id: `${entityId}:${field}`, category, entityId, field, text,
@@ -11,9 +11,12 @@ export function questionsFor(record: HealthRecord): Question[] {
     if (med.name === null) add('medications', med.id, 'name', 'Which medication do you mean? You can say “I’m not sure.”');
   }
   for (const s of record.symptoms) {
-    if (/pain|ache|hurt/i.test(s.name) && !s.location)
+    const isPain = /pain|ache|hurt/i.test(s.name);
+    if (isPain && !s.location)
       add('symptoms', s.id, 'location', `Where do you feel the ${s.name}?`);
-    if (s.severity === null && s.severityScore === null)
+    if (numericPain && isPain && s.severityScore === null)
+      add('symptoms', s.id, 'severity', `How severe is your ${s.name} right now, on a scale of 1 to 10?`, Array.from({ length: 10 }, (_, index) => String(index + 1)));
+    else if (s.severity === null && s.severityScore === null)
       add('symptoms', s.id, 'severity', `Would you describe your ${s.name} as mild, moderate, or severe?`, ['Mild', 'Moderate', 'Severe']);
     if (!s.functionalImpact)
       add('symptoms', s.id, 'functionalImpact', `How is your ${s.name} affecting your usual activities?`, ['Not affecting activities', 'Making activities harder', 'Unable to do usual activities']);

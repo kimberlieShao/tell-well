@@ -1,3 +1,3 @@
-import { mountCheckin } from './checkin-controller.js';
+import { mountVersionB } from './new-ui.js';
 
-mountCheckin(document);
+mountVersionB(document);

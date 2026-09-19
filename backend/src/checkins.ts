@@ -8,10 +8,12 @@ interface Session {
   id: string; version: number; record: HealthRecord; skipped: string[];
   status: 'collecting' | 'review' | 'saved'; notices: string[];
   savedAt: string | null; expiresAt: number; savedInput?: string;
+  numericPain: boolean;
 }
 
 function merge(record: HealthRecord, extraction: Extraction): HealthRecord {
   const next = structuredClone(record);
+  if (extraction.wellness !== null) next.wellness = structuredClone(extraction.wellness);
   for (const category of categories) {
     const items = next[category] as unknown as Record<string, unknown>[];
     for (const patch of extraction[category]) {
@@ -51,7 +53,7 @@ export class Checkins {
     return session;
   }
   private response(session: Session): CheckinResponse {
-    const missing = questionsFor(session.record);
+    const missing = questionsFor(session.record, { numericPain: session.numericPain });
     const pending = missing.filter(q => !session.skipped.includes(q.id));
     const notices = [...session.notices];
     if (this.extractor.mode === 'demo') notices.unshift('Demo extraction uses limited phrase rules, not AI. It can miss details. Use fictional data and review every field.');
@@ -74,13 +76,13 @@ export class Checkins {
     if (!existing && this.sessions.size + this.busy.size >= (this.options.maxSessions ?? 200)) throw new ApiError(503, 'SESSION_LIMIT', 'The demo server is full. Try again after sessions expire.');
     const session: Session = existing ? structuredClone(existing) : {
       id: randomUUID(), version: 0, record: emptyRecord(), skipped: [], status: 'collecting',
-      notices: [], savedAt: null, expiresAt: this.expiry(),
+      notices: [], savedAt: null, expiresAt: this.expiry(), numericPain: input.painScale === '1-10',
     };
     this.busy.add(session.id);
     try {
       session.notices = [];
       const currentQuestion = session.status === 'collecting'
-        ? questionsFor(session.record).find(q => !session.skipped.includes(q.id)) ?? null : null;
+        ? questionsFor(session.record, { numericPain: session.numericPain }).find(q => !session.skipped.includes(q.id)) ?? null : null;
       const questionId = input.answer?.questionId ?? input.questionId;
       if (questionId && questionId !== currentQuestion?.id) throw new ApiError(409, 'STALE_QUESTION', 'Answer the nextQuestion from the latest response.');
       if (input.action === 'review') session.status = 'review';
@@ -98,12 +100,12 @@ export class Checkins {
           throw new ApiError(422, 'INVALID_ANSWER', 'Choose a listed option, enter a clear answer, or skip this question.');
         } else if (input.transcript) {
           const extraction = extractionSchema.parse(await this.extractor.extract(input.transcript, session.record, questionId ? currentQuestion : null));
-          if (categories.every(category => extraction[category].length === 0))
+          if (categories.every(category => extraction[category].length === 0) && extraction.wellness === null)
             session.notices.push('No new structured details were extracted. Rephrase or edit the record during final review.');
           session.record = merge(session.record, extraction);
         }
       }
-      const pending = questionsFor(session.record).filter(q => !session.skipped.includes(q.id));
+      const pending = questionsFor(session.record, { numericPain: session.numericPain }).filter(q => !session.skipped.includes(q.id));
       if (session.status !== 'review') session.status = pending.length ? 'collecting' : 'review';
       session.version += 1;
       session.expiresAt = this.expiry();
@@ -129,7 +131,8 @@ export class Checkins {
       if (new Set(ids).size !== ids.length) throw new ApiError(422, 'DUPLICATE_IDS', 'Each record item needs a unique id.');
       session.record = structuredClone(input.record);
     }
-    if (categories.every(c => session.record[c].length === 0)) throw new ApiError(422, 'EMPTY_RECORD', 'There are no health details to save.');
+    if (categories.every(c => session.record[c].length === 0) && session.record.wellness === null)
+      throw new ApiError(422, 'EMPTY_RECORD', 'There are no health details to save.');
     session.status = 'saved'; session.savedAt = new Date(this.now()).toISOString();
     session.version += 1; session.expiresAt = this.expiry(); session.savedInput = fingerprint;
     const response = this.response(session);

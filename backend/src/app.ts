@@ -5,8 +5,9 @@ import { Checkins } from './checkins.js';
 import { ApiError } from './errors.js';
 import type { Extractor } from './extractor.js';
 import { analyzeInputSchema, saveInputSchema } from './schema.js';
+import type { SpeechTokenProvider } from './speech.js';
 
-export function createApp(extractor: Extractor, config: { origins?: string[]; store?: Checkins } = {}) {
+export function createApp(extractor: Extractor, config: { origins?: string[]; store?: Checkins; speechTokenProvider?: SpeechTokenProvider } = {}) {
   const app = express();
   const store = config.store ?? new Checkins(extractor);
   const origins = new Set(config.origins ?? ['http://localhost:8081', 'http://localhost:5500', 'http://127.0.0.1:5500']);
@@ -30,7 +31,7 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
   app.use(express.json({ limit: '64kb' }));
   app.get('/', (_req, res) => { res.redirect('/app'); });
   app.get(['/app', '/app/'], (_req, res) => {
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' wss://api.elevenlabs.io; worker-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.sendFile(fileURLToPath(new URL('../../index.html', import.meta.url)));
   });
@@ -43,6 +44,10 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
   }, express.static(fileURLToPath(new URL('../test-ui/', import.meta.url)), { dotfiles: 'deny', index: 'index.html' }));
   app.post('/api/analyze', async (req, res) => { res.json(await store.analyze(analyzeInputSchema.parse(req.body))); });
   app.post('/api/checkin/save', (req, res) => { res.json(store.save(saveInputSchema.parse(req.body))); });
+  app.post('/api/speech/token', async (_req, res) => {
+    if (!config.speechTokenProvider) throw new ApiError(503, 'SPEECH_NOT_CONFIGURED', 'Voice input is not configured. Add ELEVENLABS_API_KEY on the server, or type your check-in.');
+    res.json(await config.speechTokenProvider());
+  });
   app.use((_req, _res, next) => next(new ApiError(404, 'NOT_FOUND', 'Use POST /api/analyze or POST /api/checkin/save.')));
   const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
     if (error instanceof ZodError) {

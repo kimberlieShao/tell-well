@@ -12,6 +12,7 @@ const schema = z.toJSONSchema(extractionSchema, {
     delete jsonSchema.maxLength;
     delete jsonSchema.pattern;
     delete jsonSchema.maxItems;
+    delete jsonSchema.default;
     if (jsonSchema.format === 'uuid') delete jsonSchema.format;
   },
 });

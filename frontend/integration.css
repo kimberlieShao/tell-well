@@ -1,0 +1,9 @@
+/* Integration-only states. Version B's original styles remain in index.html. */
+[hidden] { display: none !important; }
+button:disabled { cursor: wait; opacity: .6; }
+.integration-status { color: var(--muted); font: 12px/1.5 Arial, sans-serif; padding: 10px 20px; }
+.integration-error { color: #8e382f; background: #fff1ee; border-left: 3px solid #cb7864; margin: 10px 20px; padding: 12px; font: 12px/1.6 Arial, sans-serif; }
+.integration-fields { display: grid; gap: 10px; margin: 12px 0; }
+.integration-fields label { display: grid; gap: 5px; font: 12px Arial, sans-serif; color: var(--muted); }
+.integration-fields input, .integration-fields select, .integration-fields textarea { width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--surface); color: var(--ink); font: 13px Arial, sans-serif; }
+.review-card, .review-vital { overflow-wrap: anywhere; }

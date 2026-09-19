@@ -25,7 +25,7 @@ const looksLikeState = (value) => value && value.schemaVersion === '1.0'
   && (value.nextQuestion === null || (typeof value.nextQuestion?.id === 'string'
     && typeof value.nextQuestion?.text === 'string' && Array.isArray(value.nextQuestion?.options)));
 
-export function createCheckinClient({ baseUrl = '', fetchImpl = globalThis.fetch, timeoutMs = 30000 } = {}) {
+export function createCheckinClient({ baseUrl = '', fetchImpl = globalThis.fetch, timeoutMs = 30000, painScale } = {}) {
   if (typeof fetchImpl !== 'function') throw new TypeError('A fetch implementation is required.');
   const base = baseUrl.replace(/\/$/, '');
   let state = null;
@@ -118,7 +118,7 @@ export function createCheckinClient({ baseUrl = '', fetchImpl = globalThis.fetch
     async start(transcript) {
       assertReady();
       if (state) throw new CheckinError('Reset before starting a new check-in.', { code: 'SESSION_EXISTS' });
-      return request('/api/analyze', { transcript: text(transcript) });
+      return request('/api/analyze', { transcript: text(transcript), ...(painScale ? { painScale } : {}) });
     },
     async answer(value, { spoken = false } = {}) {
       const body = sessionBody();
