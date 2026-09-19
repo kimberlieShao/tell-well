@@ -430,6 +430,7 @@
     @media (max-width: 520px) { .app-shell { display: block; } .sidebar { height: auto; padding: 15px 18px; flex-direction: row; align-items: center; gap: 13px; } .brand { margin: 0; } .brand-mark { width: 26px; height: 26px; } .nav { display: flex; margin: 0 0 0 auto; gap: 3px; } .nav-button { padding: 8px; } .nav-button.active { background: transparent; color: var(--lime); } .sidebar-spacer, .privacy-card { display: none; } .main { padding: 22px 15px 86px; } .topbar { margin-bottom: 29px; } .crumb { display: none; } .patient-home { margin-bottom: 0; } .patient-greeting h1 { font-size: 32px; } .patient-prompt { font-size: 20px; } .patient-metrics { grid-template-columns: 1fr 1fr; gap: 10px; } .patient-metric { min-height: 112px; } .patient-metric-value { margin-top: 17px; font-size: 19px; } .mobile-nav { position: fixed; z-index: 3; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 10px 14px 9px; border-top: 1px solid var(--line); background: rgba(255,255,255,.96); box-shadow: 0 -6px 18px rgba(28,50,38,.06); } .hero-row, .status-strip, .metric-grid, .main-grid, .bottom-grid, .journal-shell { display: none; } .voice-checkin { margin-top: 22px; grid-template-columns: 1fr; } .voice-review { border-top: 1px solid #d5e8d8; border-left: 0; } .panel { padding: 17px; } .status-strip { align-items: flex-start; } .status-strip span:last-child { display: none; } .journal-heading { display: block; } .journal-heading h2 { font-size: 25px; } .journal-actions { margin-top: 14px; } .journal-grid { grid-template-columns: 1fr; } .field-grid { grid-template-columns: 1fr; } }
   </style>
   <link rel="stylesheet" href="/frontend/integration.css">
+  <link rel="stylesheet" href="/frontend/home.css">
 </head>
 <body>
   <div class="app-shell">
@@ -451,10 +452,59 @@
       <section class="patient-home" aria-label="Patient home">
         <div class="patient-greeting"><div class="eyebrow" style="color: var(--forest)">Your health today</div><h1>Good morning, Mary</h1><div class="patient-date" id="patientDate">Friday, September 18</div></div>
         <p class="patient-prompt">How are you feeling today?</p>
-        <button class="daily-checkin" id="dailyCheckinButton" aria-label="Start Daily Check-in"><div class="daily-checkin-icon">●</div><span class="daily-checkin-button">Start Daily Check-in</span><div class="daily-checkin-note">Talk with your voice assistant · Usually takes 1–2 minutes</div></button>
+        <button class="daily-checkin" id="dailyCheckinButton" aria-label="Check-in"><div class="daily-checkin-icon">●</div><span class="daily-checkin-button">Check-in</span></button>
         <button class="flow-type" id="typeCheckinButton">Type a check-in instead</button>
         <div class="today-heading">Today's health</div>
-        <div class="patient-metrics"><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">♥</span>Heart Rate</div><div class="patient-metric-value">—</div><div class="patient-metric-foot">No entry recorded</div></article><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">♢</span>Blood Pressure</div><div class="patient-metric-value">—</div><div class="patient-metric-foot">No entry recorded</div></article><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">●</span>Blood Glucose</div><div class="patient-metric-value">—</div><div class="patient-metric-foot">No entry recorded</div></article><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">▣</span>Medication</div><div class="patient-metric-value">—</div><div class="patient-metric-foot">No entry recorded</div></article></div>
+        <div class="patient-metrics"><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">♢</span>Blood Pressure</div><div class="patient-metric-value">118/76<span class="metric-unit">mmHg</span></div><div class="patient-metric-foot">Example reading</div></article><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">●</span>Blood Glucose</div><div class="patient-metric-value">96<span class="metric-unit">mg/dL</span></div><div class="patient-metric-foot">Example reading</div></article><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">▣</span>Medication</div><div class="patient-metric-value" id="medTileValue">—</div><div class="patient-metric-foot" id="medTileFoot">No entry recorded</div></article></div>
+        <div class="wearable-head">
+          <div class="today-heading">From your wearable</div>
+          <div class="wearable-updated" id="wearableStatus">Loading…</div>
+        </div>
+        <article class="wearable-live" id="liveCard">
+          <div>
+            <div class="wearable-live-label">Live heart rate <span class="wearable-live-pill" id="livePill">Not connected</span></div>
+            <div class="wearable-live-value"><strong id="liveBpm">—</strong><span>bpm</span></div>
+          </div>
+          <div class="wearable-live-heart" aria-hidden="true">♥</div>
+        </article>
+        <div class="patient-metrics wearable-tiles" id="wearableTiles"></div>
+        <div class="today-heading">All wearable data</div>
+        <div class="data-card">
+          <table class="data-table">
+            <caption>↑ ↓ outside your usual range · ← within it</caption>
+            <thead><tr><th scope="col">Measure</th><th scope="col">Last night</th><th scope="col">Your usual</th></tr></thead>
+            <tbody id="wearableTableBody"><tr><td class="empty" colspan="3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="today-heading">Medications</div>
+        <div class="data-card">
+          <table class="data-table">
+            <thead><tr><th scope="col">Medication</th><th scope="col">Dose</th><th scope="col">When</th><th scope="col"><span class="visually-hidden">Remove</span></th></tr></thead>
+            <tbody id="medRows"></tbody>
+          </table>
+        </div>
+        <form class="med-form" id="medForm">
+          <input id="medName" aria-label="Medication name" placeholder="Medication name" maxlength="60" required>
+          <input id="medDose" aria-label="Dose" placeholder="Dose, e.g. 10 mg" maxlength="30">
+          <select id="medWhen" aria-label="When you take it"><option>Morning</option><option>Afternoon</option><option>Evening</option><option>As needed</option></select>
+          <button type="submit">Add medication</button>
+        </form>
+        <div class="today-heading">Prepare for your visit</div>
+        <article class="visit-card">
+          <div>
+            <strong>Doctor summary</strong>
+            <p>One page with your wearable trends over time, medications, recent check-ins and questions to ask. In the print window, choose Save as PDF.</p>
+          </div>
+          <div class="visit-actions">
+            <select id="visitDays" aria-label="How much history to include"><option value="30" selected>Last 30 days</option><option value="60">Last 60 days</option><option value="90">Last 90 days</option></select>
+            <button class="home-button" id="visitSummaryButton" type="button">Download PDF summary</button>
+          </div>
+        </article>
+        <div class="today-heading">Connect a device</div>
+        <article class="wearable-connect">
+          <button class="home-button" id="connectHr" type="button">Connect device</button>
+          <p class="wearable-connect-status" id="liveStatus" role="status">Not connected</p>
+        </article>
       </section>
       <section id="trendsView" class="patient-secondary-view" hidden>
         <div class="eyebrow" style="color: var(--forest)">Your health</div>
