@@ -2,7 +2,7 @@
 
 The root `index.html` is the newer UI supplied as `index-2.html`. Its Home, Meals, Trends, More, check-in screens, and 1–10 pain controls remain the final interface. Its local mock health parser is not active.
 
-Work branch: `codex/voice-conversation`. The connected Version B before the conversation update is preserved on `codex/backup-before-voice-2861fbf`. The earlier Version A backup remains `codex/backup-before-new-ui-c222f48`.
+Shared integration baseline: [`codex/checkpoint-voice-checkin-2026-09-19`](https://github.com/aanya-k/HopHacks/tree/codex/checkpoint-voice-checkin-2026-09-19), commit `5a7fd55`. Authentication/profile contract proposal: `codex/gemini-profile-api` (documentation only). The connected Version B before the conversation update is preserved on `codex/backup-before-voice-2861fbf`. The earlier Version A backup remains `codex/backup-before-new-ui-c222f48`.
 
 ## Run
 
@@ -68,6 +68,16 @@ The browser gets a single-use speech token, never an ElevenLabs or Gemini key. M
 
 Saved records live in one server process's memory. Sessions expire after two hours of inactivity; restarting the backend clears everything. Recent Check-ins displays records saved in the current page; refreshing clears that frontend state. Manual profile/Meals controls remain page-local. This branch has no database, accounts, history retrieval, or wearable connection.
 
+## Onboarding/profile work with Kimberly
+
+Read [the proposed authentication/profile contract](backend/PROFILE-AUTH-CONTRACT.md) and [the teammate handoff](backend/KIMBERLY-HANDOFF.md). No auth/profile routes are implemented yet. Kimberly can build isolated modules and a mock `loadProfile` / `saveProfile` adapter from the proposal; agree on it before connecting live endpoints.
+
+Current profile and manual Meals edits are page-local. Do not treat a check-in `sessionId` as login, or copy demo profile values into real accounts. Backend ownership checks, a persistent profile store, and account-switch cleanup are required before user integration. Profile facts must remain separate from today's check-in facts.
+
+The backend teammate owns eventual shared entry-point wiring after coordination. Keep the current `index.html`, state architecture, speech capture, and voice conversation intact while Kimberly develops her modules. Authentication/profile storage must work independently of Gemini.
+
+Gemini status: the local model was changed to `gemini-3.6-flash`; a prior live wellness extraction returned HTTP 200. The user reports that this resolved their model error. No new quota diagnosis or paid provider calls were made for this profile-contract task.
+
 ## Future HTML updates
 
 Preserve these includes:
@@ -83,7 +93,7 @@ Do not load the old controller alongside Version B or restore its inline mock pa
 
 ## Verification
 
-TypeScript checking and all **102 automated tests** passed after the conversation update. Run `npm run check` and `npm test` inside `backend`. Tests cover extraction cases, actual Version B events against a local API, per-symptom scores, review edits, failed saves, microphone cleanup, simulated audio/WebSockets, automatic multi-turn conversations, VAD, spoken playback, cancellation, and no automatic save.
+TypeScript checking and all **127 automated tests** passed at checkpoint `5a7fd55`, including the microphone handoff and Gemini adapter changes. This documentation-only profile proposal adds no runtime code or new passing authentication tests. Run `npm run check` and `npm test` inside `backend`. Tests cover extraction cases, actual Version B events against a local API, per-symptom scores, review edits, failed saves, microphone cleanup, simulated audio/WebSockets, automatic multi-turn conversations, VAD, spoken playback, cancellation, and no automatic save.
 
 Earlier live checks verified ElevenLabs with synthetic audio, plus Gemini wellness, separate arm/leg pain, and unnamed missed medication. The earlier browser Gemini flow completed scores 7/3, impact/trend follow-ups, review, and save. Live refusal and meals checks hit provider busy/quota limits (503/429), so not all live cases passed.
 

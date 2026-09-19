@@ -3,6 +3,12 @@
 Base URL during local development: `http://127.0.0.1:3001`.
 Use `Content-Type: application/json` on every POST. Successful analyze/save responses have the same keys, validated by `contracts/response.schema.json`. All four health categories are always arrays; `wellness` is a nullable object. Speech-token responses are separate JSON, and spoken-question responses are audio, as described below.
 
+## Authentication and profile status
+
+**This document describes implemented check-in/speech routes. This baseline has no authenticated accounts or backend profiles.** Check-in UUIDs are not user authentication. All saved check-ins still use expiring process memory.
+
+The [proposed authentication/profile contract](PROFILE-AUTH-CONTRACT.md) separately defines `GET /api/me`, `GET /api/me/profile`, and `PATCH /api/me/profile`, registration/login/logout integration, validation, null-vs-empty semantics, ownership, and persistence. Those routes currently return `404 NOT_FOUND`; the proposal must be agreed before implementation. Kimberly should use its mock adapter contract until real endpoints and user-isolation tests exist. Proposed profile versions are distinct from existing check-in versions.
+
 ## 0. Start speech transcription (optional)
 
 POST `/api/speech/token` with `{}` returns `{ "token": "<single-use token>" }`. The backend requires `ELEVENLABS_API_KEY`; the provider key is never sent to the browser. Missing configuration returns `503 SPEECH_NOT_CONFIGURED`. Provider failures return `502` or `503 SPEECH_UNAVAILABLE`.
