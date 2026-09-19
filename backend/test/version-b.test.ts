@@ -32,6 +32,8 @@ type Page = {
   dom: JSDOM; document: Document; app: any; client: any; mealClient: any;
   requests: { path: string; body: any }[];
   speech: any[]; failNext: boolean; gate: Promise<void> | null;
+  spokenQuestions: string[];
+  speakerGate?: Promise<void>;
 };
 
 function click(page: Page, selector: string) {
@@ -49,13 +51,13 @@ function fill(page: Page, selector: string, value: string) {
 function ready(page: Page) { return page.document.getElementById('checkinFlow')?.getAttribute('aria-busy') !== 'true'; }
 function screen(page: Page) { return page.document.querySelector<HTMLElement>('[data-screen]:not([hidden])')?.dataset.screen; }
 
-async function withPage(run: (page: Page) => Promise<void>, extractor: Extractor = demoExtractor) {
+async function withPage(run: (page: Page) => Promise<void>, extractor: Extractor = demoExtractor, conversationEnabled = false) {
   const server = createApp(extractor).listen(0, '127.0.0.1');
   await once(server, 'listening');
   const baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
   const dom = new JSDOM(await readFile(htmlUrl, 'utf8'), { url: `${baseUrl}/app`, runScripts: 'outside-only' });
   dom.window.scrollTo = () => {};
-  const page = { dom, document: dom.window.document, requests: [], speech: [], failNext: false, gate: null } as unknown as Page;
+  const page = { dom, document: dom.window.document, requests: [], speech: [], spokenQuestions: [], failNext: false, gate: null } as unknown as Page;
   const [{ createCheckinClient }, { mountVersionB }] = await Promise.all([import(apiUrl), import(uiUrl)]);
   const fetchImpl = async (url: string, init: RequestInit) => {
     page.requests.push({ path: new URL(url, baseUrl).pathname, body: JSON.parse(String(init.body)) });
@@ -68,7 +70,7 @@ async function withPage(run: (page: Page) => Promise<void>, extractor: Extractor
   };
   page.client = createCheckinClient({ baseUrl, fetchImpl, painScale: '1-10' });
   page.mealClient = createCheckinClient({ baseUrl, fetchImpl, painScale: '1-10' });
-  const speechFactory = ({ textarea, onStatus = () => {} }: any) => {
+  const speechFactory = ({ textarea, onStatus = () => {}, onTurn }: any) => {
     let active = false;
     let mode = 'form';
     let cancelled = 0;
@@ -78,6 +80,8 @@ async function withPage(run: (page: Page) => Promise<void>, extractor: Extractor
       textarea, available: true, finalText: '', finishGate: null as Promise<void> | null,
       get isActive() { return active; }, get mode() { return mode; }, get cancelled() { return cancelled; },
       async start() { active = true; mode = 'spoken'; onStatus({ type: 'listening', message: 'Listening' }); },
+      status(value:any) { onStatus(value); },
+      async turn(text: string) { textarea.value=text;active=false;return onTurn?.(text); },
       async finish() {
         const generation = cancelled;
         if (capture.finishGate) await capture.finishGate;
@@ -93,7 +97,12 @@ async function withPage(run: (page: Page) => Promise<void>, extractor: Extractor
     page.speech.push(capture);
     return capture;
   };
-  page.app = mountVersionB(page.document, { client: page.client, mealClient: page.mealClient, speechFactory });
+  const speakerFactory = () => ({
+    prime: async () => {},
+    speak: async (text: string) => { assert.ok(page.speech.every(input => !input.isActive), 'microphone must be off while speaking');page.spokenQuestions.push(text);if(page.speakerGate)await page.speakerGate; },
+    stop() {},destroy() {},
+  });
+  page.app = mountVersionB(page.document, { client: page.client, mealClient: page.mealClient, speechFactory, speakerFactory, conversationEnabled });
   try { await run(page); }
   finally {
     page.app?.destroy();
@@ -380,4 +389,107 @@ test('wellness is visible in review even when the same check-in has a symptom', 
     assert.match(page.document.getElementById('reviewWellness')!.textContent!, /generally fine/);
     assert.equal(page.document.getElementById('reviewSymptomsSection')!.hidden, false);
   }, extractor);
+});
+
+test('one click starts a spoken conversation that reaches the existing review without Continue clicks', async () => {
+  await withPage(async page => {
+    click(page, '#dailyCheckinButton');
+    await until(() => page.app.conversation.state.phase === 'listening', 'initial listening');
+    assert.match(page.spokenQuestions[0], /How are you feeling/);
+    await page.speech.at(-1).turn('My arm and leg hurt.');
+    assert.equal(screen(page), 'pain-score');
+    assert.equal(page.client.state.symptoms.length, 2);
+    assert.match(page.spokenQuestions.at(-1)!, /arm/);
+    assert.equal((page.document.getElementById('voiceReview') as HTMLButtonElement).disabled, false);
+    for (const answer of ['7', 'Not affecting activities', 'same', '3', 'Walking is harder', 'worse']) {
+      await until(() => page.app.conversation.state.phase === 'listening', `ready for ${answer}`);
+      await page.speech.at(-1).turn(answer);
+    }
+    assert.equal(screen(page), 'review');
+    assert.equal(page.app.conversation.active, false);
+    assert.equal(page.client.state.status, 'review');
+    assert.equal(page.app.state.transcript, 'My arm and leg hurt.');
+    assert.deepEqual(page.app.state.symptoms.map((item: any) => item.painScore), [7,3]);
+    assert.equal(page.requests.filter(request => request.path.endsWith('/save')).length, 0);
+    assert.ok(page.speech.every(input => !input.isActive));
+    click(page, '#reviewConfirmSave');
+    await until(() => page.client.state.status === 'saved', 'explicitly confirmed save');
+  }, demoExtractor, true);
+});
+
+test('voice Pause returns to manual controls and Close prevents late audio from advancing', async () => {
+  await withPage(async page => {
+    click(page, '#dailyCheckinButton');
+    await until(() => page.app.conversation.state.phase === 'listening', 'listening');
+    const old = page.speech.at(-1);
+    click(page, '#voicePause');
+    assert.equal(page.app.conversation.active, false);
+    assert.equal(ready(page), true);
+    assert.equal((page.document.querySelector('.flow-done') as HTMLButtonElement).disabled, false);
+    assert.equal(old.isActive, false);
+    click(page, '#flowClose');
+    await old.turn('My knee hurts.');
+    assert.equal(page.requests.length, 0);
+    assert.equal(page.document.getElementById('checkinFlow')!.classList.contains('open'), false);
+    click(page, '#typeCheckinButton');
+    fill(page, '#flowTranscript', 'I feel fine today.');
+    click(page, '.flow-done');
+    await until(() => ready(page) && screen(page) === 'topics', 'manual recovery');
+    assert.equal(page.app.state.noSymptoms, true);
+  }, demoExtractor, true);
+});
+
+test('pausing during analysis reconciles the manual screen with the eventual next question', async () => {
+  await withPage(async page => {
+    click(page,'#dailyCheckinButton');
+    await until(()=>page.app.conversation.state.phase==='listening','listening');
+    await page.speech.at(-1).turn('My arm hurts.');
+    assert.equal(screen(page),'pain-score');
+    let release!:()=>void;
+    page.gate=new Promise<void>(resolve=>{release=resolve;});
+    const turn=page.speech.at(-1).turn('6');
+    await until(()=>page.client.busy,'score request sent');
+    click(page,'#voicePause');
+    assert.equal(ready(page),false);
+    release();await turn;
+    assert.equal(ready(page),true);
+    assert.equal(page.client.state.nextQuestion.field,'functionalImpact');
+    assert.equal(screen(page),'additional');
+    assert.equal((page.document.getElementById('impactTranscript') as HTMLTextAreaElement).value,'');
+    assert.equal(page.app.conversation.active,false);
+  },demoExtractor,true);
+});
+
+test('pausing the next spoken question does not paste a prior answer into its manual input',async()=>{
+  await withPage(async page=>{
+    click(page,'#dailyCheckinButton');
+    await until(()=>page.app.conversation.state.phase==='listening','listening');
+    await page.speech.at(-1).turn('My arm hurts.');
+    let release!:()=>void;
+    page.speakerGate=new Promise<void>(resolve=>{release=resolve;});
+    const turn=page.speech.at(-1).turn('7');
+    await until(()=>screen(page)==='additional'&&page.app.conversation.state.phase==='speaking','speaking next question');
+    click(page,'#voicePause');
+    assert.equal((page.document.getElementById('impactTranscript') as HTMLTextAreaElement).value,'');
+    assert.equal(page.client.state.symptoms[0].severityScore,7);
+    release();await turn;
+    assert.ok(page.speech.every(input=>!input.isActive));
+  },demoExtractor,true);
+});
+
+
+test('voice screen distinguishes microphone connection from ready to listen', async () => {
+  await withPage(async page => {
+    click(page, '#dailyCheckinButton');
+    await until(() => page.app.conversation.state.phase === 'listening', 'voice listening');
+    const input = page.speech.at(-1);
+    input.status({type:'connecting',message:'Starting microphone audio…'});
+    assert.equal(page.document.querySelector('[data-screen="listening"] h2')?.textContent, 'Connecting your microphone…');
+    assert.equal(page.document.getElementById('integrationStatus')?.textContent, 'Starting microphone audio…');
+    assert.equal((page.document.querySelector('.voice-wave') as HTMLElement).hidden, true);
+    input.status({type:'listening',message:'Listening with ElevenLabs…'});
+    assert.equal(page.document.querySelector('[data-screen="listening"] h2')?.textContent, "I'm listening");
+    assert.equal((page.document.querySelector('.voice-wave') as HTMLElement).hidden, false);
+    click(page, '#voicePause');
+  }, demoExtractor, true);
 });

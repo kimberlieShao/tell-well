@@ -1,5 +1,7 @@
 import { ApiError } from './errors.js';
+import { setTimeout as delay } from 'node:timers/promises';
 import { geminiExtractionSchema } from './gemini-schema.js';
+import { geminiQuotaReason } from './gemini-quota.js';
 import { emptyRecord, extractionSchema, type Extraction, type HealthRecord, type Question } from './schema.js';
 
 export interface Extractor {
@@ -45,30 +47,81 @@ export function createGeminiExtractor(config: { apiKey: string; model: string; f
   const fetcher = config.fetcher ?? fetch;
   if (!config.apiKey.trim()) throw new Error('GEMINI_API_KEY is required when EXTRACTION_MODE=gemini.');
   if (!/^[a-zA-Z0-9._-]+$/.test(config.model)) throw new Error('GEMINI_MODEL must be a model ID.');
+  // Older text models are also available through the stateless GenerateContent
+  // API. Route them directly there rather than spending requests on fallbacks.
+  const useGenerateContent = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.5-pro'].includes(config.model);
+  const endpoint = useGenerateContent
+    ? `https://generativelanguage.googleapis.com/v1beta/models/${config.model}:generateContent`
+    : 'https://generativelanguage.googleapis.com/v1beta/interactions';
   return {
     mode: 'gemini',
     async extract(transcript, record, question) {
+      // Retries share one deadline, shorter than the frontend's 30-second timeout.
+      const deadline = Date.now() + 25_000;
+      const signal = AbortSignal.timeout(25_000);
       try {
-        const response = await fetcher('https://generativelanguage.googleapis.com/v1beta/interactions', {
-          method: 'POST', signal: AbortSignal.timeout(25_000),
+        const input = JSON.stringify({ latestTranscript: transcript, currentRecord: record, currentQuestion: question });
+        const request: RequestInit = {
+          method: 'POST', signal,
           headers: { 'Content-Type': 'application/json', 'x-goog-api-key': config.apiKey },
-          body: JSON.stringify({
+          body: JSON.stringify(useGenerateContent ? {
+            systemInstruction: { parts: [{ text: instructions }] },
+            contents: [{ role: 'user', parts: [{ text: input }] }],
+            generationConfig: {
+              responseMimeType: 'application/json', responseJsonSchema: geminiExtractionSchema,
+              maxOutputTokens: 4096, candidateCount: 1,
+              // Flash allows disabling thinking for this bounded extraction task;
+              // Gemini 2.5 Pro does not support a zero thinking budget.
+              ...(config.model !== 'gemini-2.5-pro' ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
+            },
+          } : {
             model: config.model,
             system_instruction: instructions,
-            input: JSON.stringify({ latestTranscript: transcript, currentRecord: record, currentQuestion: question }),
+            input,
             response_format: { type: 'text', mime_type: 'application/json', schema: geminiExtractionSchema },
             generation_config: { max_output_tokens: 4096 },
             store: false,
           }),
-        });
+        };
+        let response: Response;
+        for (let attempt = 0; ; attempt++) {
+          signal.throwIfAborted();
+          response = await fetcher(endpoint, request);
+          // Retry only explicit temporary unavailability, never quota/access errors
+          // or ambiguous network failures. No session changes occur in this layer.
+          if (response.status !== 503 || attempt >= 2) break;
+          const retryAfter = response.headers.get('retry-after');
+          const now = Date.now();
+          const providerDelay = retryAfter === null ? NaN
+            : /^\d+(?:\.\d+)?$/.test(retryAfter.trim()) ? Number(retryAfter) * 1000
+              : Date.parse(retryAfter) - now;
+          const backoff = 1000 * 2 ** attempt + Math.floor(Math.random() * 200);
+          const waitMs = Number.isFinite(providerDelay) ? Math.max(backoff, providerDelay) : backoff;
+          // Respect long Retry-After values without keeping the browser waiting.
+          if (now + waitMs >= deadline) break;
+          await response.body?.cancel();
+          await delay(waitMs, undefined, { signal });
+        }
         if (!response.ok) {
-          const reason = response.status === 429 ? 'Gemini has reached a rate or quota limit. Check your Google AI Studio quota before retrying.'
+          const reason = response.status === 429 ? await geminiQuotaReason(response, config.model)
             : [401, 403].includes(response.status) ? 'Gemini rejected access. Check the server API key and project permissions.'
             : response.status === 503 ? 'Gemini is temporarily busy. Try again shortly.'
             : response.status === 400 ? 'Gemini rejected the request format. Check the backend model and extraction schema.'
-            : response.status === 404 ? 'The configured Gemini model was not found. Check GEMINI_MODEL on the backend.'
+            : response.status === 404 ? `Gemini model ${config.model} was not found through the ${useGenerateContent ? 'GenerateContent' : 'Interactions'} API. Check model availability for this key and endpoint.`
             : 'The AI service could not extract this transcript. Please retry.';
           throw new ApiError(502, 'EXTRACTION_FAILED', `${reason} Your existing record was not changed.`);
+        }
+        if (useGenerateContent) {
+          const result = await response.json() as {
+            promptFeedback?: { blockReason?: string };
+            candidates?: { finishReason?: string; content?: { parts?: { text?: string; thought?: boolean }[] } }[];
+          };
+          const candidate = result.candidates?.[0];
+          if (result.promptFeedback?.blockReason || candidate?.finishReason !== 'STOP')
+            throw new Error('Incomplete or blocked model response');
+          const raw = candidate.content?.parts?.filter(part => part.thought !== true && typeof part.text === 'string')
+            .map(part => part.text).join('');
+          return extractionSchema.parse(JSON.parse(raw ?? ''));
         }
         const result = await response.json() as { status?: string; steps?: { type?: string; content?: { type?: string; text?: string }[] }[] };
         if (result.status !== 'completed') throw new Error('Incomplete or blocked model response');
@@ -77,6 +130,7 @@ export function createGeminiExtractor(config: { apiKey: string; model: string; f
         return extractionSchema.parse(JSON.parse(raw ?? ''));
       } catch (error) {
         if (error instanceof ApiError) throw error;
+        if (signal.aborted) throw new ApiError(502, 'EXTRACTION_FAILED', 'Gemini took too long to respond. Try again shortly. Your existing record was not changed.');
         throw new ApiError(502, 'EXTRACTION_FAILED', 'The AI service returned no valid structured record. Retry; your existing record was not changed.');
       }
     },

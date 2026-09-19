@@ -1,6 +1,7 @@
 import { createApp } from './app.js';
 import { createGeminiExtractor, demoExtractor } from './extractor.js';
 import { createSpeechTokenProvider } from './speech.js';
+import { createSpeechAudioProvider } from './tts.js';
 
 const mode = process.env.EXTRACTION_MODE ?? 'demo';
 if (!['demo', 'gemini'].includes(mode)) throw new Error('EXTRACTION_MODE must be demo or gemini.');
@@ -14,6 +15,8 @@ const app = createApp(extractor, {
   origins: process.env.CORS_ORIGINS?.split(',').map(s => s.trim()).filter(Boolean),
   speechTokenProvider: process.env.ELEVENLABS_API_KEY?.trim()
     ? createSpeechTokenProvider({ apiKey: process.env.ELEVENLABS_API_KEY }) : undefined,
+  speechAudioProvider: process.env.ELEVENLABS_API_KEY?.trim()
+    ? createSpeechAudioProvider({ apiKey: process.env.ELEVENLABS_API_KEY, voiceId: process.env.ELEVENLABS_VOICE_ID || undefined, modelId: process.env.ELEVENLABS_TTS_MODEL || undefined }) : undefined,
 });
 const server = app.listen(port, host, () => {
   console.log(`Pulsewise API running at http://${host}:${port} (${mode} extraction)`);

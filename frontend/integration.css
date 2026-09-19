@@ -7,3 +7,12 @@ button:disabled { cursor: wait; opacity: .6; }
 .integration-fields label { display: grid; gap: 5px; font: 12px Arial, sans-serif; color: var(--muted); }
 .integration-fields input, .integration-fields select, .integration-fields textarea { width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--surface); color: var(--ink); font: 13px Arial, sans-serif; }
 .review-card, .review-vital { overflow-wrap: anywhere; }
+.voice-conversation-controls { margin: 0 20px 12px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.voice-conversation-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.voice-conversation-actions button { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; background: white; color: var(--forest); font: 700 12px Arial, sans-serif; cursor: pointer; }
+.voice-conversation-controls p, #voiceReplyLabel { font: 12px/1.5 Arial, sans-serif; color: var(--muted); }
+.voice-conversation-controls p { margin: 8px 0 0; }
+#voiceReplyLabel { display: block; margin-top: 8px; }
+#voiceReply { min-height: 50px; margin-top: 4px; }
+#checkinFlow[data-voice-active="true"] .flow-done,
+#checkinFlow[data-voice-active="true"] [data-screen]:not([hidden]) > .integration-question-actions { display: none; }

@@ -1,13 +1,27 @@
 # API contract — version 1.0
 
 Base URL during local development: `http://127.0.0.1:3001`.
-Use `Content-Type: application/json` on every POST. Successful analyze/save responses have the same keys, validated by `contracts/response.schema.json`. All four health categories are always arrays; `wellness` is a nullable object. A separate speech-token endpoint returns the token format below.
+Use `Content-Type: application/json` on every POST. Successful analyze/save responses have the same keys, validated by `contracts/response.schema.json`. All four health categories are always arrays; `wellness` is a nullable object. Speech-token responses are separate JSON, and spoken-question responses are audio, as described below.
 
 ## 0. Start speech transcription (optional)
 
 POST `/api/speech/token` with `{}` returns `{ "token": "<single-use token>" }`. The backend requires `ELEVENLABS_API_KEY`; the provider key is never sent to the browser. Missing configuration returns `503 SPEECH_NOT_CONFIGURED`. Provider failures return `502` or `503 SPEECH_UNAVAILABLE`.
 
-The supplied browser module uses that token for `wss://api.elevenlabs.io/v1/speech-to-text/realtime`, model `scribe_v2_realtime`, `audio_format=pcm_16000`, and manual commit. It streams mono 16 kHz PCM, displays interim text, and waits for the committed transcript before sending it to `/api/analyze`. Clips are limited to 30 seconds. Audio does not go to the health API; typed transcripts skip this endpoint entirely.
+The supplied browser module uses that token for `wss://api.elevenlabs.io/v1/speech-to-text/realtime`, model `scribe_v2_realtime`, and `audio_format=pcm_16000`. It streams mono 16 kHz PCM and displays interim text. Daily Check-in conversation mode selects `commit_strategy=vad` with a two-second silence threshold; it sends each completed turn to `/api/analyze` only once, after recording stops. Manual microphone controls retain manual commit and wait for the committed transcript. Each recording is limited to 30 seconds. Audio does not go to the health API; typed transcripts skip this endpoint entirely.
+
+### Read a question aloud (optional)
+
+POST `/api/speech/speak`:
+
+```json
+{ "text": "How severe is your knee pain, from one to ten?" }
+```
+
+The request has only `text`, trimmed and limited to 1–1200 characters. A successful response is **`200` with `Content-Type: audio/mpeg`**, containing MP3 bytes, not health-record JSON. Play it as audio and wait for playback to end before opening the microphone. Error responses retain the JSON error envelope documented below. Neither speech endpoint creates a health session or changes a record.
+
+This route requires the same server-side `ELEVENLABS_API_KEY` with **Text to Speech** access. Optional settings are `ELEVENLABS_VOICE_ID` (default `JBFqnCBsd6RMkjVDRZzb`) and `ELEVENLABS_TTS_MODEL` (default `eleven_flash_v2_5`). The backend requests MP3 audio from ElevenLabs; private credentials never reach the frontend. Missing route configuration returns `503 VOICE_NOT_CONFIGURED`; unavailable provider audio returns `502` or `503 SPEECH_UNAVAILABLE`. Invalid JSON/request shape returns `400`. Restart the backend after adding this route or changing its environment settings.
+
+The frontend conversation sequence is: spoken prompt → listen → committed transcript → analyze/answer → backend `nextQuestion` → spoken prompt again. Gemini extracts facts; backend rules select questions. Exact voice commands “skip,” “pause,” and “finish check-in” are handled by the conversation controller. Finishing voice shows the normal editable review; it does not call the save endpoint automatically.
 
 ## 1. Start a check-in
 
@@ -193,4 +207,4 @@ Errors use `{ "error": { "code": "...", "message": "...", "details": [] } }`.
 
 On failed requests, retain the last successful response. A `409` means stop submitting against stale state. Keep one request in flight per session. This MVP has no session-retrieval endpoint: if a successful analyze response is lost over the network, start a new check-in from the transcript rather than retrying indefinitely with a stale version.
 
-All records use temporary process memory with a two-hour inactivity expiry. Server restart clears them. The speech endpoint does not create or authenticate a health session.
+All records use temporary process memory with a two-hour inactivity expiry. Server restart clears them. The speech endpoints do not create or authenticate a health session.

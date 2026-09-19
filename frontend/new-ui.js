@@ -1,9 +1,12 @@
 import { createCheckinClient } from './checkin-api.js';
-import { createElevenLabsSpeechInput } from './elevenlabs-speech.js';
+import { createElevenLabsSpeechInput, createVoiceSpeechFactory } from './elevenlabs-speech.js';
 import { normalizeBackendResponse, toBackendRecord } from './version-b-adapter.js';
+import { createElevenLabsSpeaker } from './elevenlabs-speaker.js';
+import { createVoiceConversation } from './voice-conversation.js';
 
-export function mountVersionB(document, {client = createCheckinClient({painScale:'1-10'}), mealClient = createCheckinClient(), speechFactory = createElevenLabsSpeechInput} = {}) {
+export function mountVersionB(document, {client = createCheckinClient({painScale:'1-10'}), mealClient = createCheckinClient(), speechFactory = createElevenLabsSpeechInput, speakerFactory = createElevenLabsSpeaker, conversationEnabled = true} = {}) {
   const window = document.defaultView;
+  let conversation = null;
 
     const modal = document.getElementById('consentModal');
     const description = document.getElementById('modalDescription');
@@ -121,16 +124,26 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
     const stopAllVoice = () => { for (const recognition of recognizers) recognition.cancel(); };
     const openCheckinFlow = () => {
       if (uiBusy) return;
+      if (conversation?.active) conversation.stop();
       stopAllVoice();
       resetCheckinState();
       checkinFlow.classList.add('open');
       showFlowScreen('intro');
     };
     const closeCheckinFlow = () => {
+      if (conversation?.active) conversation.stop();
       stopAllVoice();
       checkinFlow.classList.remove('open');
     };
-    document.getElementById('dailyCheckinButton').addEventListener('click', openCheckinFlow);
+    document.getElementById('dailyCheckinButton').addEventListener('click', () => {
+      if (uiBusy) return;
+      openCheckinFlow();
+      if (conversationEnabled) startVoiceConversation();
+    });
+    document.getElementById('typeCheckinButton')?.addEventListener('click', () => {
+      if (uiBusy) return;
+      openCheckinFlow(); showFlowScreen('listening');
+    });
     function setPatientNavActive(view) {
       document.querySelectorAll('.nav-button').forEach((btn) => btn.classList.remove('active'));
       document.querySelectorAll('.mobile-nav-item').forEach((btn) => btn.classList.remove('active'));
@@ -142,6 +155,7 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
       if (mobileBtn) mobileBtn.classList.add('active');
     }
     function showPatientView(view) {
+      if (conversation?.active) conversation.stop();
       stopAllVoice();
       const home = document.querySelector('.patient-home');
       const meals = document.getElementById('mealsView');
@@ -797,15 +811,93 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
     const integrationStatus = document.createElement('p');
     integrationStatus.id = 'integrationStatus'; integrationStatus.className = 'integration-status'; integrationStatus.setAttribute('role','status');
     checkinFlow.querySelector('.flow-progress').after(integrationStatus,integrationError);
+    const voiceControls = document.createElement('div');
+    voiceControls.id='voiceConversationControls'; voiceControls.className='voice-conversation-controls';
+    voiceControls.innerHTML='<div class="voice-conversation-actions"><button type="button" id="voiceResume">Start voice conversation</button><button type="button" id="voicePause" hidden>Pause</button><button type="button" id="voiceManual" hidden>Use buttons / typing</button><button type="button" id="voiceReview" hidden>Review now</button></div><label id="voiceReplyLabel" hidden>Your answer<textarea id="voiceReply" class="transcript" readonly></textarea></label><p>Pause briefly after answering. Say “skip” or “finish check-in” at any question.</p>';
+    integrationError.after(voiceControls);
+    voiceControls.hidden=!conversationEnabled;
+    const voiceReply=voiceControls.querySelector('#voiceReply');
+    let voiceSpeaker=null;
+    const lazySpeaker={
+      prime(){voiceSpeaker??=speakerFactory();return voiceSpeaker.prime();},
+      speak(text){voiceSpeaker??=speakerFactory();return voiceSpeaker.speak(text);},
+      stop(){voiceSpeaker?.stop();}, destroy(){voiceSpeaker?.destroy();},
+    };
+    conversation=createVoiceConversation({
+      client,speaker:lazySpeaker,
+      speechFactory:speechFactory===createElevenLabsSpeechInput?createVoiceSpeechFactory():speechFactory,
+      textarea:flowTranscript,
+      onRecord(response){
+        const previousQuestion=checkinState.nextQuestion?.id;
+        if (!checkinState.sessionId) checkinState.transcript=flowTranscript.value.trim();
+        mergeAnalysisIntoState(response);
+        // Pause cannot undo an API request already sent. Reconcile the manual
+        // screen with its result so a stale answer never targets a new question.
+        if(!conversation.active && !destroyed && checkinFlow.classList.contains('open')) {
+          if(response.status==='review'){showFlowScreen('review');voiceControls.hidden=true;}
+          else if(response.nextQuestion && response.nextQuestion.id!==previousQuestion){
+            flowTranscript.value='';renderQuestion(response.nextQuestion);
+          }
+        }
+      },
+      onQuestion(question){ renderQuestion(question); },
+      questionText(question,response){
+        const item=response[question.category]?.find(item=>item.id===question.entityId);
+        const context=question.category==='symptoms' && item?.location && !item.name.toLowerCase().includes(item.location.toLowerCase())
+          ? `About the ${item.name} in your ${item.location}. ` : '';
+        return context+question.text;
+      },
+      onReview(){stopAllVoice();showFlowScreen('review');voiceControls.hidden=true;},
+      onState(state){
+        const locked=state.active||state.busy;
+        setBusy(locked);
+        checkinFlow.dataset.voiceActive=String(state.active);
+        integrationStatus.textContent=state.message;
+        if(state.phase==='error')showError(new Error(state.message));
+        if(!state.active && ['error','paused'].includes(state.phase))copyVoiceDraftToManual();
+        voiceReply.value=flowTranscript.value;
+        document.getElementById('voiceReplyLabel').hidden=currentFlowScreen==='listening'||!voiceReply.value;
+        setListeningDisplay(state.phase==='listening',state.phase);
+        document.getElementById('voicePause').hidden=!state.active;
+        document.getElementById('voicePause').disabled=false;
+        document.getElementById('voiceManual').hidden=!state.active;
+        document.getElementById('voiceManual').disabled=false;
+        document.getElementById('voiceReview').hidden=!client.state||client.state.status==='review'||client.state.status==='saved';
+        document.getElementById('voiceReview').disabled=client.busy;
+        document.getElementById('voiceResume').hidden=state.active||client.state?.status==='saved'||currentFlowScreen==='review';
+        document.getElementById('voiceResume').disabled=state.busy;
+        document.getElementById('voiceResume').textContent=client.state?'Resume voice conversation':'Start voice conversation';
+      },
+    });
+    function startVoiceConversation() {
+      if (conversation.active || conversation.busy || destroyed) return;
+      clearError(); stopAllVoice(); voiceControls.hidden=false;
+      if(!client.state)showFlowScreen('listening');
+      void conversation.start({resume:Boolean(client.state)}).catch(error=>showError(error));
+    }
+    function pauseVoiceConversation() {
+      conversation.pause();
+      copyVoiceDraftToManual();
+    }
+    function copyVoiceDraftToManual() {
+      // Retain the last words in the existing manual answer field after pausing.
+      const input=checkinFlow.querySelector('[data-screen]:not([hidden]) #followupAnswer, [data-screen]:not([hidden]) #impactTranscript');
+      if(input)input.value=flowTranscript.value;
+    }
+    document.getElementById('voiceResume').addEventListener('click',startVoiceConversation);
+    document.getElementById('voicePause').addEventListener('click',pauseVoiceConversation);
+    document.getElementById('voiceManual').addEventListener('click',pauseVoiceConversation);
+    document.getElementById('voiceReview').addEventListener('click',()=>{void conversation.review().catch(showError);});
     const flowVoiceRecognizer = createSpeechRecognizer(flowTranscript, {
       onStart: () => { setListeningDisplay(true); integrationStatus.textContent = 'Listening…'; },
       onEnd: () => { setListeningDisplay(false); integrationStatus.textContent = 'Review or edit your transcript before continuing.'; },
       onError: message => { setListeningDisplay(false); showError(new Error(message)); },
       onStatus: status => { if (['connecting','stopping','notice'].includes(status?.type)) integrationStatus.textContent = status.message; },
     });
-    function setListeningDisplay(listening) {
+    function setListeningDisplay(listening,phase='idle') {
       const screen = checkinFlow.querySelector('[data-screen="listening"]');
-      screen.querySelector('h2').textContent = listening ? "I'm listening" : 'Your check-in';
+      const headings={starting:'Starting your check-in…',speaking:'Your assistant is speaking',connecting:'Connecting your microphone…',processing:'Updating your check-in…',paused:'Voice paused',error:'Voice paused'};
+      screen.querySelector('h2').textContent = listening ? "I'm listening" : headings[phase] || 'Your check-in';
       screen.querySelector('.voice-wave').hidden = !listening;
     }
     function showError(error) { integrationError.textContent = error.message || 'The request could not be completed.'; integrationError.hidden=false; }
@@ -829,6 +921,10 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
       client.reset(); excludedIds.clear(); selectedScore=null;
       Object.assign(checkinState,{transcript:'',symptoms:[],medications:[],diet:[],vitals:[],functionalImpact:[],painScore:null,completed:false,generalStatus:null,noSymptoms:false,resolvedSymptoms:[],sessionId:null,version:null,nextQuestion:null,status:null,backendRecord:null});
       flowTranscript.value=''; integrationStatus.textContent=''; clearError();
+      voiceControls.hidden=!conversationEnabled; voiceReply.value=''; document.getElementById('voiceReplyLabel').hidden=true;
+      for(const id of ['voicePause','voiceManual','voiceReview'])document.getElementById(id).hidden=true;
+      const startVoice=document.getElementById('voiceResume');startVoice.hidden=false;startVoice.disabled=false;startVoice.textContent='Start voice conversation';
+      checkinFlow.dataset.voiceActive='false';
       checkinFlow.querySelectorAll('input[name="impact"]').forEach(input => {input.checked=false;});
       document.getElementById('impactTranscript').value='';
     }
@@ -856,6 +952,7 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
       for (const category of ['symptoms','medications','diet','vitals']) checkinState[category]=checkinState[category].filter(item=>!excludedIds.has(item.id));
     }
     async function enterReview() {
+      if (conversation?.active) conversation.stop(); voiceControls.hidden=true;
       stopAllVoice();
       if (client.state?.status !== 'review') mergeAnalysisIntoState(await client.review());
       showFlowScreen('review');
@@ -991,7 +1088,10 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
       document.getElementById('reviewEmptyNote').hidden=hasWellness||['symptoms','medications','diet','vitals'].some(key=>checkinState[key].length);
       checkinFlow.querySelector('.review-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
     }
-    document.getElementById('flowIntroMic').addEventListener('click',()=>run(async()=>{showFlowScreen('listening');await flowVoiceRecognizer.start();}));
+    document.getElementById('flowIntroMic').addEventListener('click',()=>{
+      if(conversationEnabled)startVoiceConversation();
+      else void run(async()=>{showFlowScreen('listening');await flowVoiceRecognizer.start();});
+    });
     document.getElementById('flowType').addEventListener('click',()=>{if(!uiBusy)showFlowScreen('listening');});
     document.querySelector('.flow-done').addEventListener('click',()=>run(async()=>{
       const text=(await flowVoiceRecognizer.stop()).trim();if(!text)throw new Error('Please speak or type your check-in before continuing.');
@@ -1052,7 +1152,7 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
     }
     checkinFlow.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',closeCheckinFlow));
     document.getElementById('flowClose').addEventListener('click',closeCheckinFlow);
-    document.getElementById('flowBack').addEventListener('click',()=>{if(uiBusy)return;stopAllVoice();if(currentFlowScreen==='intro')closeCheckinFlow();else{flowTranscript.value=checkinState.transcript;showFlowScreen('listening');}});
+    document.getElementById('flowBack').addEventListener('click',()=>{if(uiBusy)return;if (conversation?.active) conversation.stop();stopAllVoice();if(currentFlowScreen==='intro')closeCheckinFlow();else{flowTranscript.value=checkinState.transcript;showFlowScreen('listening');}});
     checkinFlow.addEventListener('click',event=>{if(event.target===checkinFlow)closeCheckinFlow();});
     checkinFlow.querySelectorAll('[data-back]').forEach(button=>button.addEventListener('click',()=>{if(!uiBusy)showFlowScreen(button.dataset.back);}));
     document.getElementById('trendsNav').addEventListener('click',()=>{stopAllVoice();showPatientView('trends');});
@@ -1061,5 +1161,5 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
     document.getElementById('mealsNav').addEventListener('click',()=>{stopAllVoice();showPatientView('meals');});
     const keydown=event=>{if(event.key==='Escape')closeCheckinFlow();};document.addEventListener('keydown',keydown);
     resetCheckinState();
-    return {state:checkinState,client,mealState,open:openCheckinFlow,getCurrentScreen:()=>currentFlowScreen,destroy(){destroyed=true;stopAllVoice();for(const recognition of [...recognizers])recognition.destroy();document.removeEventListener('keydown',keydown);}};
+    return {state:checkinState,client,mealState,conversation,open:openCheckinFlow,getCurrentScreen:()=>currentFlowScreen,destroy(){destroyed=true;conversation.destroy();stopAllVoice();for(const recognition of [...recognizers])recognition.destroy();document.removeEventListener('keydown',keydown);}};
 }
