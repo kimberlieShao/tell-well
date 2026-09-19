@@ -15,6 +15,7 @@ const app = createApp(extractor, {
 const server = app.listen(port, host, () => {
   console.log(`Pulsewise API running at http://${host}:${port} (${mode} extraction)`);
   console.log('POST /api/analyze | POST /api/checkin/save');
+  console.log(`Connected frontend: http://${host}:${port}/app`);
   console.log(`Text-only backend tester: http://${host}:${port}/test/`);
   console.log('Hackathon prototype: in-memory sessions expire after 2 hours of inactivity or on restart.');
 });

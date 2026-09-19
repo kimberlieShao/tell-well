@@ -21,11 +21,6 @@
     }
 
     * { box-sizing: border-box; }
-      transcript.value = exampleTranscript;
-      voiceStatus.innerHTML = 'Review your check-in<small>Edit the preview or speak again when microphone access is available.</small>';
-      if (recognition) {
-        try { recognition.start(); } catch (error) { }
-      }
     .app-shell { min-height: 100vh; display: grid; grid-template-columns: 244px minmax(0, 1fr); }
     .sidebar { background: var(--forest); color: #edf6ef; padding: 28px 18px 20px; display: flex; flex-direction: column; }
     .brand { display: flex; align-items: center; gap: 10px; margin: 0 10px 46px; font: 700 21px/1.1 Georgia, serif; letter-spacing: -.5px; }
@@ -348,6 +343,7 @@
     @media (max-width: 760px) { .metric-grid, .main-grid, .bottom-grid { grid-template-columns: 1fr 1fr; } .main-grid > :first-child, .bottom-grid > :first-child { grid-column: 1 / -1; } .hero-row { align-items: flex-start; flex-direction: column; } .patient-picker { width: 100%; } h1 { font-size: 34px; } }
     @media (max-width: 520px) { .app-shell { display: block; } .sidebar { height: auto; padding: 15px 18px; flex-direction: row; align-items: center; gap: 13px; } .brand { margin: 0; } .brand-mark { width: 26px; height: 26px; } .nav { display: flex; margin: 0 0 0 auto; gap: 3px; } .nav-button { padding: 8px; } .nav-button.active { background: transparent; color: var(--lime); } .sidebar-spacer, .privacy-card { display: none; } .main { padding: 22px 15px 86px; } .topbar { margin-bottom: 29px; } .crumb { display: none; } .patient-home { margin-bottom: 0; } .patient-greeting h1 { font-size: 32px; } .patient-prompt { font-size: 20px; } .patient-metrics { grid-template-columns: 1fr 1fr; gap: 10px; } .patient-metric { min-height: 112px; } .patient-metric-value { margin-top: 17px; font-size: 19px; } .mobile-nav { position: fixed; z-index: 3; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 10px 14px 9px; border-top: 1px solid var(--line); background: rgba(255,255,255,.96); box-shadow: 0 -6px 18px rgba(28,50,38,.06); } .hero-row, .status-strip, .metric-grid, .main-grid, .bottom-grid, .journal-shell { display: none; } .voice-checkin { margin-top: 22px; grid-template-columns: 1fr; } .voice-review { border-top: 1px solid #d5e8d8; border-left: 0; } .panel { padding: 17px; } .status-strip { align-items: flex-start; } .status-strip span:last-child { display: none; } .journal-heading { display: block; } .journal-heading h2 { font-size: 25px; } .journal-actions { margin-top: 14px; } .journal-grid { grid-template-columns: 1fr; } .field-grid { grid-template-columns: 1fr; } }
   </style>
+  <link rel="stylesheet" href="/frontend/checkin.css">
 </head>
 <body>
   <div class="app-shell">
@@ -361,10 +357,11 @@
         <button class="nav-button"><span class="nav-icon">▣</span><span>Reports</span></button>
       </nav>
       <div class="sidebar-spacer"></div>
-      <div class="privacy-card"><div class="eyebrow">Protected workspace</div><p>Encrypted in transit and at rest. Access is logged for every care team member.</p></div>
+      <div class="privacy-card"><div class="eyebrow">Prototype workspace</div><p>Local prototype. Check-ins are stored temporarily in server memory; there is no sign-in or permanent storage.</p></div>
     </aside>
 
     <main class="main">
+      <div class="integration-note"><strong>Connected check-in prototype.</strong> Start a check-in to analyze, review, and save your own fictional example. Dashboard measurements, charts, and device panels below are sample designs; wearable connections are not active.</div>
       <header class="topbar"><div class="crumb">Patients / Overview</div><div class="top-actions"><button class="icon-button" aria-label="Notifications">♢</button><div class="avatar">AL</div></div></header>
       <section class="patient-home" aria-label="Patient home">
         <div class="patient-greeting"><div class="eyebrow" style="color: var(--forest)">Your health today</div><h1>Good morning, Mary</h1><div class="patient-date" id="patientDate">Friday, September 18</div></div>
@@ -378,7 +375,7 @@
         <div class="patient-picker"><label for="patient">Viewing patient</label><select id="patient"><option>Alex Morgan · PT-2048</option><option>Jamie Lee · PT-1981</option><option>Riley Chen · PT-2160</option></select></div>
       </section>
       <nav class="mobile-nav" aria-label="Patient navigation"><button class="mobile-nav-item active" id="homeNav">⌂<span>Home</span></button><button class="mobile-nav-item" id="checkinNav">●<span>Check-in</span></button><button class="mobile-nav-item" id="trendsNav">⌁<span>Trends</span></button><button class="mobile-nav-item" id="moreNav">•••<span>More</span></button></nav>
-      <div class="status-strip"><span class="status-dot"></span><strong>All connected sources are current</strong><span>Last sync 4 minutes ago</span></div>
+      <div class="status-strip"><span class="status-dot"></span><strong>Sample dashboard data</strong><span>Device connections are not active</span></div>
 
       <section class="card voice-checkin" aria-labelledby="voiceTitle">
         <div class="voice-main">
@@ -386,14 +383,13 @@
           <h2 class="voice-title" id="voiceTitle">Tell me how you are feeling.</h2>
           <p class="voice-copy">Speak naturally. You can mention symptoms, medications, meals, or measurements in the same sentence.</p>
           <button class="speak-button" id="speakPrompt" aria-label="Read check-in prompt aloud">◖ Read prompt aloud</button>
-          <div class="voice-row"><button class="mic-button" id="micButton" aria-label="Start voice check-in">●</button><div class="voice-status" id="voiceStatus">Tap to speak<small>Example: “My blood pressure was 135 over 82, and I feel more tired today.”</small></div></div>
-          <textarea class="transcript" id="transcript" aria-label="Your check-in transcript" placeholder="Your words will appear here. You can edit them before confirming."></textarea>
+          <div class="voice-row"><button class="mic-button" id="micButton" aria-label="Start voice check-in">●</button><div class="voice-status" id="voiceStatus">Open voice or text check-in<small>Example: “My blood pressure was 135 over 82, and I feel more tired today.”</small></div></div>
+          <textarea class="transcript" id="transcript" aria-label="Your check-in transcript" placeholder="Type here, then open the check-in to analyze and review."></textarea>
         </div>
         <div class="voice-review">
-          <h3 class="review-title">I heard</h3><p class="review-copy">Review these details before they are added to your record.</p>
-          <div class="understood-list" id="understoodList"><div class="understood-item"><span>Blood pressure</span><strong>135 / 82 mmHg</strong></div><div class="understood-item"><span>Medication</span><strong>Taken after breakfast</strong></div><div class="understood-item"><span>Symptom</span><strong>More fatigue than usual</strong></div><div class="understood-item"><span>When</span><strong>This morning</strong></div></div>
-          <details class="guided"><summary>Answer guided symptom questions</summary><div class="guided-fields"><label>Where is the discomfort?<select><option>Not applicable</option><option>Head</option><option>Chest</option><option>Abdomen</option><option>Back</option><option>Arms or legs</option></select></label><label>How severe is it?<select><option>Mild</option><option>Moderate</option><option>Severe</option></select></label><label>Compared with yesterday?<select><option>About the same</option><option>Better</option><option>Worse</option></select></label></div></details>
-          <button class="confirm-checkin" id="confirmCheckin">Confirm and save</button>
+          <h3 class="review-title">Latest saved check-in</h3><p class="review-copy">Details appear here after you review and save.</p>
+          <div class="understood-list" id="understoodList"><p>No check-in saved during this page visit.</p></div>
+          <button class="confirm-checkin" id="confirmCheckin">Open check-in</button>
         </div>
       </section>
 
@@ -404,32 +400,12 @@
         <article class="card metric-card"><div class="metric-top"><span class="metric-name">Skin temperature</span><span class="metric-icon temp">∿</span></div><div class="metric-value">36.6°</div><div class="metric-foot"><span class="down">↑ 0.2°</span> from baseline</div></article>
       </section>
 
-      <section class="flow-overlay" id="checkinFlow" aria-label="Voice check-in flow" aria-modal="true" role="dialog">
-        <div class="flow-panel">
-          <div class="flow-top"><button class="flow-back" id="flowBack" aria-label="Go back">←</button><span class="flow-title">Daily Check-in</span><span class="flow-step" id="flowStep">Step 2 of 10</span><button class="flow-close" id="flowClose" aria-label="Close check-in">×</button></div>
-          <div class="flow-progress"><span id="flowProgress"></span></div>
-          <section class="flow-screen flow-intro" data-screen="intro"><h2>How are you feeling today?</h2><p>You can tell me about:</p><div class="flow-intro-list"><div class="flow-intro-item"><span>🤕</span>Pain or discomfort</div><div class="flow-intro-item"><span>😴</span>Fatigue or sleep</div><div class="flow-intro-item"><span>💊</span>Medication</div><div class="flow-intro-item"><span>🍽</span>Food or appetite</div><div class="flow-intro-item"><span>🙂</span>Anything different today</div></div><button class="flow-intro-mic" id="flowIntroMic" aria-label="Tap to start speaking" data-next="listening">●</button><div class="flow-mic-label">Tap to start speaking</div><button class="flow-type" id="flowType" data-next="listening">Or type instead</button></section>
-          <section class="flow-screen flow-listening" data-screen="listening" hidden><div><h2>I'm listening</h2><div class="voice-wave" aria-label="Voice recording active"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><textarea class="transcript flow-transcript" id="flowTranscript" aria-label="Live transcript" placeholder="Your words will appear here..."></textarea><button class="flow-primary flow-done" data-next="topics">■ Done</button><button class="flow-cancel" data-close>Cancel recording</button></div></section>
-          <section class="flow-screen" data-screen="topics" hidden><h2>I heard you mention:</h2><p>Here is what I understood from what you said.</p><div class="flow-detected-list"><label class="flow-topic-card"><span>🤕</span>Knee pain<input type="checkbox" name="topic" value="symptom" checked></label><label class="flow-topic-card"><span>😴</span>Fatigue<input type="checkbox" name="topic" value="symptom-detail" checked></label><label class="flow-topic-card"><span>💊</span>Missed medication<input type="checkbox" name="topic" value="medication" checked></label><label class="flow-topic-card"><span>♥</span>Blood pressure<input type="checkbox" name="topic" value="vital" checked></label></div><p class="flow-topic-note">Let’s go through these together.</p><button class="flow-primary" data-next="guided">Continue</button><button class="flow-edit" id="editTopics">Something isn’t right? Edit</button></section>
-          <section class="flow-screen" data-screen="guided" hidden><div class="guided-header"><div><div class="guided-context">About your knee pain</div></div><span class="guided-count">1 of 3</span></div><h2>How severe is your pain right now?</h2><div class="severity-list"><button class="severity-card" data-severity="mild"><strong>Mild</strong><span>Noticeable, but manageable</span></button><button class="severity-card" data-severity="moderate"><strong>Moderate</strong><span>Interferes with some activities</span></button><button class="severity-card" data-severity="severe"><strong>Severe</strong><span>Difficult to do normal activities</span></button></div><button class="severity-voice" id="severityVoice"><span class="severity-voice-icon">●</span>Or tell me in your own words</button><div class="severity-voice-status" id="severityVoiceStatus"></div></section>
-          <section class="flow-screen" data-screen="pain-score" hidden><div class="guided-header"><div><div class="guided-context">Optional detail · About your knee pain</div></div><span class="guided-count">Optional</span></div><h2>How does the pain feel on a scale?</h2><p class="pain-score-prompt">If 0 means no pain and 10 means the worst pain you can imagine, what number feels closest?</p><div class="pain-score-grid"><button class="pain-score-button">0</button><button class="pain-score-button">1</button><button class="pain-score-button">2</button><button class="pain-score-button">3</button><button class="pain-score-button">4</button></div><div class="pain-score-grid"><button class="pain-score-button">5</button><button class="pain-score-button">6</button><button class="pain-score-button">7</button><button class="pain-score-button">8</button><button class="pain-score-button">9</button><button class="pain-score-button">10</button></div><div class="pain-score-scale"><span>No pain</span><span>Worst pain</span></div><button class="flow-primary" id="painScoreContinue">Continue</button><button class="pain-score-skip" id="painScoreSkip">Skip this optional question</button></section>
-          <section class="flow-screen" data-screen="additional" hidden><div class="guided-context">About your knee pain</div><h2>Is the pain making anything harder today?</h2><p>Select all that apply.</p><div class="impact-list"><label class="impact-choice"><input type="checkbox" name="impact" value="walking">Walking</label><label class="impact-choice"><input type="checkbox" name="impact" value="sleeping">Sleeping</label><label class="impact-choice"><input type="checkbox" name="impact" value="eating">Eating</label><label class="impact-choice"><input type="checkbox" name="impact" value="dressing">Getting dressed</label><label class="impact-choice"><input type="checkbox" name="impact" value="other">Other</label><label class="impact-choice"><input type="checkbox" name="impact" value="none">No major impact</label></div><button class="flow-primary" data-next="medication">Continue</button><button class="impact-voice" id="impactVoice"><span class="impact-voice-icon">🎤</span>Tell me in your own words</button><div class="impact-voice-status" id="impactVoiceStatus"></div></section>
-          <section class="flow-screen" data-screen="medication" hidden><div class="guided-context">Medication list</div><h2>Which medication did you miss?</h2><p>Choose from your saved medications, or tell me if you are not sure.</p><div class="med-list" id="medList"><label class="med-card"><input type="radio" name="missedMedication" value="prednisone"><span class="med-card-copy"><strong>Prednisone</strong><span>5 mg · Morning</span></span></label><label class="med-card"><input type="radio" name="missedMedication" value="lisinopril"><span class="med-card-copy"><strong>Lisinopril</strong><span>10 mg · Morning</span></span></label><label class="med-card"><input type="radio" name="missedMedication" value="unknown"><span class="med-card-copy"><strong>I don’t know</strong><span>We can add more detail later</span></span></label></div><button class="med-voice" id="medVoice"><span class="med-voice-icon">🎤</span>Tell me</button><div class="med-voice-status" id="medVoiceStatus"></div><div class="med-ambiguity" id="medAmbiguity" hidden><p>I’m not sure which medication you mean.</p><p>Was it:</p><div class="med-ambiguity-list"><button class="med-ambiguity-choice" data-med-choice="prednisone">Prednisone 5 mg</button><button class="med-ambiguity-choice" data-med-choice="lisinopril">Lisinopril 10 mg</button><button class="med-ambiguity-choice" data-med-choice="unknown">I’m not sure</button></div></div><button class="flow-primary" data-next="vital">Continue</button></section>
-          <section class="flow-screen" data-screen="vital" hidden><div class="guided-context">Connected health data</div><div class="measurement-switch"><button id="pressureTab" class="active">Blood pressure</button><button id="glucoseTab">Blood glucose</button></div><h2 id="vitalMissingTitle">I don’t have a blood pressure reading from today.</h2><p id="vitalQuestion">Did you measure it?</p><div class="vital-source-note">I checked Apple Health and your other connected sources first.</div><div class="vital-actions" id="vitalActions"><button class="vital-action" id="enterVital"><span class="vital-action-icon">＋</span>Enter reading</button><button class="vital-action" id="sayVital"><span class="vital-action-icon">🎤</span>Say my reading</button><button class="vital-action" id="notTodayVital"><span class="vital-action-icon">—</span>Not today</button></div><div class="vital-entry" id="vitalEntry"><div class="field-grid"><div class="flow-field"><label for="flowSystolic" id="firstVitalLabel">Top number</label><input id="flowSystolic" placeholder="138" inputmode="numeric" /></div><div class="flow-field"><label for="flowDiastolic" id="secondVitalLabel">Bottom number</label><input id="flowDiastolic" placeholder="85" inputmode="numeric" /></div></div><button class="flow-primary" id="saveVital">Save reading</button></div><div class="vital-confirm" id="vitalConfirm"><div class="vital-confirm-label">I heard:</div><div class="vital-confirm-value" id="vitalConfirmValue">138 / 85 mmHg</div><div class="vital-confirm-actions"><button class="vital-correct" id="vitalCorrect">Correct</button><button class="vital-edit" id="vitalEdit">Edit</button></div></div></section>
-          <section class="flow-screen" data-screen="review" hidden><h2>Today’s Check-in</h2><div class="review-date">Friday, September 18</div><div class="review-section"><div class="review-section-title">Symptoms</div><div class="review-card"><div class="review-card-head"><strong class="review-editable">Knee Pain</strong><button class="review-edit" data-edit-review>Edit</button></div><p class="review-editable">Moderate
-Worse than yesterday
-Makes walking difficult</p></div><div class="review-card"><div class="review-card-head"><strong class="review-editable">Fatigue</strong><button class="review-edit" data-edit-review>Edit</button></div><p class="review-editable">More than usual
-Started this morning
-Mild impact on daily activities</p></div></div><div class="review-section"><div class="review-section-title">Medication</div><div class="review-card"><div class="review-card-head"><strong class="review-editable">Prednisone 5 mg</strong><button class="review-edit" data-edit-review>Edit</button></div><p class="review-editable">Missed this morning</p></div><div class="review-card"><div class="review-card-head"><strong class="review-editable">Lisinopril 10 mg</strong><span style="color:#429362;font:700 10px Arial,sans-serif">Taken</span></div></div></div><div class="review-section"><div class="review-section-title">Vitals</div><div class="review-vitals"><div class="review-vital"><span>Blood Pressure</span><strong>132 / 81 mmHg</strong></div><div class="review-vital"><span>Heart Rate</span><strong>72 bpm</strong></div><div class="review-vital"><span>Blood Glucose</span><strong>108 mg/dL</strong></div></div><div class="review-source">Imported from Apple Health</div></div><div class="review-section"><div class="review-section-title">Diet</div><div class="review-card"><div class="review-card-head"><strong class="review-editable">Lunch</strong><button class="review-edit" data-edit-review>Edit</button></div><p class="review-editable">Chicken soup
-Rice
-Half an apple</p></div></div><button class="flow-primary review-confirm" data-next="trends">Confirm &amp; Save</button></section>
-          <section class="flow-screen flow-center" data-screen="trends" hidden><div class="flow-icon" style="background: var(--forest)">✓</div><h2>Saved to your record</h2><p>You can see how this check-in connects with your measurements and symptoms over time.</p><button class="flow-primary" data-close>View today's health</button><button class="flow-secondary" data-close>Done</button></section>
-        </div>
-      </section>
+      <!-- The connection controller renders the check-in inside this container. -->
+      <section class="flow-overlay" id="checkinFlow" aria-label="Check-in" aria-modal="true" role="dialog"></section>
 
       <section class="grid main-grid">
         <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Heart rate this week</h2><div class="panel-meta">Resting heart rate · beats per minute</div></div><button class="text-button">7 days⌄</button></div><div class="chart-wrap"><div class="axis-labels"><span>80</span><span>70</span><span>60</span><span>50</span></div><div class="chart-grid"><span></span><span></span><span></span><span></span></div><div class="bars"><div class="bar-group"><div class="bar" style="height: 57%"></div><span class="bar-label">Mon</span></div><div class="bar-group"><div class="bar" style="height: 50%"></div><span class="bar-label">Tue</span></div><div class="bar-group"><div class="bar" style="height: 66%"></div><span class="bar-label">Wed</span></div><div class="bar-group"><div class="bar" style="height: 43%"></div><span class="bar-label">Thu</span></div><div class="bar-group"><div class="bar" style="height: 53%"></div><span class="bar-label">Fri</span></div><div class="bar-group"><div class="bar highlight" style="height: 36%"></div><span class="bar-label">Sat</span></div><div class="bar-group"><div class="bar" style="height: 46%"></div><span class="bar-label">Sun</span></div></div></div><div class="legend"><span><i></i>Daily resting average</span><span><i class="dark"></i>Today</span></div></article>
-        <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Connected sources</h2><div class="panel-meta">Patient-authorized data streams</div></div><button class="text-button" id="manageButton">Manage</button></div><div class="source-list"><div class="source-row"><div class="source-logo apple"></div><div class="source-copy"><div class="source-name">Apple Health</div><div class="source-detail">Steps, sleep, heart rate</div></div><span class="source-state">Synced</span></div><div class="source-row"><div class="source-logo google">G</div><div class="source-copy"><div class="source-name">Health Connect</div><div class="source-detail">Activity, vitals, nutrition</div></div><span class="source-state">Synced</span></div><div class="source-row"><div class="source-logo fitbit">fit</div><div class="source-copy"><div class="source-name">Fitbit</div><div class="source-detail">Sleep stages, readiness</div></div><button class="connect" data-source="Fitbit">Connect</button></div></div></article>
+        <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Connected sources</h2><div class="panel-meta">Patient-authorized data streams</div></div><button class="text-button" id="manageButton" disabled>Demo only</button></div><div class="source-list"><div class="source-row"><div class="source-logo apple"></div><div class="source-copy"><div class="source-name">Apple Health</div><div class="source-detail">Steps, sleep, heart rate</div></div><span class="source-state">Demo only</span></div><div class="source-row"><div class="source-logo google">G</div><div class="source-copy"><div class="source-name">Health Connect</div><div class="source-detail">Activity, vitals, nutrition</div></div><span class="source-state">Demo only</span></div><div class="source-row"><div class="source-logo fitbit">fit</div><div class="source-copy"><div class="source-name">Fitbit</div><div class="source-detail">Sleep stages, readiness</div></div><button class="connect" disabled title="Wearable connections are not part of this prototype">Not connected</button></div></div></article>
       </section>
 
       <section class="grid bottom-grid">
@@ -438,334 +414,16 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
       </section>
 
       <section class="journal-shell" id="journal">
-        <div class="journal-heading"><div><div class="eyebrow" style="color: var(--forest)">Your health journal</div><h2>Bring the whole picture to your next visit.</h2><p>Pair device readings with what only you can describe.</p></div><div class="journal-actions"><button class="action-button secondary" id="printButton">Print view</button><button class="action-button" id="exportButton">Export provider summary</button></div></div>
+        <div class="journal-heading"><div><div class="eyebrow" style="color: var(--forest)">Your health journal</div><h2>Bring the whole picture to your next visit.</h2><p>Pair device readings with what only you can describe.</p></div><div class="journal-actions"><button class="action-button secondary" id="printButton">Print view</button><button class="action-button" id="exportButton">Export check-ins (.txt)</button></div></div>
         <div class="grid journal-grid">
-          <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Add a check-in</h2><div class="panel-meta">Your notes stay alongside your connected health data.</div></div></div><form class="form-stack" id="checkinForm"><div class="field-grid"><div class="field"><label for="checkinDate">Date</label><input id="checkinDate" type="date" required></div><div class="field"><label for="symptomType">Main symptom</label><select id="symptomType"><option>Pain</option><option>Fatigue</option><option>Nausea</option><option>Mood</option><option>Other</option></select></div></div><div class="field"><label for="painLevel">Pain or symptom intensity · 0 to 10</label><div class="range-row"><input id="painLevel" type="range" min="0" max="10" value="4"><span class="range-value" id="painValue">4 / 10</span></div></div><div class="field"><label for="dietNote">Food, hydration, or triggers</label><input id="dietNote" type="text" placeholder="e.g. skipped breakfast, 2L water"></div><div class="field"><label for="medicationNote">Medications or changes</label><input id="medicationNote" type="text" placeholder="e.g. took 400mg ibuprofen at 9am"></div><div class="field"><label for="journalNote">How are you feeling?</label><textarea id="journalNote" placeholder="Describe what changed, what helped, or what you want to remember..."></textarea></div><div class="checkin-note">A short, specific note can help your provider spot patterns that sensors cannot measure.</div><button class="form-submit" type="submit">Save check-in</button></form></article>
-          <article class="card panel journal-chart"><div class="panel-header"><div><h2 class="panel-title">Symptom pattern</h2><div class="panel-meta">Pain intensity over the last 7 entries</div></div><button class="text-button" id="clearLogButton">Clear log</button></div><div class="mini-chart" id="symptomChart"><div class="mini-bar" style="height: 35%"><span>12</span></div><div class="mini-bar" style="height: 52%"><span>13</span></div><div class="mini-bar" style="height: 42%"><span>14</span></div><div class="mini-bar" style="height: 72%"><span>15</span></div><div class="mini-bar" style="height: 48%"><span>16</span></div><div class="mini-bar" style="height: 62%"><span>17</span></div><div class="mini-bar" style="height: 40%"><span>18</span></div></div><table class="log-table"><thead><tr><th>Date</th><th>Entry</th><th>Intensity</th></tr></thead><tbody id="logRows"><tr><td>Sep 18</td><td><span class="tag">Pain</span><br>Lower back ache</td><td>4 / 10</td></tr><tr><td>Sep 17</td><td><span class="tag">Fatigue</span><br>Low energy after lunch</td><td>6 / 10</td></tr></tbody></table><p class="empty-log" id="emptyLog" hidden>No saved check-ins yet.</p></article>
+          <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Add a check-in</h2><div class="panel-meta">Check-ins saved during this page visit.</div></div></div><div class="form-stack"><p>Use the connected check-in to describe how you feel, answer follow-up questions, and review the details before saving.</p><button class="form-submit" id="journalStartButton" type="button">Start a check-in</button></div></article>
+          <article class="card panel journal-chart"><div class="panel-header"><div><h2 class="panel-title">Symptom pattern</h2><div class="panel-meta">Reported severity scores from this page visit</div></div></div><div class="mini-chart" id="symptomChart"></div><table class="log-table"><thead><tr><th>Date</th><th>Entry</th><th>Intensity</th></tr></thead><tbody id="logRows"></tbody></table><p class="empty-log" id="emptyLog">No check-ins saved during this page visit.</p></article>
         </div>
       </section>
     </main>
   </div>
 
-  <div class="modal-backdrop" id="consentModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal"><h2 id="modalTitle">Connect a health source</h2><p id="modalDescription">Choose the data Alex has agreed to share. You can change this scope at any time.</p><div class="scope-list"><label><input type="checkbox" checked> Activity and movement</label><label><input type="checkbox" checked> Heart rate and vitals</label><label><input type="checkbox" checked> Sleep and recovery</label><label><input type="checkbox"> Nutrition and body measurements</label></div><div class="modal-actions"><button class="cancel" id="cancelButton">Cancel</button><button class="confirm" id="confirmButton">Authorize connection</button></div></div>
-  </div>
-  <script>
-    const modal = document.getElementById('consentModal');
-    const description = document.getElementById('modalDescription');
-    const closeModal = () => modal.classList.remove('open');
-    document.querySelectorAll('[data-source]').forEach((button) => button.addEventListener('click', () => {
-      description.textContent = `Choose the data Alex has agreed to share from ${button.dataset.source}. You can change this scope at any time.`;
-      modal.classList.add('open');
-    }));
-    document.getElementById('manageButton').addEventListener('click', () => {
-      description.textContent = 'Choose the data Alex has agreed to share. You can change this scope at any time.';
-      modal.classList.add('open');
-    });
-    document.getElementById('cancelButton').addEventListener('click', closeModal);
-    document.getElementById('confirmButton').addEventListener('click', () => {
-      closeModal();
-      const button = document.querySelector('[data-source]');
-      button.textContent = 'Pending';
-      button.disabled = true;
-      button.style.opacity = '.65';
-    });
-    modal.addEventListener('click', (event) => { if (event.target === modal) closeModal(); });
-
-    const checkinDate = document.getElementById('checkinDate');
-    const painLevel = document.getElementById('painLevel');
-    const painValue = document.getElementById('painValue');
-    const logRows = document.getElementById('logRows');
-    const symptomChart = document.getElementById('symptomChart');
-    const emptyLog = document.getElementById('emptyLog');
-    const today = new Date();
-    checkinDate.value = today.toISOString().slice(0, 10);
-    painLevel.addEventListener('input', () => { painValue.textContent = `${painLevel.value} / 10`; });
-    document.getElementById('checkinForm').addEventListener('submit', (event) => {
-      event.preventDefault();
-      const date = new Date(`${checkinDate.value}T12:00:00`);
-      const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      const symptom = document.getElementById('symptomType').value;
-      const note = document.getElementById('journalNote').value.trim() || 'No written note';
-      const diet = document.getElementById('dietNote').value.trim();
-      const medication = document.getElementById('medicationNote').value.trim();
-      const context = [diet && `Diet / triggers: ${diet}`, medication && `Medication: ${medication}`].filter(Boolean).join(' | ');
-      const row = document.createElement('tr');
-      row.innerHTML = `<td>${formattedDate}</td><td><span class="tag">${symptom}</span><br>${note}${context ? `<br><small>${context}</small>` : ''}</td><td>${painLevel.value} / 10</td>`;
-      logRows.prepend(row);
-      const bar = document.createElement('div');
-      bar.className = 'mini-bar';
-      bar.style.height = `${Math.max(8, Number(painLevel.value) * 10)}%`;
-      bar.innerHTML = `<span>${date.getDate()}</span>`;
-      symptomChart.appendChild(bar);
-      while (symptomChart.children.length > 7) symptomChart.firstElementChild.remove();
-      emptyLog.hidden = true;
-      event.target.reset();
-      checkinDate.value = today.toISOString().slice(0, 10);
-      painLevel.value = 4;
-      painValue.textContent = '4 / 10';
-    });
-    document.getElementById('clearLogButton').addEventListener('click', () => {
-      logRows.innerHTML = '';
-      symptomChart.innerHTML = '';
-      emptyLog.hidden = false;
-    });
-    document.getElementById('printButton').addEventListener('click', () => window.print());
-    document.getElementById('exportButton').addEventListener('click', () => {
-      const rows = [...logRows.querySelectorAll('tr')].map((row) => [...row.children].map((cell) => cell.innerText.replace(/\n/g, ' - ')).join('\t'));
-      const report = ['PULSEWISE PATIENT HEALTH SUMMARY', `Generated: ${new Date().toLocaleString()}`, '', 'QUANTITATIVE DATA', 'Resting heart rate: 62 bpm', 'Sleep: 8h 12m', 'Steps: 6,842', 'Skin temperature: 36.6 degrees', '', 'QUALITATIVE CHECK-INS', 'Date\tEntry\tIntensity', ...rows].join('\n');
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(new Blob([report], { type: 'text/plain' }));
-      link.download = 'pulsewise-provider-summary.txt';
-      link.click();
-      URL.revokeObjectURL(link.href);
-    });
-
-    const micButton = document.getElementById('micButton');
-    const voiceStatus = document.getElementById('voiceStatus');
-    const transcript = document.getElementById('transcript');
-    const exampleTranscript = 'My blood pressure this morning was 135 over 82. I took my medication after breakfast, but I have been feeling more tired than usual today.';
-    const speakPrompt = document.getElementById('speakPrompt');
-    speakPrompt.addEventListener('click', () => {
-      if (!('speechSynthesis' in window)) return;
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance('Tell me how you are feeling. You can mention symptoms, medications, meals, or measurements.');
-      utterance.rate = 0.9;
-      utterance.onstart = () => { speakPrompt.textContent = '◖ Reading prompt...'; };
-      utterance.onend = () => { speakPrompt.textContent = '◖ Read prompt aloud'; };
-      window.speechSynthesis.speak(utterance);
-    });
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let recognition;
-    if (SpeechRecognition) {
-      recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.onstart = () => { micButton.classList.add('recording'); micButton.textContent = '■'; voiceStatus.innerHTML = 'Listening...<small>Take your time. I will organize the details after you finish.</small>'; };
-      recognition.onresult = (event) => { transcript.value = event.results[0][0].transcript; voiceStatus.innerHTML = 'Review your check-in<small>Edit the words or details before saving.</small>'; };
-      recognition.onend = () => { micButton.classList.remove('recording'); micButton.textContent = '●'; };
-      recognition.onerror = () => { voiceStatus.innerHTML = 'I could not hear that<small>Try again, or type your check-in below.</small>'; micButton.classList.remove('recording'); micButton.textContent = '●'; };
-    }
-    micButton.addEventListener('click', () => {
-      transcript.value = exampleTranscript;
-      voiceStatus.innerHTML = 'Review your check-in<small>Edit the preview or speak again when microphone access is available.</small>';
-      if (recognition) {
-        try { recognition.start(); } catch (error) { }
-      }
-    });
-    document.getElementById('confirmCheckin').addEventListener('click', () => {
-      const savedEvent = document.createElement('div');
-      savedEvent.className = 'event';
-      savedEvent.innerHTML = '<div class="event-time">Just now</div><div class="event-marker"></div><div><div class="event-title">Voice check-in saved</div><div class="event-copy">Blood pressure, medication, and fatigue added to your health record</div></div>';
-      document.querySelector('.timeline').prepend(savedEvent);
-      voiceStatus.innerHTML = 'Saved to your health record<small>You can review or correct it in your journal.</small>';
-      document.getElementById('confirmCheckin').textContent = 'Saved';
-      document.getElementById('confirmCheckin').disabled = true;
-    });
-    const checkinFlow = document.getElementById('checkinFlow');
-    const flowScreens = [...checkinFlow.querySelectorAll('[data-screen]')];
-    const flowStep = document.getElementById('flowStep');
-    const flowProgress = document.getElementById('flowProgress');
-    let currentFlowScreen = 'intro';
-    const flowOrder = ['intro', 'listening', 'topics', 'guided', 'additional', 'medication', 'vital', 'review', 'trends'];
-    const hasTopic = (topic) => [...checkinFlow.querySelectorAll('input[name="topic"]:checked')].some((input) => input.value === topic);
-    const showFlowScreen = (screenName) => {
-      currentFlowScreen = screenName;
-      flowScreens.forEach((screen) => { screen.hidden = screen.dataset.screen !== screenName; });
-      const screenNumber = flowOrder.indexOf(screenName) + 2;
-      if (screenName === 'pain-score') {
-        flowStep.textContent = 'Optional';
-        flowProgress.style.width = '55%';
-      } else {
-        flowStep.textContent = `Step ${screenNumber} of 10`;
-        flowProgress.style.width = `${(screenNumber / 10) * 100}%`;
-      }
-      if (screenName === 'listening') {
-        const flowTranscript = document.getElementById('flowTranscript');
-        flowTranscript.value = exampleTranscript;
-        flowTranscript.focus();
-      }
-    };
-    const openCheckinFlow = () => { checkinFlow.classList.add('open'); showFlowScreen('intro'); };
-    const closeCheckinFlow = () => checkinFlow.classList.remove('open');
-    const nextFlowScreen = () => {
-      if (currentFlowScreen === 'topics') {
-        showFlowScreen(hasTopic('symptom') ? 'guided' : hasTopic('medication') ? 'medication' : hasTopic('vital') ? 'vital' : 'review');
-      } else if (currentFlowScreen === 'guided') {
-        showFlowScreen('additional');
-      } else if (currentFlowScreen === 'additional') {
-        showFlowScreen(hasTopic('medication') ? 'medication' : hasTopic('vital') ? 'vital' : 'review');
-      } else if (currentFlowScreen === 'medication') {
-        showFlowScreen(hasTopic('vital') && !connectedObjectiveData.bloodPressure ? 'vital' : 'review');
-      } else if (currentFlowScreen === 'listening') {
-        showFlowScreen('topics');
-      } else if (currentFlowScreen === 'review') {
-        showFlowScreen('trends');
-      } else {
-        showFlowScreen(flowOrder[flowOrder.indexOf(currentFlowScreen) + 1]);
-      }
-    };
-    document.getElementById('dailyCheckinButton').addEventListener('click', openCheckinFlow);
-    document.getElementById('checkinNav').addEventListener('click', openCheckinFlow);
-    checkinFlow.querySelectorAll('[data-next]').forEach((button) => button.addEventListener('click', nextFlowScreen));
-    checkinFlow.querySelectorAll('[data-edit-review]').forEach((button) => button.addEventListener('click', () => {
-      const card = button.closest('.review-card');
-      const editable = card.querySelectorAll('.review-editable');
-      const isEditing = button.textContent === 'Done';
-      editable.forEach((field) => { field.contentEditable = String(!isEditing); });
-      button.textContent = isEditing ? 'Edit' : 'Done';
-      if (!isEditing) editable[0].focus();
-    }));
-    checkinFlow.querySelectorAll('[data-severity]').forEach((button) => button.addEventListener('click', () => {
-      showFlowScreen(button.dataset.severity === 'mild' ? 'additional' : 'pain-score');
-    }));
-    checkinFlow.querySelectorAll('.pain-score-button').forEach((button) => button.addEventListener('click', () => {
-      checkinFlow.querySelectorAll('.pain-score-button').forEach((scoreButton) => scoreButton.classList.remove('selected'));
-      button.classList.add('selected');
-    }));
-    document.getElementById('painScoreContinue').addEventListener('click', () => showFlowScreen('additional'));
-    document.getElementById('painScoreSkip').addEventListener('click', () => showFlowScreen('additional'));
-    checkinFlow.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', closeCheckinFlow));
-    checkinFlow.querySelectorAll('[data-back]').forEach((button) => button.addEventListener('click', () => showFlowScreen(button.dataset.back)));
-    document.getElementById('editTopics').addEventListener('click', () => {
-      document.querySelector('.flow-topic-note').textContent = 'Choose which topics you want to discuss before continuing.';
-      document.querySelector('.flow-topic-card input').focus();
-    });
-    document.getElementById('flowClose').addEventListener('click', closeCheckinFlow);
-    document.getElementById('flowBack').addEventListener('click', () => {
-      if (currentFlowScreen === 'intro') closeCheckinFlow();
-      else showFlowScreen('intro');
-    });
-    const severityVoice = document.getElementById('severityVoice');
-    const severityVoiceStatus = document.getElementById('severityVoiceStatus');
-    const severityRecognition = SpeechRecognition ? new SpeechRecognition() : null;
-    if (severityRecognition) {
-      severityRecognition.continuous = false;
-      severityRecognition.interimResults = false;
-      severityRecognition.onstart = () => { severityVoiceStatus.textContent = 'Listening...'; };
-      severityRecognition.onresult = (event) => { severityVoiceStatus.textContent = `“${event.results[0][0].transcript}”`; };
-      severityRecognition.onerror = () => { severityVoiceStatus.textContent = 'I could not hear that. Please try again.'; };
-    }
-    severityVoice.addEventListener('click', () => {
-      if (severityRecognition) {
-        try { severityRecognition.start(); } catch (error) { severityVoiceStatus.textContent = 'Listening...'; }
-      } else {
-        severityVoiceStatus.textContent = 'Voice is unavailable here. You can choose an answer above.';
-      }
-    });
-    const impactVoice = document.getElementById('impactVoice');
-    const impactVoiceStatus = document.getElementById('impactVoiceStatus');
-    const impactRecognition = SpeechRecognition ? new SpeechRecognition() : null;
-    const markWalkingImpact = () => {
-      const walking = checkinFlow.querySelector('input[name="impact"][value="walking"]');
-      walking.checked = true;
-      impactVoiceStatus.textContent = '“It mostly hurts when I walk upstairs.”  →  Walking';
-    };
-    if (impactRecognition) {
-      impactRecognition.continuous = false;
-      impactRecognition.interimResults = false;
-      impactRecognition.onresult = (event) => {
-        const transcriptText = event.results[0][0].transcript;
-        if (/walk|stair/i.test(transcriptText)) {
-          const walking = checkinFlow.querySelector('input[name="impact"][value="walking"]');
-          walking.checked = true;
-          impactVoiceStatus.textContent = `“${transcriptText}”  →  Walking`;
-        } else {
-          impactVoiceStatus.textContent = `“${transcriptText}”  →  Other`;
-        }
-      };
-    }
-    impactVoice.addEventListener('click', () => {
-      markWalkingImpact();
-      if (impactRecognition) {
-        try { impactRecognition.start(); } catch (error) { }
-      }
-    });
-    const medVoice = document.getElementById('medVoice');
-    const medVoiceStatus = document.getElementById('medVoiceStatus');
-    const medList = document.getElementById('medList');
-    const medAmbiguity = document.getElementById('medAmbiguity');
-    const medRecognition = SpeechRecognition ? new SpeechRecognition() : null;
-    const showMedicationAmbiguity = (spokenText = 'I forgot the white pill.') => {
-      checkinFlow.querySelectorAll('input[name="missedMedication"]').forEach((input) => { input.checked = false; });
-      medList.hidden = true;
-      medAmbiguity.hidden = false;
-      medVoiceStatus.textContent = `“${spokenText}”`;
-    };
-    if (medRecognition) {
-      medRecognition.continuous = false;
-      medRecognition.interimResults = false;
-      medRecognition.onresult = (event) => {
-        const transcriptText = event.results[0][0].transcript;
-        if (/prednisone/i.test(transcriptText)) {
-          checkinFlow.querySelector('input[name="missedMedication"][value="prednisone"]').checked = true;
-          medList.hidden = false;
-          medAmbiguity.hidden = true;
-          medVoiceStatus.textContent = `“${transcriptText}”  →  Prednisone`;
-        } else {
-          showMedicationAmbiguity(transcriptText);
-        }
-      };
-    }
-    medVoice.addEventListener('click', () => {
-      showMedicationAmbiguity();
-      if (medRecognition) {
-        try { medRecognition.start(); } catch (error) { }
-      }
-    });
-    medAmbiguity.querySelectorAll('[data-med-choice]').forEach((button) => button.addEventListener('click', () => {
-      const choice = button.dataset.medChoice;
-      checkinFlow.querySelector(`input[name="missedMedication"][value="${choice}"]`).checked = true;
-      medAmbiguity.hidden = true;
-      medList.hidden = false;
-      medVoiceStatus.textContent = `You chose ${button.textContent}.`;
-    }));
-    const connectedObjectiveData = { bloodPressure: false, bloodGlucose: false, heartRate: true, sleep: true, activity: true, weight: false };
-    let vitalType = 'pressure';
-    const pressureTab = document.getElementById('pressureTab');
-    const glucoseTab = document.getElementById('glucoseTab');
-    const vitalMissingTitle = document.getElementById('vitalMissingTitle');
-    const firstVitalLabel = document.getElementById('firstVitalLabel');
-    const secondVitalField = document.getElementById('secondVitalLabel').parentElement;
-    const vitalConfirmValue = document.getElementById('vitalConfirmValue');
-    const setVitalType = (type) => {
-      vitalType = type;
-      pressureTab.classList.toggle('active', type === 'pressure');
-      glucoseTab.classList.toggle('active', type === 'glucose');
-      vitalMissingTitle.textContent = type === 'pressure' ? 'I don’t have a blood pressure reading from today.' : 'I don’t have a blood glucose reading from today.';
-      firstVitalLabel.textContent = type === 'pressure' ? 'Top number' : 'Blood glucose';
-      secondVitalField.style.display = type === 'pressure' ? '' : 'none';
-      document.getElementById('flowSystolic').placeholder = type === 'pressure' ? '138' : '142';
-    };
-    pressureTab.addEventListener('click', () => setVitalType('pressure'));
-    glucoseTab.addEventListener('click', () => setVitalType('glucose'));
-    document.getElementById('enterVital').addEventListener('click', () => {
-      document.getElementById('vitalActions').style.display = 'none';
-      document.getElementById('vitalEntry').classList.add('open');
-      document.getElementById('flowSystolic').focus();
-    });
-    document.getElementById('sayVital').addEventListener('click', () => {
-      document.getElementById('vitalActions').style.display = 'none';
-      document.getElementById('vitalConfirm').classList.add('open');
-      vitalConfirmValue.textContent = vitalType === 'pressure' ? '138 / 85 mmHg' : '142 mg/dL · After lunch';
-    });
-    document.getElementById('notTodayVital').addEventListener('click', () => showFlowScreen('review'));
-    document.getElementById('saveVital').addEventListener('click', () => {
-      const first = document.getElementById('flowSystolic').value || document.getElementById('flowSystolic').placeholder;
-      const second = document.getElementById('flowDiastolic').value || document.getElementById('flowDiastolic').placeholder;
-      vitalConfirmValue.textContent = vitalType === 'pressure' ? `${first} / ${second} mmHg` : `${first} mg/dL`;
-      document.getElementById('vitalEntry').classList.remove('open');
-      document.getElementById('vitalConfirm').classList.add('open');
-    });
-    document.getElementById('vitalCorrect').addEventListener('click', () => showFlowScreen('review'));
-    document.getElementById('vitalEdit').addEventListener('click', () => {
-      document.getElementById('vitalConfirm').classList.remove('open');
-      document.getElementById('vitalActions').style.display = 'grid';
-    });
-    checkinFlow.addEventListener('click', (event) => { if (event.target === checkinFlow) closeCheckinFlow(); });
-    document.getElementById('trendsNav').addEventListener('click', () => document.getElementById('journal').scrollIntoView({ behavior: 'smooth', block: 'start' }));
-    document.getElementById('homeNav').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-    document.getElementById('moreNav').addEventListener('click', () => document.querySelector('.sidebar').scrollIntoView({ behavior: 'smooth', block: 'start' }));
-  </script>
+<!-- Stable integration entry point: retain when updating this HTML. -->
+  <script type="module" src="/frontend/main.js"></script>
 </body>
 </html>

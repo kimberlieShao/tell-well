@@ -23,7 +23,7 @@ npm start
 
 If you received the review ZIP, open its extracted `pulsewise-backend` folder in a terminal instead of using Toan's path above. Run `npm install` and `npm start` there. It starts in demo mode without keys. For Gemini, first copy `.env.example` to `.env` and set your own key and `EXTRACTION_MODE=gemini` as described below.
 
-The API runs at `http://127.0.0.1:3001`. Open **http://127.0.0.1:3001/test/** in your browser to try the text-only backend tester. Type a fictional transcript, analyze it, answer the follow-up questions, then review and save. The page sends the same POST requests your teammate's voice backend will send. Expand its request/response details to see what went in and what came back. Voice recording remains your teammate's responsibility.
+The API runs at `http://127.0.0.1:3001`. Open **http://127.0.0.1:3001/app** for the connected frontend. See **[FRONTEND-INTEGRATION.md](../FRONTEND-INTEGRATION.md)** for the connection files and later HTML updates. Open **http://127.0.0.1:3001/test/** in your browser to try the text-only backend tester. Type a fictional transcript, analyze it, answer the follow-up questions, then review and save. The page sends the same POST requests your teammate's voice backend will send. Expand its request/response details to see what went in and what came back. Voice recording remains your teammate's responsibility.
 
 Open a **second terminal** to run the fictional end-to-end example:
 
@@ -71,7 +71,7 @@ Disable the submit button while a request is pending. Keep the previous state if
 
 `localhost` on a physical phone means **the phone**, not this Mac. To test Expo on a phone over the same trusted Wi-Fi network, set `HOST=0.0.0.0` in `.env`, restart, and use `http://YOUR_MAC_LAN_IP:3001` in the mobile app. Find the Mac's IP under System Settings → Wi-Fi → Details → TCP/IP. An Expo frontend tunnel does not automatically expose this separate API. Another teammate's computer also needs that LAN address; your Mac must stay running.
 
-For Expo web, set `CORS_ORIGINS` to its exact origin (for example `http://localhost:8081`). A local HTML demo should be served by a local web server such as VS Code Live Server (`http://127.0.0.1:5500`), rather than opened as a `file://` page. CORS controls browser origins; it is not authentication.
+For Expo web, set `CORS_ORIGINS` to its exact origin (for example `http://localhost:8081`). The integrated HTML demo should be opened at `/app` on this backend, rather than through Live Server or a `file://` page. CORS controls browser origins; it is not authentication.
 
 ## Files and checks
 
