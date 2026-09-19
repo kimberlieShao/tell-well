@@ -1,3 +1,4 @@
+import { speechKeyterms } from './speech-terms.js';
 const speechError = (code, message) => Object.assign(new Error(message), { code });
 const join = (...parts) => parts.map(part => part.trim()).filter(Boolean).join(' ');
 
@@ -123,6 +124,8 @@ export function createElevenLabsSpeechInput({
   finishTimeoutMs = 12000,
   maxRecordingMs = 30000,
   commitStrategy = 'manual',
+  languageCode = 'en', // transcribe as English: auto-detection mistook short clips for other languages
+  keyterms = null,
   vadSilenceThresholdSecs = 2,
   onTurn = () => {},
 } = {}) {
@@ -310,7 +313,8 @@ export function createElevenLabsSpeechInput({
           const result = await response.json();
           if (!current(session)) throw speechError('SPEECH_CANCELLED', 'Recording was cancelled.');
           if (typeof result.token !== 'string' || !result.token.trim()) throw speechError('SPEECH_UNAVAILABLE', 'The speech service could not start. Type your check-in instead.');
-          const query = new URLSearchParams({ model_id: 'scribe_v2_realtime', token: result.token, audio_format: 'pcm_16000', commit_strategy: commitStrategy });
+          const query = new URLSearchParams({ model_id: 'scribe_v2_realtime', token: result.token, audio_format: 'pcm_16000', commit_strategy: commitStrategy, language_code: languageCode });
+          for (const term of keyterms ?? speechKeyterms()) query.append('keyterms', term); // bias towards medication and symptom names
           if (commitStrategy === 'vad') query.set('vad_silence_threshold_secs', String(vadSilenceThresholdSecs));
           connecting('connection', 'Connecting to ElevenLabs…');
           const socket = new WebSocketImpl(`wss://api.elevenlabs.io/v1/speech-to-text/realtime?${query}`);

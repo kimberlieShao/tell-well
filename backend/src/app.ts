@@ -2,6 +2,8 @@ import express, { type ErrorRequestHandler } from 'express';
 import { fileURLToPath } from 'node:url';
 import { ZodError, z } from 'zod';
 import { BiometricsUnavailable, metricKeys, reading, type BiometricsSource } from './biometrics.js';
+import { CheckinLog } from './checkin-log.js';
+import { evaluateNudges, feedbackFor, type Nudge } from './nudges.js';
 import { Checkins } from './checkins.js';
 import { ApiError } from './errors.js';
 import type { Extractor } from './extractor.js';
@@ -9,9 +11,10 @@ import { analyzeInputSchema, saveInputSchema } from './schema.js';
 import type { SpeechTokenProvider } from './speech.js';
 import type { SpeechAudioProvider } from './tts.js';
 
-export function createApp(extractor: Extractor, config: { origins?: string[]; store?: Checkins; speechTokenProvider?: SpeechTokenProvider; speechAudioProvider?: SpeechAudioProvider; wearable?: BiometricsSource } = {}) {
+export function createApp(extractor: Extractor, config: { origins?: string[]; store?: Checkins; speechTokenProvider?: SpeechTokenProvider; speechAudioProvider?: SpeechAudioProvider; wearable?: BiometricsSource; log?: CheckinLog } = {}) {
   const app = express();
   const store = config.store ?? new Checkins(extractor);
+  const log = config.log ?? new CheckinLog();
   const origins = new Set(config.origins ?? ['http://localhost:8081', 'http://localhost:5500', 'http://127.0.0.1:5500']);
   app.disable('x-powered-by');
   app.use((req, res, next) => {
@@ -55,8 +58,16 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
     res.setHeader('Referrer-Policy', 'no-referrer');
     next();
   }, express.static(fileURLToPath(new URL('../test-ui/', import.meta.url)), { dotfiles: 'deny', index: 'index.html' }));
-  app.post('/api/analyze', async (req, res) => { res.json(await store.analyze(analyzeInputSchema.parse(req.body))); });
-  app.post('/api/checkin/save', (req, res) => { res.json(store.save(saveInputSchema.parse(req.body))); });
+  app.post('/api/analyze', async (req, res) => {
+    const input = analyzeInputSchema.parse(req.body);
+    log.screen(input.transcript ?? input.answer?.value); // red-flag screen on everything the person says
+    res.json(await store.analyze(input));
+  });
+  app.post('/api/checkin/save', (req, res) => {
+    const saved = store.save(saveInputSchema.parse(req.body));
+    log.remember(saved);
+    res.json(saved);
+  });
   app.post('/api/speech/token', async (_req, res) => {
     if (!config.speechTokenProvider) throw new ApiError(503, 'SPEECH_NOT_CONFIGURED', 'Voice input is not configured. Add ELEVENLABS_API_KEY on the server, or type your check-in.');
     res.json(await config.speechTokenProvider());
@@ -81,6 +92,27 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
       res.json({ connected: false, reason: error.reason, message: error.message });
     }
   });
+  // "Worth a look" on the home page: a red-flag alert from the latest check-in, plus a nudge when
+  // wearable numbers drift from usual while symptoms are being logged. Numbers alone never nudge.
+  app.get('/api/nudges', async (_req, res) => {
+    let nudges: Nudge[] = [];
+    let wearable = config.wearable ? 'connected' : 'not_configured';
+    if (config.wearable) {
+      try {
+        nudges = evaluateNudges(await config.wearable.fetchDays(45), log.days(), log.feedback, log.today());
+      } catch (error) {
+        if (!(error instanceof BiometricsUnavailable)) throw error;
+        wearable = error.reason;
+      }
+    }
+    res.json({ alert: log.currentAlert(), nudges, wearable });
+  });
+  app.post('/api/nudges/feedback', (req, res) => {
+    const { nudgeId, verdict } = z.strictObject({ nudgeId: z.string().max(200), verdict: z.enum(['was_a_flare', 'not_a_flare']) }).parse(req.body);
+    log.feedback.push(feedbackFor(nudgeId, verdict));
+    res.json({ ok: true });
+  });
+  app.post('/api/nudges/read-alert', (_req, res) => { log.dismissAlert(); res.json({ ok: true }); });
   app.use((_req, _res, next) => next(new ApiError(404, 'NOT_FOUND', 'Use POST /api/analyze or POST /api/checkin/save.')));
   const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
     if (error instanceof ZodError) {
