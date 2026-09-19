@@ -140,6 +140,92 @@
     .mobile-nav-item { border: 0; background: transparent; color: var(--muted); font: 18px Arial, sans-serif; }
     .mobile-nav-item span { display: block; margin-top: 4px; font: 10px Arial, sans-serif; }
     .mobile-nav-item.active { color: var(--forest); }
+    .legacy-dashboard { display: none !important; }
+    .patient-secondary-view { max-width: 720px; margin: 0 auto 26px; }
+    .trend-range { display: flex; gap: 8px; margin: 4px 0 22px; }
+    .trend-range-button { flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 12px 10px; color: var(--forest); background: var(--surface); font: 700 13px Arial, sans-serif; }
+    .trend-range-button.active { border-color: var(--forest); background: var(--forest); color: white; }
+    .trend-summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .trend-summary-card { padding: 16px; }
+    .trend-summary-label { color: var(--muted); font: 700 11px Arial, sans-serif; text-transform: uppercase; letter-spacing: .8px; }
+    .trend-summary-value { margin: 12px 0 8px; font: 400 26px Georgia, serif; color: var(--ink); }
+    .trend-summary-value span { font: 14px Arial, sans-serif; color: var(--muted); }
+    .trend-summary-trend { font: 700 13px Arial, sans-serif; }
+    .trend-summary-trend.good { color: #3d9660; }
+    .trend-summary-trend.bad { color: #c7604e; }
+    .trend-summary-trend.stable { color: var(--muted); }
+    .trend-summary-trend.warn { color: #a66a1f; }
+    .trend-panel { padding: 22px; margin-bottom: 16px; }
+    .trend-panel-title { margin: 0 0 4px; font: 400 21px Georgia, serif; letter-spacing: -.3px; }
+    .trend-panel-meta { color: var(--muted); font: 13px Arial, sans-serif; margin: 0 0 20px; }
+    .trend-bars { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; height: 150px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+    .trend-bar-group { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 8px; flex: 1; height: 100%; }
+    .trend-bar-group .trend-bar-value { color: var(--forest); font: 700 13px Arial, sans-serif; }
+    .trend-bar { width: 60%; min-width: 20px; border-radius: 6px 6px 0 0; background: #a9d4b8; }
+    .trend-bar.highlight { background: var(--forest); }
+    .trend-bar-group label { color: var(--muted); font: 13px Arial, sans-serif; margin-top: 2px; }
+    .trend-bp-list, .med-adherence-list, .more-detail-list { display: grid; gap: 0; }
+    .trend-bp-row { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #edf0ec; padding: 13px 0; font: 14px Arial, sans-serif; }
+    .trend-bp-row:first-child { border-top: 0; }
+    .trend-bp-row span { color: var(--muted); }
+    .trend-bp-row strong { color: var(--ink); font: 700 15px Arial, sans-serif; }
+    .trend-bp-row.today strong, .trend-bp-row.today span { color: var(--forest); font-weight: 700; }
+    .adherence-bar { height: 12px; border-radius: 8px; background: #edf1eb; overflow: hidden; margin-bottom: 10px; }
+    .adherence-fill { height: 100%; border-radius: 8px; background: var(--forest); }
+    .adherence-label { color: var(--muted); font: 13px Arial, sans-serif; margin-bottom: 18px; }
+    .med-adherence-row { display: flex; justify-content: space-between; border-top: 1px solid #edf0ec; padding: 13px 0; font: 14px Arial, sans-serif; }
+    .med-adherence-row:first-child { border-top: 0; }
+    .med-adherence-row strong { color: var(--forest); }
+    .checkin-history { display: grid; gap: 0; }
+    .checkin-history-row { display: grid; grid-template-columns: 84px 1fr; gap: 14px; border-top: 1px solid #edf0ec; padding: 14px 0; }
+    .checkin-history-row:first-child { border-top: 0; }
+    .checkin-history-date { color: var(--muted); font: 700 13px Arial, sans-serif; padding-top: 2px; }
+    .checkin-history-copy { color: var(--ink); font: 14px/1.5 Arial, sans-serif; }
+    .checkin-history-flag { display: inline-block; margin-top: 4px; color: #a65343; font: 700 12px Arial, sans-serif; }
+    .meal-card { margin-bottom: 14px; }
+    .meal-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+    .meal-card-time { color: var(--muted); font: 700 12px Arial, sans-serif; white-space: nowrap; }
+    .meal-item-list { margin: 0 0 4px; padding-left: 20px; color: var(--ink); font: 15px/1.7 Georgia, serif; }
+    #mealsMain[hidden], #mealFormPanel[hidden], #mealVoicePanel[hidden] { display: none; }
+    .water-tracker { display: flex; align-items: center; gap: 14px; }
+    .water-step-button { width: 50px; height: 50px; border-radius: 50%; border: 1px solid var(--line); background: white; color: var(--forest); font: 700 24px Arial, sans-serif; flex-shrink: 0; }
+    .water-step-button:hover { border-color: var(--forest); background: var(--mint); }
+    .water-display { flex: 1; text-align: center; }
+    .water-count { font: 400 36px Georgia, serif; color: var(--forest); line-height: 1; }
+    .water-unit { color: var(--muted); font: 700 11px Arial, sans-serif; text-transform: uppercase; letter-spacing: 1px; margin: 4px 0 12px; }
+    .water-slider { width: 100%; accent-color: var(--forest); margin-bottom: 10px; }
+    .water-drops { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; font-size: 18px; }
+    .water-drop { opacity: .2; }
+    .water-drop.filled { opacity: 1; }
+    .voice-preview-section { margin-bottom: 16px; }
+    .voice-preview-title { color: var(--forest); font: 700 11px Arial, sans-serif; text-transform: uppercase; letter-spacing: .9px; margin-bottom: 6px; }
+    .more-menu { display: grid; gap: 10px; }
+    .more-menu[hidden], .more-detail[hidden] { display: none; }
+    .more-card { display: flex; align-items: center; gap: 14px; padding: 18px; text-align: left; width: 100%; }
+    .more-card-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 11px; background: var(--mint); color: var(--forest); font-size: 19px; flex-shrink: 0; }
+    .more-card-copy { flex: 1; display: grid; gap: 3px; min-width: 0; }
+    .more-card-copy strong { color: var(--ink); font: 700 15px Arial, sans-serif; }
+    .more-card-copy span { color: var(--muted); font: 13px/1.4 Arial, sans-serif; }
+    .more-card-chevron { color: var(--muted); font-size: 20px; }
+    .more-card:hover { border-color: #a9cdb3; background: #f7fcf7; }
+    .more-detail-back { border: 0; background: transparent; color: var(--forest); font: 700 13px Arial, sans-serif; margin-bottom: 16px; padding: 8px 0; }
+    .more-detail-panel { padding: 22px; }
+    .more-detail-panel h2 { margin: 0 0 6px; font: 400 22px Georgia, serif; }
+    .more-detail-meta { color: var(--muted); font: 13px Arial, sans-serif; margin: 0 0 18px; }
+    .more-detail-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; border-top: 1px solid #edf0ec; padding: 13px 0; font: 14px Arial, sans-serif; }
+    .more-detail-row:first-child { border-top: 0; }
+    .more-detail-row span { color: var(--muted); }
+    .more-detail-row strong { color: var(--ink); }
+    .more-toggle-row { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #edf0ec; padding: 13px 0; }
+    .more-toggle-row:first-child { border-top: 0; }
+    .more-toggle-row span { color: var(--ink); font: 14px Arial, sans-serif; }
+    .more-switch { position: relative; width: 42px; height: 24px; border: 0; border-radius: 999px; background: var(--line); flex-shrink: 0; }
+    .more-switch.on { background: var(--forest); }
+    .more-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: white; transition: left .15s ease; }
+    .more-switch.on::after { left: 21px; }
+    .more-detail-button { display: block; width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 13px; margin-top: 10px; color: var(--forest); background: white; text-align: left; font: 700 13px Arial, sans-serif; }
+    .more-detail-button:hover { border-color: #a9cdb3; background: #f7fcf7; }
+    @media (max-width: 760px) { .trend-summary-grid { grid-template-columns: repeat(2, 1fr); } }
     .flow-overlay { position: fixed; inset: 0; z-index: 8; display: none; place-items: center; padding: 20px; background: rgba(18,38,27,.42); }
     .flow-overlay.open { display: grid; }
     .flow-panel { width: min(540px, 100%); max-height: min(720px, 92vh); overflow: auto; border-radius: 18px; background: var(--surface); box-shadow: 0 30px 80px rgba(18,38,27,.24); }
@@ -350,17 +436,17 @@
       <div class="brand"><span class="brand-mark">+</span><span>pulsewise</span></div>
       <div class="eyebrow">Workspace</div>
       <nav class="nav" aria-label="Primary navigation">
-        <button class="nav-button active"><span class="nav-icon">◉</span><span>Overview</span></button>
-        <button class="nav-button"><span class="nav-icon">↗</span><span>Patients</span></button>
-        <button class="nav-button"><span class="nav-icon">⌁</span><span>Data streams</span></button>
-        <button class="nav-button"><span class="nav-icon">▣</span><span>Reports</span></button>
+        <button class="nav-button active" id="desktopHomeNav"><span class="nav-icon">⌂</span><span>Home</span></button>
+        <button class="nav-button" id="desktopMealsNav"><span class="nav-icon">🍽</span><span>Meals</span></button>
+        <button class="nav-button" id="desktopTrendsNav"><span class="nav-icon">⌁</span><span>Trends</span></button>
+        <button class="nav-button" id="desktopMoreNav"><span class="nav-icon">•••</span><span>More</span></button>
       </nav>
       <div class="sidebar-spacer"></div>
       <div class="privacy-card"><div class="eyebrow">Protected workspace</div><p>Encrypted in transit and at rest. Access is logged for every care team member.</p></div>
     </aside>
 
     <main class="main">
-      <header class="topbar"><div class="crumb">Patients / Overview</div><div class="top-actions"><button class="icon-button" aria-label="Notifications">♢</button><div class="avatar">AL</div></div></header>
+      <header class="topbar"><div class="crumb">Mary / Home</div><div class="top-actions"><button class="icon-button" aria-label="Notifications">♢</button><div class="avatar">M</div></div></header>
       <section class="patient-home" aria-label="Patient home">
         <div class="patient-greeting"><div class="eyebrow" style="color: var(--forest)">Your health today</div><h1>Good morning, Mary</h1><div class="patient-date" id="patientDate">Friday, September 18</div></div>
         <p class="patient-prompt">How are you feeling today?</p>
@@ -368,14 +454,136 @@
         <div class="today-heading">Today's health</div>
         <div class="patient-metrics"><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">♥</span>Heart Rate</div><div class="patient-metric-value">72 bpm</div><div class="patient-metric-foot">Updated 8:42 AM<br>Apple Health</div></article><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">♢</span>Blood Pressure</div><div class="patient-metric-value">132 / 81</div><div class="patient-metric-foot">Updated 8:42 AM<br>Apple Health</div></article><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">●</span>Blood Glucose</div><div class="patient-metric-value">108 mg/dL</div><div class="patient-metric-foot">Updated 7:55 AM<br>Apple Health</div></article><article class="patient-metric"><div class="patient-metric-label"><span class="patient-metric-icon">▣</span>Medication</div><div class="patient-metric-value">2 of 3 taken</div><div class="patient-metric-foot">Updated 8:10 AM<br>Pulsewise</div></article></div>
       </section>
-      <section class="hero-row">
+      <section id="trendsView" class="patient-secondary-view" hidden>
+        <div class="eyebrow" style="color: var(--forest)">Your health</div>
+        <h1>Health Trends</h1>
+        <p class="patient-prompt" style="font-size: 16px">See how your health has changed over time.</p>
+
+        <div class="trend-range" role="group" aria-label="Time range">
+          <button class="trend-range-button active" data-range="7d">7 Days</button>
+          <button class="trend-range-button" data-range="30d">30 Days</button>
+          <button class="trend-range-button" data-range="3m">3 Months</button>
+        </div>
+
+        <div class="trend-summary-grid">
+          <article class="card trend-summary-card"><div class="trend-summary-label">Pain</div><div class="trend-summary-value"><span id="trendPainAvg">4</span> <span>/ 10 avg.</span></div><div class="trend-summary-trend good" id="trendPainTrend">↓ Improving</div></article>
+          <article class="card trend-summary-card"><div class="trend-summary-label">Blood Pressure</div><div class="trend-summary-value"><span id="trendBPAvg">131 / 80</span></div><div class="trend-summary-trend stable" id="trendBPTrend">Stable</div></article>
+          <article class="card trend-summary-card"><div class="trend-summary-label">Blood Glucose</div><div class="trend-summary-value"><span id="trendGlucoseAvg">106</span> <span>mg/dL avg.</span></div><div class="trend-summary-trend stable" id="trendGlucoseTrend">Stable</div></article>
+          <article class="card trend-summary-card"><div class="trend-summary-label">Medication</div><div class="trend-summary-value"><span id="trendMedAdherence">93</span><span>% taken</span></div><div class="trend-summary-trend warn" id="trendMedMissed">2 missed doses</div></article>
+        </div>
+
+        <article class="card trend-panel">
+          <h2 class="trend-panel-title">Pain &amp; Symptoms</h2>
+          <p class="trend-panel-meta">Daily pain level · <span class="trend-range-label">Last 7 days</span></p>
+          <div class="trend-bars" id="trendBars"></div>
+        </article>
+
+        <article class="card trend-panel">
+          <h2 class="trend-panel-title">Blood Pressure</h2>
+          <p class="trend-panel-meta">Latest reading: <strong style="color: var(--forest)">132 / 81 mmHg</strong> · Today</p>
+          <div class="trend-bp-list">
+            <div class="trend-bp-row"><span>Sep 13</span><strong>134 / 82</strong></div>
+            <div class="trend-bp-row"><span>Sep 14</span><strong>131 / 80</strong></div>
+            <div class="trend-bp-row"><span>Sep 15</span><strong>129 / 79</strong></div>
+            <div class="trend-bp-row"><span>Sep 16</span><strong>133 / 81</strong></div>
+            <div class="trend-bp-row"><span>Sep 17</span><strong>130 / 80</strong></div>
+            <div class="trend-bp-row today"><span>Today</span><strong>132 / 81</strong></div>
+          </div>
+        </article>
+
+        <article class="card trend-panel">
+          <h2 class="trend-panel-title">Medication</h2>
+          <p class="trend-panel-meta" id="trendMedMeta">2 missed doses · Last 7 days</p>
+          <div class="adherence-bar"><div class="adherence-fill" id="trendAdherenceFill" style="width: 93%"></div></div>
+          <div class="adherence-label" id="trendAdherenceLabel">93% adherence · last 7 days</div>
+          <div class="med-adherence-list" id="trendMedAdherenceList"></div>
+        </article>
+
+        <article class="card trend-panel">
+          <h2 class="trend-panel-title">Recent Check-ins</h2>
+          <p class="trend-panel-meta">What you've shared in your daily check-ins</p>
+          <div class="checkin-history">
+            <div class="checkin-history-row"><div class="checkin-history-date">Today</div><div class="checkin-history-copy"><strong>Knee pain</strong> · Moderate<br><span class="checkin-history-flag">Medication missed</span></div></div>
+            <div class="checkin-history-row"><div class="checkin-history-date">Yesterday</div><div class="checkin-history-copy"><strong>Fatigue</strong> · Mild</div></div>
+            <div class="checkin-history-row"><div class="checkin-history-date">Sep 16</div><div class="checkin-history-copy">No major symptoms</div></div>
+          </div>
+        </article>
+      </section>
+      <section id="moreView" class="patient-secondary-view" hidden>
+        <div class="eyebrow" style="color: var(--forest)">Account</div>
+        <h1>More</h1>
+        <p class="patient-prompt" style="font-size: 16px">Profile, medications, connected health data, and settings.</p>
+
+        <div class="more-menu">
+          <button class="card more-card" data-more="profile"><div class="more-card-icon">👤</div><div class="more-card-copy"><strong>Profile</strong><span>Mary · Personal information and preferences</span></div><div class="more-card-chevron">›</div></button>
+          <button class="card more-card" data-more="medications"><div class="more-card-icon">💊</div><div class="more-card-copy"><strong>Medications</strong><span>2 active medications</span></div><div class="more-card-chevron">›</div></button>
+          <button class="card more-card" data-more="connected"><div class="more-card-icon">⌁</div><div class="more-card-copy"><strong>Connected Health Data</strong><span>Apple Health — Connected</span></div><div class="more-card-chevron">›</div></button>
+          <button class="card more-card" data-more="accessibility"><div class="more-card-icon">🔎</div><div class="more-card-copy"><strong>Accessibility</strong><span>Text size, voice input, read aloud</span></div><div class="more-card-chevron">›</div></button>
+          <button class="card more-card" data-more="notifications"><div class="more-card-icon">🔔</div><div class="more-card-copy"><strong>Notifications</strong><span>Medication and check-in reminders</span></div><div class="more-card-chevron">›</div></button>
+          <button class="card more-card" data-more="privacy"><div class="more-card-icon">🔒</div><div class="more-card-copy"><strong>Privacy &amp; Data</strong><span>Manage connected data, export summary</span></div><div class="more-card-chevron">›</div></button>
+          <button class="card more-card" data-more="settings"><div class="more-card-icon">⚙</div><div class="more-card-copy"><strong>Settings</strong><span>Language, account preferences</span></div><div class="more-card-chevron">›</div></button>
+        </div>
+
+        <div class="more-detail" id="moreDetail" hidden>
+          <button class="more-detail-back" id="moreDetailBack" aria-label="Back to More">← Back to More</button>
+          <div id="moreDetailBody"></div>
+        </div>
+      </section>
+      <section id="mealsView" class="patient-secondary-view" hidden>
+        <div class="eyebrow" style="color: var(--forest)">Your health</div>
+        <h1>Meals</h1>
+        <p class="patient-prompt" style="font-size: 16px">Keep track of what you eat and how it may relate to how you feel.</p>
+
+        <div id="mealsMain">
+          <div class="today-heading" id="mealsToday">Today</div>
+          <button class="daily-checkin" id="mealsVoiceCTA" style="margin-bottom: 22px">
+            <div class="daily-checkin-icon" style="background: var(--forest)">🎤</div>
+            <span class="daily-checkin-button">Tell me what you ate today</span>
+            <div class="daily-checkin-note">Speak naturally — I'll sort it into your meals</div>
+          </button>
+          <div id="mealCards"></div>
+          <article class="card trend-panel">
+            <h2 class="trend-panel-title">Water today</h2>
+            <div class="water-tracker">
+              <button class="water-step-button" data-action="water-minus" aria-label="Remove a glass of water">−</button>
+              <div class="water-display">
+                <div class="water-count" id="waterCountValue">0</div>
+                <div class="water-unit">glasses</div>
+                <input type="range" id="waterSlider" class="water-slider" min="0" max="12" value="0" step="1" aria-label="Glasses of water today">
+                <div class="water-drops" id="waterDrops"></div>
+              </div>
+              <button class="water-step-button" data-action="water-plus" aria-label="Add a glass of water">+</button>
+            </div>
+          </article>
+          <article class="card trend-panel">
+            <h2 class="trend-panel-title">Caffeine today</h2>
+            <div id="caffeineList"></div>
+            <button class="more-detail-button" data-action="add-caffeine" style="text-align: center">+ Add caffeine</button>
+          </article>
+          <article class="card trend-panel">
+            <h2 class="trend-panel-title">Recent Days</h2>
+            <p class="trend-panel-meta">No earlier meals recorded yet.</p>
+          </article>
+        </div>
+
+        <div id="mealFormPanel" hidden>
+          <button class="more-detail-back" data-action="cancel-meal-form">← Back to Meals</button>
+          <div id="mealFormBody"></div>
+        </div>
+
+        <div id="mealVoicePanel" hidden>
+          <button class="more-detail-back" data-action="cancel-voice-entry">← Back to Meals</button>
+          <div id="mealVoiceBody"></div>
+        </div>
+      </section>
+      <section class="hero-row legacy-dashboard">
         <div><div class="eyebrow" style="color: var(--forest)">Patient overview · demo record</div><h1>Good morning, Alex.</h1><p class="subtitle">A calm view of the signals that matter today.</p></div>
         <div class="patient-picker"><label for="patient">Viewing patient</label><select id="patient"><option>Alex Morgan · PT-2048</option><option>Jamie Lee · PT-1981</option><option>Riley Chen · PT-2160</option></select></div>
       </section>
-      <nav class="mobile-nav" aria-label="Patient navigation"><button class="mobile-nav-item active" id="homeNav">⌂<span>Home</span></button><button class="mobile-nav-item" id="checkinNav">●<span>Check-in</span></button><button class="mobile-nav-item" id="trendsNav">⌁<span>Trends</span></button><button class="mobile-nav-item" id="moreNav">•••<span>More</span></button></nav>
-      <div class="status-strip"><span class="status-dot"></span><strong>All connected sources are current</strong><span>Last sync 4 minutes ago</span></div>
+      <nav class="mobile-nav" aria-label="Patient navigation"><button class="mobile-nav-item active" id="homeNav">⌂<span>Home</span></button><button class="mobile-nav-item" id="mealsNav">🍽<span>Meals</span></button><button class="mobile-nav-item" id="trendsNav">⌁<span>Trends</span></button><button class="mobile-nav-item" id="moreNav">•••<span>More</span></button></nav>
+      <div class="status-strip legacy-dashboard"><span class="status-dot"></span><strong>All connected sources are current</strong><span>Last sync 4 minutes ago</span></div>
 
-      <section class="card voice-checkin" aria-labelledby="voiceTitle">
+      <section class="card voice-checkin legacy-dashboard" aria-labelledby="voiceTitle">
         <div class="voice-main">
           <div class="voice-kicker">Daily check-in</div>
           <h2 class="voice-title" id="voiceTitle">Tell me how you are feeling.</h2>
@@ -392,7 +600,7 @@
         </div>
       </section>
 
-      <section class="grid metric-grid" aria-label="Today's health metrics">
+      <section class="grid metric-grid legacy-dashboard" aria-label="Today's health metrics">
         <article class="card metric-card"><div class="metric-top"><span class="metric-name">Resting heart rate</span><span class="metric-icon heart">♥</span></div><div class="metric-value">62 <small>bpm</small></div><div class="metric-foot"><span class="up">↓ 3 bpm</span> from 7-day avg.</div></article>
         <article class="card metric-card"><div class="metric-top"><span class="metric-name">Sleep quality</span><span class="metric-icon sleep">☾</span></div><div class="metric-value">8h 12m</div><div class="metric-foot"><span class="up">↑ 12%</span> from last night</div></article>
         <article class="card metric-card"><div class="metric-top"><span class="metric-name">Steps</span><span class="metric-icon steps">✣</span></div><div class="metric-value">6,842</div><div class="metric-foot">68% of daily target</div></article>
@@ -411,28 +619,22 @@
           <section class="flow-screen" data-screen="additional" hidden><div class="guided-context">About your knee pain</div><h2>Is the pain making anything harder today?</h2><p>Select all that apply.</p><div class="impact-list"><label class="impact-choice"><input type="checkbox" name="impact" value="walking">Walking</label><label class="impact-choice"><input type="checkbox" name="impact" value="sleeping">Sleeping</label><label class="impact-choice"><input type="checkbox" name="impact" value="eating">Eating</label><label class="impact-choice"><input type="checkbox" name="impact" value="dressing">Getting dressed</label><label class="impact-choice"><input type="checkbox" name="impact" value="other">Other</label><label class="impact-choice"><input type="checkbox" name="impact" value="none">No major impact</label></div><button class="flow-primary" data-next="medication">Continue</button><button class="impact-voice" id="impactVoice"><span class="impact-voice-icon" id="impactVoiceIcon">🎤</span><span id="impactVoiceLabel">Start speaking</span></button><textarea class="transcript" id="impactTranscript" aria-label="Describe how pain is affecting you" placeholder="For example: It hurts when I walk upstairs."></textarea><div class="impact-voice-status" id="impactVoiceStatus"></div></section>
           <section class="flow-screen" data-screen="medication" hidden><div class="guided-context">Medication list</div><h2>Which medication did you miss?</h2><p>Choose from your saved medications, or tell me if you are not sure.</p><div class="med-list" id="medList"><label class="med-card"><input type="radio" name="missedMedication" value="prednisone"><span class="med-card-copy"><strong>Prednisone</strong><span>5 mg · Morning</span></span></label><label class="med-card"><input type="radio" name="missedMedication" value="lisinopril"><span class="med-card-copy"><strong>Lisinopril</strong><span>10 mg · Morning</span></span></label><label class="med-card"><input type="radio" name="missedMedication" value="unknown"><span class="med-card-copy"><strong>I don’t know</strong><span>We can add more detail later</span></span></label></div><button class="med-voice" id="medVoice"><span class="med-voice-icon">🎤</span>Tell me</button><div class="med-voice-status" id="medVoiceStatus"></div><div class="med-ambiguity" id="medAmbiguity" hidden><p>I’m not sure which medication you mean.</p><p>Was it:</p><div class="med-ambiguity-list"><button class="med-ambiguity-choice" data-med-choice="prednisone">Prednisone 5 mg</button><button class="med-ambiguity-choice" data-med-choice="lisinopril">Lisinopril 10 mg</button><button class="med-ambiguity-choice" data-med-choice="unknown">I’m not sure</button></div></div><button class="flow-primary" data-next="vital">Continue</button></section>
           <section class="flow-screen" data-screen="vital" hidden><div class="guided-context">Connected health data</div><div class="measurement-switch"><button id="pressureTab" class="active">Blood pressure</button><button id="glucoseTab">Blood glucose</button></div><h2 id="vitalMissingTitle">I don’t have a blood pressure reading from today.</h2><p id="vitalQuestion">Did you measure it?</p><div class="vital-source-note">I checked Apple Health and your other connected sources first.</div><div class="vital-actions" id="vitalActions"><button class="vital-action" id="enterVital"><span class="vital-action-icon">＋</span>Enter reading</button><button class="vital-action" id="sayVital"><span class="vital-action-icon">🎤</span>Say my reading</button><button class="vital-action" id="notTodayVital"><span class="vital-action-icon">—</span>Not today</button></div><div class="vital-entry" id="vitalEntry"><div class="field-grid"><div class="flow-field"><label for="flowSystolic" id="firstVitalLabel">Top number</label><input id="flowSystolic" placeholder="138" inputmode="numeric" /></div><div class="flow-field"><label for="flowDiastolic" id="secondVitalLabel">Bottom number</label><input id="flowDiastolic" placeholder="85" inputmode="numeric" /></div></div><button class="flow-primary" id="saveVital">Save reading</button></div><div class="vital-confirm" id="vitalConfirm"><div class="vital-confirm-label">I heard:</div><div class="vital-confirm-value" id="vitalConfirmValue">138 / 85 mmHg</div><div class="vital-confirm-actions"><button class="vital-correct" id="vitalCorrect">Correct</button><button class="vital-edit" id="vitalEdit">Edit</button></div></div></section>
-          <section class="flow-screen" data-screen="review" hidden><h2>Today’s Check-in</h2><div class="review-date">Friday, September 18</div><div class="review-section"><div class="review-section-title">Symptoms</div><div class="review-card"><div class="review-card-head"><strong class="review-editable">Knee Pain</strong><button class="review-edit" data-edit-review>Edit</button></div><p class="review-editable">Moderate
-Worse than yesterday
-Makes walking difficult</p></div><div class="review-card"><div class="review-card-head"><strong class="review-editable">Fatigue</strong><button class="review-edit" data-edit-review>Edit</button></div><p class="review-editable">More than usual
-Started this morning
-Mild impact on daily activities</p></div></div><div class="review-section"><div class="review-section-title">Medication</div><div class="review-card"><div class="review-card-head"><strong class="review-editable">Prednisone 5 mg</strong><button class="review-edit" data-edit-review>Edit</button></div><p class="review-editable">Missed this morning</p></div><div class="review-card"><div class="review-card-head"><strong class="review-editable">Lisinopril 10 mg</strong><span style="color:#429362;font:700 10px Arial,sans-serif">Taken</span></div></div></div><div class="review-section"><div class="review-section-title">Vitals</div><div class="review-vitals"><div class="review-vital"><span>Blood Pressure</span><strong>132 / 81 mmHg</strong></div><div class="review-vital"><span>Heart Rate</span><strong>72 bpm</strong></div><div class="review-vital"><span>Blood Glucose</span><strong>108 mg/dL</strong></div></div><div class="review-source">Imported from Apple Health</div></div><div class="review-section"><div class="review-section-title">Diet</div><div class="review-card"><div class="review-card-head"><strong class="review-editable">Lunch</strong><button class="review-edit" data-edit-review>Edit</button></div><p class="review-editable">Chicken soup
-Rice
-Half an apple</p></div></div><button class="flow-primary review-confirm" data-next="trends">Confirm &amp; Save</button></section>
+          <section class="flow-screen" data-screen="review" hidden><h2>Today’s Check-in</h2><div class="review-date">Friday, September 18</div><div class="review-section" id="reviewWellnessSection" hidden><div class="review-section-title">Health status</div><div id="reviewWellness"></div></div><div class="review-section" id="reviewSymptomsSection" hidden><div class="review-section-title">Symptoms</div><div id="reviewSymptoms"></div></div><div class="review-section" id="reviewResolvedSection" hidden><div class="review-section-title">Improved / Resolved</div><div id="reviewResolved"></div></div><div class="review-section" id="reviewMedicationsSection" hidden><div class="review-section-title">Medication</div><div id="reviewMedications"></div></div><div class="review-section" id="reviewVitalsSection" hidden><div class="review-section-title">Vitals</div><div class="review-vitals" id="reviewVitals"></div><div class="review-source" id="reviewVitalsSource"></div></div><div class="review-section" id="reviewDietSection" hidden><div class="review-section-title">Diet</div><div id="reviewDiet"></div></div><p class="more-detail-meta" id="reviewEmptyNote" hidden>You didn’t mention any symptoms, medications, vitals, or diet details in this check-in.</p><button class="flow-primary review-confirm" data-next="trends" id="reviewConfirmSave">Confirm &amp; Save</button></section>
           <section class="flow-screen flow-center" data-screen="trends" hidden><div class="flow-icon" style="background: var(--forest)">✓</div><h2>Saved to your record</h2><p>You can see how this check-in connects with your measurements and symptoms over time.</p><button class="flow-primary" data-close>View today's health</button><button class="flow-secondary" data-close>Done</button></section>
         </div>
       </section>
 
-      <section class="grid main-grid">
+      <section class="grid main-grid legacy-dashboard">
         <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Heart rate this week</h2><div class="panel-meta">Resting heart rate · beats per minute</div></div><button class="text-button">7 days⌄</button></div><div class="chart-wrap"><div class="axis-labels"><span>80</span><span>70</span><span>60</span><span>50</span></div><div class="chart-grid"><span></span><span></span><span></span><span></span></div><div class="bars"><div class="bar-group"><div class="bar" style="height: 57%"></div><span class="bar-label">Mon</span></div><div class="bar-group"><div class="bar" style="height: 50%"></div><span class="bar-label">Tue</span></div><div class="bar-group"><div class="bar" style="height: 66%"></div><span class="bar-label">Wed</span></div><div class="bar-group"><div class="bar" style="height: 43%"></div><span class="bar-label">Thu</span></div><div class="bar-group"><div class="bar" style="height: 53%"></div><span class="bar-label">Fri</span></div><div class="bar-group"><div class="bar highlight" style="height: 36%"></div><span class="bar-label">Sat</span></div><div class="bar-group"><div class="bar" style="height: 46%"></div><span class="bar-label">Sun</span></div></div></div><div class="legend"><span><i></i>Daily resting average</span><span><i class="dark"></i>Today</span></div></article>
         <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Connected sources</h2><div class="panel-meta">Patient-authorized data streams</div></div><button class="text-button" id="manageButton">Manage</button></div><div class="source-list"><div class="source-row"><div class="source-logo apple"></div><div class="source-copy"><div class="source-name">Apple Health</div><div class="source-detail">Steps, sleep, heart rate</div></div><span class="source-state">Synced</span></div><div class="source-row"><div class="source-logo google">G</div><div class="source-copy"><div class="source-name">Health Connect</div><div class="source-detail">Activity, vitals, nutrition</div></div><span class="source-state">Synced</span></div><div class="source-row"><div class="source-logo fitbit">fit</div><div class="source-copy"><div class="source-name">Fitbit</div><div class="source-detail">Sleep stages, readiness</div></div><button class="connect" data-source="Fitbit">Connect</button></div></div></article>
       </section>
 
-      <section class="grid bottom-grid">
+      <section class="grid bottom-grid legacy-dashboard">
         <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Recent activity</h2><div class="panel-meta">A normalized stream across all connected devices</div></div><button class="text-button">View all</button></div><div class="timeline"><div class="event"><div class="event-time">Today · 08:20</div><div class="event-marker"></div><div><div class="event-title">Morning walk recorded</div><div class="event-copy">2,140 steps · Apple Health · consistent with recent baseline</div></div></div><div class="event"><div class="event-time">Today · 07:10</div><div class="event-marker"></div><div><div class="event-title">Sleep session completed</div><div class="event-copy">8h 12m · 91% efficiency · Health Connect</div></div></div><div class="event"><div class="event-time">Yesterday · 22:45</div><div class="event-marker"></div><div><div class="event-title">Heart rate measurement</div><div class="event-copy">62 bpm resting average · Apple Health</div></div></div></div></article>
         <article class="card panel insight"><div class="insight-tag">Signal worth a look</div><h2 class="panel-title" style="margin-top: 13px">Recovery is trending up.</h2><p>Alex's resting heart rate has moved down for three days while sleep duration is up. That combination may point to improved recovery this week.</p><button class="text-button" style="color:#365223">Open recovery report →</button></article>
       </section>
 
-      <section class="journal-shell" id="journal">
+      <section class="journal-shell legacy-dashboard" id="journal">
         <div class="journal-heading"><div><div class="eyebrow" style="color: var(--forest)">Your health journal</div><h2>Bring the whole picture to your next visit.</h2><p>Pair device readings with what only you can describe.</p></div><div class="journal-actions"><button class="action-button secondary" id="printButton">Print view</button><button class="action-button" id="exportButton">Export provider summary</button></div></div>
         <div class="grid journal-grid">
           <article class="card panel"><div class="panel-header"><div><h2 class="panel-title">Add a check-in</h2><div class="panel-meta">Your notes stay alongside your connected health data.</div></div></div><form class="form-stack" id="checkinForm"><div class="field-grid"><div class="field"><label for="checkinDate">Date</label><input id="checkinDate" type="date" required></div><div class="field"><label for="symptomType">Main symptom</label><select id="symptomType"><option>Pain</option><option>Fatigue</option><option>Nausea</option><option>Mood</option><option>Other</option></select></div></div><div class="field"><label for="painLevel">Pain or symptom intensity · 0 to 10</label><div class="range-row"><input id="painLevel" type="range" min="0" max="10" value="4"><span class="range-value" id="painValue">4 / 10</span></div></div><div class="field"><label for="dietNote">Food, hydration, or triggers</label><input id="dietNote" type="text" placeholder="e.g. skipped breakfast, 2L water"></div><div class="field"><label for="medicationNote">Medications or changes</label><input id="medicationNote" type="text" placeholder="e.g. took 400mg ibuprofen at 9am"></div><div class="field"><label for="journalNote">How are you feeling?</label><textarea id="journalNote" placeholder="Describe what changed, what helped, or what you want to remember..."></textarea></div><div class="checkin-note">A short, specific note can help your provider spot patterns that sensors cannot measure.</div><button class="form-submit" type="submit">Save check-in</button></form></article>
@@ -700,8 +902,12 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
       if (screenName === 'listening') {
         document.getElementById('flowTranscript').focus();
       }
+      if (screenName === 'review') {
+        renderReview();
+      }
     };
     const openCheckinFlow = () => {
+      resetCheckinState();
       checkinFlow.classList.add('open');
       document.querySelector('.flow-mic-label').textContent = 'Tap to start speaking';
       document.getElementById('flowTranscript').placeholder = 'Your words will appear here...';
@@ -714,6 +920,7 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
     };
     const nextFlowScreen = () => {
       if (currentFlowScreen === 'topics') {
+        applyTopicExclusions();
         showFlowScreen(hasTopic('symptom') ? 'guided' : hasTopic('medication') ? 'medication' : hasTopic('vital') ? 'vital' : 'review');
       } else if (currentFlowScreen === 'guided') {
         showFlowScreen('additional');
@@ -730,8 +937,867 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
       }
     };
     document.getElementById('dailyCheckinButton').addEventListener('click', openCheckinFlow);
-    document.getElementById('checkinNav').addEventListener('click', openCheckinFlow);
     checkinFlow.querySelectorAll('[data-next]').forEach((button) => button.addEventListener('click', nextFlowScreen));
+
+    function setPatientNavActive(view) {
+      document.querySelectorAll('.nav-button').forEach((btn) => btn.classList.remove('active'));
+      document.querySelectorAll('.mobile-nav-item').forEach((btn) => btn.classList.remove('active'));
+      const desktopIds = { home: 'desktopHomeNav', meals: 'desktopMealsNav', trends: 'desktopTrendsNav', more: 'desktopMoreNav' };
+      const mobileIds = { home: 'homeNav', meals: 'mealsNav', trends: 'trendsNav', more: 'moreNav' };
+      const desktopBtn = document.getElementById(desktopIds[view]);
+      const mobileBtn = document.getElementById(mobileIds[view]);
+      if (desktopBtn) desktopBtn.classList.add('active');
+      if (mobileBtn) mobileBtn.classList.add('active');
+    }
+    function showPatientView(view) {
+      const home = document.querySelector('.patient-home');
+      const meals = document.getElementById('mealsView');
+      const trends = document.getElementById('trendsView');
+      const more = document.getElementById('moreView');
+      home.hidden = view !== 'home';
+      meals.hidden = view !== 'meals';
+      trends.hidden = view !== 'trends';
+      more.hidden = view !== 'more';
+      if (view === 'home') window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (view === 'meals') { showMealsMain(); renderMealsMain(); }
+      if (view === 'more') showMoreMain();
+      setPatientNavActive(view);
+    }
+    document.getElementById('desktopHomeNav').addEventListener('click', () => showPatientView('home'));
+    document.getElementById('desktopMealsNav').addEventListener('click', () => showPatientView('meals'));
+    document.getElementById('desktopTrendsNav').addEventListener('click', () => showPatientView('trends'));
+    document.getElementById('desktopMoreNav').addEventListener('click', () => showPatientView('more'));
+
+    // Single frontend source of truth for patient-facing Trends and More content.
+    // Mock data only — no backend/API involved.
+    const patientState = {
+      profile: {
+        firstName: 'Mary',
+        dateOfBirth: '1958-03-04',
+        preferredLanguage: 'English',
+        emergencyContact: 'Daniel (Son)',
+      },
+      medications: [
+        { id: 'prednisone', name: 'Prednisone', dose: '5 mg', schedule: 'Morning' },
+        { id: 'lisinopril', name: 'Lisinopril', dose: '10 mg', schedule: 'Morning' },
+      ],
+      trends: {
+        '7d': {
+          rangeLabel: 'Last 7 days',
+          painAverage: 4, painTrendLabel: '↓ Improving', painTrendClass: 'good',
+          bloodPressure: '131 / 80', bpTrendLabel: 'Stable', bpTrendClass: 'stable',
+          glucose: 106, glucoseTrendLabel: 'Stable', glucoseTrendClass: 'stable',
+          medicationAdherence: 93, missedDoses: 2,
+          painSeries: [5, 4, 6, 5, 4, 3, 4],
+          painLabels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Today'],
+        },
+        '30d': {
+          rangeLabel: 'Last 30 days',
+          painAverage: 5, painTrendLabel: '↑ Higher than usual', painTrendClass: 'bad',
+          bloodPressure: '133 / 82', bpTrendLabel: 'Slightly higher than usual', bpTrendClass: 'warn',
+          glucose: 109, glucoseTrendLabel: 'Slightly higher', glucoseTrendClass: 'warn',
+          medicationAdherence: 89, missedDoses: 6,
+          painSeries: [6, 5, 5, 6, 4, 5, 4],
+          painLabels: ['Wk 1', 'Wk 2', 'Wk 3', 'Wk 4', 'Wk 5', 'Wk 6', 'Now'],
+        },
+        '3m': {
+          rangeLabel: 'Last 3 months',
+          painAverage: 5, painTrendLabel: '↑ Higher than usual', painTrendClass: 'bad',
+          bloodPressure: '134 / 82', bpTrendLabel: 'Higher than usual', bpTrendClass: 'bad',
+          glucose: 111, glucoseTrendLabel: 'Higher than usual', glucoseTrendClass: 'warn',
+          medicationAdherence: 87, missedDoses: 14,
+          painSeries: [7, 6, 6, 5, 5, 4, 4],
+          painLabels: ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'Now'],
+        },
+      },
+    };
+
+    function formatDateOfBirth(iso) {
+      const [y, m, d] = iso.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    }
+
+    function updateHomeGreeting() {
+      const name = patientState.profile.firstName;
+      const heading = document.querySelector('.patient-greeting h1');
+      if (heading) heading.textContent = `Good morning, ${name}`;
+      const avatar = document.querySelector('.topbar .avatar');
+      if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
+      const crumb = document.querySelector('.topbar .crumb');
+      if (crumb) crumb.textContent = `${name} / Home`;
+      const profileCardSubtitle = document.querySelector('[data-more="profile"] .more-card-copy span');
+      if (profileCardSubtitle) profileCardSubtitle.textContent = `${name} · Personal information and preferences`;
+    }
+
+    function updateMedicationCardSubtitle() {
+      const el = document.querySelector('[data-more="medications"] .more-card-copy span');
+      const count = patientState.medications.length;
+      if (el) el.textContent = `${count} active medication${count === 1 ? '' : 's'}`;
+    }
+
+    // ---------- Trends: renderTrends(range) drives every number/chart on the page ----------
+    let currentTrendRange = '7d';
+    function renderTrends(range) {
+      const data = patientState.trends[range];
+      if (!data) return;
+      currentTrendRange = range;
+      document.querySelectorAll('.trend-range-button').forEach((b) => b.classList.toggle('active', b.dataset.range === range));
+      document.querySelectorAll('.trend-range-label').forEach((label) => { label.textContent = data.rangeLabel; });
+
+      document.getElementById('trendPainAvg').textContent = data.painAverage;
+      const painTrendEl = document.getElementById('trendPainTrend');
+      painTrendEl.textContent = data.painTrendLabel;
+      painTrendEl.className = `trend-summary-trend ${data.painTrendClass}`;
+
+      document.getElementById('trendBPAvg').textContent = data.bloodPressure;
+      const bpTrendEl = document.getElementById('trendBPTrend');
+      bpTrendEl.textContent = data.bpTrendLabel;
+      bpTrendEl.className = `trend-summary-trend ${data.bpTrendClass}`;
+
+      document.getElementById('trendGlucoseAvg').textContent = data.glucose;
+      const glucoseTrendEl = document.getElementById('trendGlucoseTrend');
+      glucoseTrendEl.textContent = data.glucoseTrendLabel;
+      glucoseTrendEl.className = `trend-summary-trend ${data.glucoseTrendClass}`;
+
+      document.getElementById('trendMedAdherence').textContent = data.medicationAdherence;
+      const missedText = `${data.missedDoses} missed dose${data.missedDoses === 1 ? '' : 's'}`;
+      document.getElementById('trendMedMissed').textContent = missedText;
+      document.getElementById('trendMedMeta').textContent = `${missedText} · ${data.rangeLabel}`;
+      document.getElementById('trendAdherenceFill').style.width = `${data.medicationAdherence}%`;
+      document.getElementById('trendAdherenceLabel').textContent = `${data.medicationAdherence}% adherence · ${data.rangeLabel.toLowerCase()}`;
+
+      document.getElementById('trendBars').innerHTML = data.painSeries.map((value, i) => `
+        <div class="trend-bar-group">
+          <span class="trend-bar-value">${value}</span>
+          <div class="trend-bar${i === data.painSeries.length - 1 ? ' highlight' : ''}" style="height: ${value * 10}%"></div>
+          <label>${data.painLabels[i]}</label>
+        </div>`).join('');
+
+      document.getElementById('trendMedAdherenceList').innerHTML = patientState.medications.map((med) => `
+        <div class="med-adherence-row"><span>${med.name} ${med.dose}</span><strong>${data.medicationAdherence}% taken</strong></div>`).join('');
+    }
+    document.querySelectorAll('.trend-range-button').forEach((button) => {
+      button.addEventListener('click', () => renderTrends(button.dataset.range));
+    });
+    renderTrends(currentTrendRange);
+    updateHomeGreeting();
+    updateMedicationCardSubtitle();
+
+    // ---------- More: showMoreMain()/showMoreSubview(key) — menu and subview are never both visible ----------
+    let moreEditingProfile = false;
+    let medicationFormMode = { type: 'list' };
+
+    function profileViewTemplate() {
+      const p = patientState.profile;
+      return `<article class="card more-detail-panel">
+        <h2>Profile</h2>
+        <p class="more-detail-meta">Personal information and preferences</p>
+        <div class="more-detail-list">
+          <div class="more-detail-row"><span>Name</span><strong>${p.firstName}</strong></div>
+          <div class="more-detail-row"><span>Date of birth</span><strong>${formatDateOfBirth(p.dateOfBirth)}</strong></div>
+          <div class="more-detail-row"><span>Preferred language</span><strong>${p.preferredLanguage}</strong></div>
+          <div class="more-detail-row"><span>Emergency contact</span><strong>${p.emergencyContact}</strong></div>
+        </div>
+        <button class="more-detail-button" data-action="edit-profile">Edit profile</button>
+      </article>`;
+    }
+    function profileEditTemplate() {
+      const p = patientState.profile;
+      const languages = ['English', 'Spanish', 'Mandarin', 'Other'];
+      return `<article class="card more-detail-panel">
+        <h2>Edit Profile</h2>
+        <div class="field" style="margin-bottom: 14px"><label>Name</label><input id="editProfileName" type="text" value="${p.firstName}"></div>
+        <div class="field" style="margin-bottom: 14px"><label>Date of birth</label><input id="editProfileDob" type="date" value="${p.dateOfBirth}"></div>
+        <div class="field" style="margin-bottom: 14px"><label>Preferred language</label><select id="editProfileLanguage">${languages.map((lang) => `<option ${lang === p.preferredLanguage ? 'selected' : ''}>${lang}</option>`).join('')}</select></div>
+        <div class="field" style="margin-bottom: 18px"><label>Emergency contact</label><input id="editProfileContact" type="text" value="${p.emergencyContact}"></div>
+        <div style="display: flex; gap: 9px">
+          <button class="more-detail-button" style="flex: 1; text-align: center" data-action="cancel-profile-edit">Cancel</button>
+          <button class="more-detail-button" style="flex: 1; text-align: center; border-color: var(--forest); background: var(--forest); color: white" data-action="save-profile">Save changes</button>
+        </div>
+      </article>`;
+    }
+    function medicationRowTemplate(med) {
+      return `<div class="more-detail-row"><span>${med.name}<br><span style="color: var(--muted); font: 12px Arial, sans-serif">${med.dose} · ${med.schedule}</span></span><button class="review-edit" data-action="edit-medication" data-id="${med.id}">Edit</button></div>`;
+    }
+    function medicationsListTemplate() {
+      const meds = patientState.medications;
+      return `<article class="card more-detail-panel">
+        <h2>Medications</h2>
+        <p class="more-detail-meta">${meds.length} active medication${meds.length === 1 ? '' : 's'}</p>
+        <div class="more-detail-list">${meds.map(medicationRowTemplate).join('') || '<p class="more-detail-meta">No medications added yet.</p>'}</div>
+        <button class="more-detail-button" data-action="add-medication">+ Add a medication</button>
+      </article>`;
+    }
+    function medicationFormTemplate({ id, name, dose, schedule } = {}) {
+      const schedules = ['Morning', 'Afternoon', 'Evening', 'As needed'];
+      const isEdit = Boolean(id);
+      return `<article class="card more-detail-panel">
+        <h2>${isEdit ? 'Edit Medication' : 'Add a Medication'}</h2>
+        <div class="field" style="margin-bottom: 14px"><label>Medication name</label><input id="medFormName" type="text" placeholder="e.g. Metformin" value="${name || ''}"></div>
+        <div class="field" style="margin-bottom: 14px"><label>Dose</label><input id="medFormDose" type="text" placeholder="e.g. 500 mg" value="${dose || ''}"></div>
+        <div class="field" style="margin-bottom: 18px"><label>Schedule</label><select id="medFormSchedule">${schedules.map((s) => `<option ${s === schedule ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+        <div style="display: flex; gap: 9px; margin-bottom: ${isEdit ? '9px' : '0'}">
+          <button class="more-detail-button" style="flex: 1; text-align: center" data-action="cancel-medication-form">Cancel</button>
+          <button class="more-detail-button" style="flex: 1; text-align: center; border-color: var(--forest); background: var(--forest); color: white" data-action="${isEdit ? 'save-medication-edit' : 'save-new-medication'}" data-id="${id || ''}">${isEdit ? 'Save changes' : 'Add medication'}</button>
+        </div>
+        ${isEdit ? `<button class="more-detail-button" style="text-align: center; color: #c7604e; border-color: #f0c9c2" data-action="delete-medication" data-id="${id}">Delete medication</button>` : ''}
+      </article>`;
+    }
+    function medicationsTemplate() {
+      if (medicationFormMode.type === 'add') return medicationFormTemplate();
+      if (medicationFormMode.type === 'edit') {
+        const med = patientState.medications.find((m) => m.id === medicationFormMode.id);
+        if (med) return medicationFormTemplate(med);
+      }
+      return medicationsListTemplate();
+    }
+    function connectedTemplate() {
+      return `<article class="card more-detail-panel">
+        <h2>Connected Health Data</h2>
+        <p class="more-detail-meta">Apple Health — Connected</p>
+        <div class="more-detail-list">
+          <div class="more-detail-row"><span>Blood pressure</span><strong>Shared</strong></div>
+          <div class="more-detail-row"><span>Heart rate</span><strong>Shared</strong></div>
+          <div class="more-detail-row"><span>Blood glucose</span><strong>Shared</strong></div>
+        </div>
+        <button class="more-detail-button">Manage</button>
+      </article>`;
+    }
+    function accessibilityTemplate() {
+      return `<article class="card more-detail-panel">
+        <h2>Accessibility</h2>
+        <div class="more-detail-row"><span>Text size</span><strong id="textSizeLabel">Normal</strong></div>
+        <div class="trend-range" style="margin: 14px 0 18px">
+          <button class="trend-range-button active" data-action="set-text-size" data-size="Normal">Normal</button>
+          <button class="trend-range-button" data-action="set-text-size" data-size="Large">Large</button>
+          <button class="trend-range-button" data-action="set-text-size" data-size="Extra Large">Extra Large</button>
+        </div>
+        <div class="more-toggle-row"><span>Voice input</span><button class="more-switch on" aria-label="Toggle voice input"></button></div>
+        <div class="more-toggle-row"><span>Read questions aloud</span><button class="more-switch" aria-label="Toggle read questions aloud"></button></div>
+      </article>`;
+    }
+    function notificationsTemplate() {
+      return `<article class="card more-detail-panel">
+        <h2>Notifications</h2>
+        <div class="more-toggle-row"><span>Medication reminders</span><button class="more-switch on" aria-label="Toggle medication reminders"></button></div>
+        <div class="more-toggle-row"><span>Daily check-in reminders</span><button class="more-switch on" aria-label="Toggle daily check-in reminders"></button></div>
+      </article>`;
+    }
+    function privacyTemplate() {
+      return `<article class="card more-detail-panel">
+        <h2>Privacy &amp; Data</h2>
+        <p class="more-detail-meta">You control what is shared and with whom</p>
+        <button class="more-detail-button">Connected data</button>
+        <button class="more-detail-button">Export health summary</button>
+        <button class="more-detail-button">Privacy settings</button>
+      </article>`;
+    }
+    function settingsTemplate() {
+      return `<article class="card more-detail-panel">
+        <h2>Settings</h2>
+        <div class="more-detail-list">
+          <div class="more-detail-row"><span>Language</span><strong>${patientState.profile.preferredLanguage}</strong></div>
+          <div class="more-detail-row"><span>Account</span><strong>${patientState.profile.firstName}</strong></div>
+        </div>
+      </article>`;
+    }
+    const moreTemplates = {
+      profile: () => (moreEditingProfile ? profileEditTemplate() : profileViewTemplate()),
+      medications: medicationsTemplate,
+      connected: connectedTemplate,
+      accessibility: accessibilityTemplate,
+      notifications: notificationsTemplate,
+      privacy: privacyTemplate,
+      settings: settingsTemplate,
+    };
+    function renderMoreSubview(key) {
+      document.getElementById('moreDetail').dataset.subview = key;
+      document.getElementById('moreDetailBody').innerHTML = (moreTemplates[key] || (() => ''))();
+    }
+    function showMoreMain() {
+      document.querySelector('.more-menu').hidden = false;
+      document.getElementById('moreDetail').hidden = true;
+    }
+    function showMoreSubview(key) {
+      renderMoreSubview(key);
+      document.querySelector('.more-menu').hidden = true;
+      document.getElementById('moreDetail').hidden = false;
+    }
+    document.querySelectorAll('.more-card').forEach((card) => {
+      card.addEventListener('click', () => showMoreSubview(card.dataset.more));
+    });
+    document.getElementById('moreDetailBack').addEventListener('click', showMoreMain);
+    document.getElementById('moreDetailBody').addEventListener('click', (event) => {
+      const toggle = event.target.closest('.more-switch');
+      if (toggle) { toggle.classList.toggle('on'); return; }
+      const actionEl = event.target.closest('[data-action]');
+      if (!actionEl) return;
+      const action = actionEl.dataset.action;
+      if (action === 'edit-profile') {
+        moreEditingProfile = true;
+        renderMoreSubview('profile');
+      } else if (action === 'cancel-profile-edit') {
+        moreEditingProfile = false;
+        renderMoreSubview('profile');
+      } else if (action === 'save-profile') {
+        patientState.profile.firstName = document.getElementById('editProfileName').value.trim() || patientState.profile.firstName;
+        patientState.profile.dateOfBirth = document.getElementById('editProfileDob').value || patientState.profile.dateOfBirth;
+        patientState.profile.preferredLanguage = document.getElementById('editProfileLanguage').value;
+        patientState.profile.emergencyContact = document.getElementById('editProfileContact').value.trim();
+        moreEditingProfile = false;
+        renderMoreSubview('profile');
+        updateHomeGreeting();
+      } else if (action === 'add-medication') {
+        medicationFormMode = { type: 'add' };
+        renderMoreSubview('medications');
+      } else if (action === 'edit-medication') {
+        medicationFormMode = { type: 'edit', id: actionEl.dataset.id };
+        renderMoreSubview('medications');
+      } else if (action === 'cancel-medication-form') {
+        medicationFormMode = { type: 'list' };
+        renderMoreSubview('medications');
+      } else if (action === 'save-new-medication') {
+        const name = document.getElementById('medFormName').value.trim();
+        const dose = document.getElementById('medFormDose').value.trim();
+        const schedule = document.getElementById('medFormSchedule').value;
+        if (name && dose) {
+          patientState.medications.push({ id: `med-${Date.now()}`, name, dose, schedule });
+          medicationFormMode = { type: 'list' };
+          renderMoreSubview('medications');
+          updateMedicationCardSubtitle();
+          renderTrends(currentTrendRange);
+        }
+      } else if (action === 'save-medication-edit') {
+        const med = patientState.medications.find((m) => m.id === actionEl.dataset.id);
+        if (med) {
+          med.name = document.getElementById('medFormName').value.trim() || med.name;
+          med.dose = document.getElementById('medFormDose').value.trim() || med.dose;
+          med.schedule = document.getElementById('medFormSchedule').value;
+        }
+        medicationFormMode = { type: 'list' };
+        renderMoreSubview('medications');
+        renderTrends(currentTrendRange);
+      } else if (action === 'delete-medication') {
+        patientState.medications = patientState.medications.filter((m) => m.id !== actionEl.dataset.id);
+        medicationFormMode = { type: 'list' };
+        renderMoreSubview('medications');
+        updateMedicationCardSubtitle();
+        renderTrends(currentTrendRange);
+      } else if (action === 'set-text-size') {
+        document.getElementById('textSizeLabel').textContent = actionEl.dataset.size;
+        actionEl.parentElement.querySelectorAll('.trend-range-button').forEach((b) => b.classList.remove('active'));
+        actionEl.classList.add('active');
+      }
+    });
+
+    // ---------- Meals: frontend-only mock state, fed by manual entry, smart voice entry, and Daily Check-in diet data ----------
+    const mealState = {
+      date: '',
+      meals: { breakfast: [], lunch: [], dinner: [], snacks: [], unspecified: [] },
+      waterGlasses: 0,
+      caffeine: [],
+    };
+    const MEAL_TYPES = [
+      { key: 'breakfast', label: 'Breakfast' },
+      { key: 'lunch', label: 'Lunch' },
+      { key: 'dinner', label: 'Dinner' },
+      { key: 'snacks', label: 'Snacks' },
+    ];
+    const CAFFEINE_TYPE_OPTIONS = ['coffee', 'tea', 'energy drink', 'other'];
+    function makeMealId() { return `meal-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`; }
+    function todayDateKey() { return new Date().toISOString().slice(0, 10); }
+    function capitalizeWords(text) { return text.replace(/\b\w/g, (l) => l.toUpperCase()); }
+    function capitalizeFirst(text) { return text.charAt(0).toUpperCase() + text.slice(1); }
+    mealState.date = todayDateKey();
+
+    // ---- Smart meal parser: turns one free-form transcript into meals / water / caffeine ----
+    const WORD_NUMBERS = { a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
+    function wordToNumber(token) {
+      if (!token) return 1;
+      if (/^\d+$/.test(token)) return Number(token);
+      return WORD_NUMBERS[token.toLowerCase()] || 1;
+    }
+    const STRONG_MEAL_CUES = [
+      { type: 'breakfast', pattern: /\bbreakfast\b/i },
+      { type: 'lunch', pattern: /\blunch\b/i },
+      { type: 'dinner', pattern: /\bdinner\b|\bsupper\b/i },
+      { type: 'snacks', pattern: /\bsnacks?\b/i },
+    ];
+    const WEAK_MEAL_CUES = [
+      { type: 'breakfast', pattern: /\bthis morning\b|\bin the morning\b|\bmorning\b/i },
+      { type: 'lunch', pattern: /\bthis afternoon\b|\baround noon\b|\bafternoon\b|\bnoon\b/i },
+      { type: 'dinner', pattern: /\btonight\b|\bthis evening\b|\bevening\b/i },
+      { type: 'snacks', pattern: /\bbetween meals\b/i },
+    ];
+    function findMealCue(text) {
+      for (const cue of STRONG_MEAL_CUES) { if (cue.pattern.test(text)) return { type: cue.type, strength: 'strong' }; }
+      for (const cue of WEAK_MEAL_CUES) { if (cue.pattern.test(text)) return { type: cue.type, strength: 'weak' }; }
+      return null;
+    }
+    function countCueMatches(text) {
+      let count = 0;
+      [...STRONG_MEAL_CUES, ...WEAK_MEAL_CUES].forEach((cue) => { if (cue.pattern.test(text)) count += 1; });
+      return count;
+    }
+    const CAFFEINE_KEYWORDS = [
+      { match: /iced coffees?/i, type: 'iced coffee' },
+      { match: /bottled coffees?/i, type: 'bottled coffee' },
+      { match: /\bespressos?\b/i, type: 'espresso' },
+      { match: /\blattes?\b/i, type: 'latte' },
+      { match: /green teas?/i, type: 'green tea' },
+      { match: /black teas?/i, type: 'black tea' },
+      { match: /\bteas?\b/i, type: 'tea' },
+      { match: /energy drinks?/i, type: 'energy drink' },
+      { match: /\bcoffees?\b/i, type: 'coffee' },
+      { match: /\bsodas?\b/i, type: 'soda' },
+    ];
+    const QUANTITY_FILLER = /\b(?:a|an|one|two|three|four|five|six|seven|eight|nine|ten|\d+|bottles?|cups?|cans?|glasses?|of)\b/gi;
+    // Catches not just a single leftover pronoun but a whole leftover filler phrase, e.g.
+    // "I also" left dangling once "drank three glasses of water" is removed by extractWater.
+    const TRIVIAL_WORDS = new Set(['i', 'a', 'an', 'the', 'and', 'it', 'so', 'also', 'well', 'um', 'uh']);
+    function isTrivialText(text) {
+      const words = text.toLowerCase().split(/\s+/).filter(Boolean);
+      return words.length === 0 || words.every((word) => TRIVIAL_WORDS.has(word));
+    }
+    // Chronological transition words never join two foods in the same meal ("oatmeal then banana"
+    // isn't a thing people say) — they always mark a move to a new point in time, so they are
+    // always split out, not gated behind a cue count like the comma/"and" splitter below.
+    const TRANSITION_PATTERN = /\bthen\s+i\s+had\b|\bthen\b|\bafter\s+that\b|\blater\s+on\b|\blater\b|\bfinally\b|\bnext\b/i;
+    const MEAL_LEADIN_PATTERN = /\b(?:i\s+)?(?:also\s+)?(?:had|ate|have|drank|got|grabbed)\s+/i;
+    function splitOnTransitions(text) {
+      return text.split(TRANSITION_PATTERN).map((s) => s.trim()).filter(Boolean);
+    }
+    // True only if EVERY item in the text (splitting on "and"/",") is a caffeine
+    // drink — so "oatmeal and coffee" is false (real food present) but
+    // "two coffees and one green tea" is true (nothing but drinks).
+    function isCaffeineOnlyText(text) {
+      const fragments = text.split(/,|\band\b/i)
+        .map((s) => s.replace(QUANTITY_FILLER, '').replace(/\s{2,}/g, ' ').trim())
+        .filter(Boolean);
+      if (fragments.length === 0) return true;
+      return fragments.every((fragment) => CAFFEINE_KEYWORDS.some(({ match }) => new RegExp(`^${match.source}$`, 'i').test(fragment)));
+    }
+    function extractWater(transcript) {
+      let total = 0;
+      let cleaned = transcript.replace(/\b(?:drank|had)\s+(\d+|a|one|two|three|four|five|six|seven|eight|nine|ten)\s+glass(?:es)?\s+of\s+water\b/gi, (match, num) => {
+        total += wordToNumber(num);
+        return ' ';
+      });
+      cleaned = cleaned.replace(/\bdrank\s+water\b/gi, () => { total += 1; return ' '; });
+      return { total, cleaned };
+    }
+    function extractCaffeine(transcript) {
+      let remaining = transcript;
+      const results = [];
+      const countLookback = /(\d+|a|an|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:bottles?|cups?|cans?|glasses?)?\s*(?:of\s+)?$/i;
+      CAFFEINE_KEYWORDS.forEach(({ match, type }) => {
+        const regex = new RegExp(match.source, 'gi');
+        let m = regex.exec(remaining);
+        while (m !== null) {
+          const before = remaining.slice(Math.max(0, m.index - 20), m.index);
+          const countMatch = before.match(countLookback);
+          results.push({ type, count: countMatch ? wordToNumber(countMatch[1]) : 1 });
+          remaining = remaining.slice(0, m.index) + ' '.repeat(m[0].length) + remaining.slice(m.index + m[0].length);
+          regex.lastIndex = 0;
+          m = regex.exec(remaining);
+        }
+      });
+      const merged = new Map();
+      results.forEach(({ type, count }) => merged.set(type, (merged.get(type) || 0) + count));
+      return [...merged.entries()].map(([type, count]) => ({ type, count }));
+    }
+    function splitIntoSentences(transcript) {
+      return transcript.split(/[.!?]+/).map((s) => s.trim()).filter(Boolean);
+    }
+    function splitIntoMealClauses(sentence) {
+      if (countCueMatches(sentence) < 2) return [sentence];
+      return sentence.split(/,\s*(?:and\s+)?|\s+and\s+/i).map((s) => s.trim()).filter(Boolean);
+    }
+    // "for my"/"for the"/"as my"/"as the" are always meal-context connectors in this domain
+    // ("...rice for my lunch"), never part of a food name, so stripping them anywhere is safe.
+    const MEAL_CONTEXT_SUFFIX_PATTERN = /\b(?:for|as)\s+(?:my|the|our)\b/gi;
+    function cleanClauseText(clause) {
+      let text = ` ${clause} `;
+      text = text.replace(TRANSITION_PATTERN, ' '); // defensive — transitions are already split out earlier
+      text = text.replace(/\bfor\s+(?:my\s+|the\s+|our\s+|a\s+|an\s+)?(?:breakfast|lunch|dinner|supper|snacks?)\b/gi, ' ');
+      text = text.replace(/\bat\s+lunch\b/gi, ' ');
+      text = text.replace(/\bas\s+(?:my\s+|the\s+|an?\s+)?snacks?\b/gi, ' ');
+      text = text.replace(/\bin\s+the\s+morning\b/gi, ' ');
+      text = text.replace(/\baround\s+noon\b/gi, ' ');
+      text = text.replace(/\b(?:this\s+)?(?:morning|afternoon|evening|tonight|noon)\b/gi, ' ');
+      text = text.replace(/\bbetween\s+meals\b/gi, ' ');
+      text = text.replace(/\b(?:breakfast|lunch|dinner|supper|snacks?)\b/gi, ' ');
+      text = text.replace(MEAL_LEADIN_PATTERN, ' ');
+      text = text.replace(MEAL_CONTEXT_SUFFIX_PATTERN, ' '); // catches any leftover "for my"/"as the" the specific patterns above missed
+      text = text.replace(/^\s*and\s+/i, ' ');
+      text = text.replace(/[.,]+$/g, '');
+      return text.replace(/\s{2,}/g, ' ').trim();
+    }
+    // Small, deliberately short list of very obvious speech-recognition misheard food terms.
+    // Not a general spellchecker — only add an entry here when the mishearing is unambiguous.
+    const FOOD_CORRECTIONS = {
+      'out meal': 'oatmeal',
+      'oat meal': 'oatmeal',
+      'outmeal': 'oatmeal',
+    };
+    function applyFoodCorrections(item) {
+      let result = item;
+      Object.entries(FOOD_CORRECTIONS).forEach(([wrong, right]) => {
+        result = result.replace(new RegExp(`^${wrong}$`, 'i'), right);
+      });
+      return result;
+    }
+    // Cleans one already-split food fragment: strips filler/meal-context words a clause-level
+    // clean can leave behind on an individual item, normalizes obvious ASR mishearings, and
+    // returns it in readable Title Case — or '' if nothing real is left.
+    function cleanFoodItem(rawItem) {
+      let item = ` ${rawItem.toLowerCase()} `;
+      item = item.replace(MEAL_LEADIN_PATTERN, ' ');
+      item = item.replace(/\bfor\s+(?:my\s+|the\s+|our\s+|a\s+|an\s+)?(?:breakfast|lunch|dinner|supper|snacks?)\b/gi, ' ');
+      item = item.replace(/\bas\s+(?:my\s+|the\s+|an?\s+)?snacks?\b/gi, ' ');
+      item = item.replace(MEAL_CONTEXT_SUFFIX_PATTERN, ' ');
+      item = item.replace(/^\s*(?:a|an|some|one|two|three)\s+/i, ' ');
+      item = item.replace(/[.,!?]+/g, ' ');
+      item = item.replace(/\s{2,}/g, ' ').trim();
+      if (!item) return '';
+      item = applyFoodCorrections(item);
+      return capitalizeWords(item);
+    }
+    function splitFoodItemsList(text) {
+      return text.split(/,|\band\b|\bwith\b/i)
+        .map(cleanFoodItem)
+        .filter(Boolean)
+        .filter((s) => !isTrivialText(s));
+    }
+    // The single smart entry point: one free-form transcript in, meals/water/caffeine out.
+    // Segmentation order matters: transitions ("then", "after that", "finally") always split
+    // first since they never join two foods in one meal; only *within* what's left do we also
+    // split sentences and comma/"and" lists. A `currentMeal` context then carries across
+    // segments — so "For breakfast I had toast. Also had juice." still puts juice in
+    // Breakfast — but only a segment with NO cue AND no established context falls to
+    // Unspecified, matching "don't invent a meal, but don't force Unspecified either."
+    // Cues are "strong" (explicit meal names — always trusted) or "weak" (time-of-day
+    // phrases like "this afternoon" — only trusted when real food is present, so a bare
+    // drink mention doesn't fabricate a whole meal on its own).
+    function parseMealTranscript(transcript) {
+      const { total: waterGlasses, cleaned: withoutWater } = extractWater(transcript);
+      const caffeine = extractCaffeine(transcript);
+      const meals = [];
+      const unspecifiedItems = [];
+      let currentMeal = null;
+      const addItems = (mealType, items) => {
+        if (items.length === 0) return;
+        const existing = meals.find((m) => m.mealType === mealType);
+        if (existing) existing.items.push(...items);
+        else meals.push({ mealType, items: [...items] });
+      };
+      splitOnTransitions(withoutWater).forEach((chunk) => {
+        splitIntoSentences(chunk).forEach((sentence) => {
+          splitIntoMealClauses(sentence).forEach((clause) => {
+            const cue = findMealCue(clause);
+            const cleaned = cleanClauseText(clause);
+            if (!cleaned || isTrivialText(cleaned)) return;
+            const caffeineOnly = isCaffeineOnlyText(cleaned);
+            // A weak (time-only) cue never fabricates a meal for a bare drink mention. Nor
+            // does a cue-less drink mention with no meal established anywhere yet — but once
+            // a meal IS established, a bare "and a coffee" belongs to it, same as real food.
+            if (caffeineOnly && (cue?.strength === 'weak' || (!cue && currentMeal === null))) return;
+            const items = splitFoodItemsList(cleaned);
+            if (items.length === 0) return;
+            if (cue) {
+              currentMeal = cue.type;
+              addItems(cue.type, items);
+            } else if (currentMeal) {
+              addItems(currentMeal, items);
+            } else {
+              unspecifiedItems.push(...items);
+            }
+          });
+        });
+      });
+      if (unspecifiedItems.length) meals.push({ mealType: 'unspecified', items: unspecifiedItems });
+      return { meals, waterGlasses, caffeine };
+    }
+    // Reuses the same simple splitter for a Daily Check-in diet phrase ("chicken soup and rice").
+    function splitFoodItems(text) { return splitFoodItemsList(text); }
+
+    function mealTypeLabel(key) {
+      if (key === 'unspecified') return 'Unspecified';
+      const found = MEAL_TYPES.find((t) => t.key === key);
+      return found ? found.label : capitalizeFirst(key);
+    }
+    function mealCardTemplate(type) {
+      const items = mealState.meals[type.key] || [];
+      if (items.length === 0) {
+        return `<article class="card trend-panel meal-card">
+          <div class="meal-card-head"><h2 class="trend-panel-title">${type.label}</h2></div>
+          <p class="trend-panel-meta">No meal recorded yet.</p>
+          <button class="more-detail-button" data-action="add-meal" data-type="${type.key}">+ Add ${type.label.toLowerCase()}</button>
+        </article>`;
+      }
+      const notes = items.map((item) => item.note).filter(Boolean).join(' · ');
+      return `<article class="card trend-panel meal-card">
+        <div class="meal-card-head"><h2 class="trend-panel-title">${type.label}</h2></div>
+        <ul class="meal-item-list">${items.map((item) => `<li>${item.name}</li>`).join('')}</ul>
+        ${notes ? `<p class="trend-panel-meta">${notes}</p>` : ''}
+        <div style="display: flex; gap: 8px; margin-top: 12px">
+          <button class="more-detail-button" style="flex: 1; text-align: center" data-action="edit-meal" data-type="${type.key}">Edit</button>
+          <button class="more-detail-button" style="flex: 1; text-align: center" data-action="add-meal" data-type="${type.key}">+ Add more</button>
+        </div>
+      </article>`;
+    }
+    function unspecifiedCardTemplate() {
+      const items = mealState.meals.unspecified || [];
+      if (items.length === 0) return '';
+      return `<article class="card trend-panel meal-card">
+        <div class="meal-card-head"><h2 class="trend-panel-title">Unspecified</h2></div>
+        <p class="trend-panel-meta">I wasn't sure which meal this belonged to.</p>
+        <ul class="meal-item-list">${items.map((item) => `<li>${item.name}</li>`).join('')}</ul>
+        <button class="more-detail-button" data-action="edit-meal" data-type="unspecified" style="text-align: center">Move to a meal</button>
+      </article>`;
+    }
+    function parseItemsText(text) {
+      return text.split(/,|\n/).map((s) => s.trim()).filter(Boolean).map(capitalizeWords);
+    }
+    function mealFormTemplate({ mealType = 'breakfast', itemsText = '', note = '' } = {}) {
+      return `<article class="card more-detail-panel">
+        <h2>Edit Meal</h2>
+        <div class="field" style="margin-bottom: 14px"><label>Meal type</label><select id="mealFormType">${MEAL_TYPES.map((t) => `<option value="${t.key}" ${t.key === mealType ? 'selected' : ''}>${t.label}</option>`).join('')}<option value="unspecified" ${mealType === 'unspecified' ? 'selected' : ''}>Unspecified</option></select></div>
+        <div class="field" style="margin-bottom: 14px"><label>Food items</label><textarea id="mealFormItems" placeholder="e.g. Oatmeal, banana, coffee">${itemsText}</textarea></div>
+        <div class="field" style="margin-bottom: 14px"><label>Optional note</label><textarea id="mealFormNote" placeholder="Anything you want to remember">${note}</textarea></div>
+        <div style="display: flex; gap: 9px">
+          <button class="more-detail-button" style="flex: 1; text-align: center" data-action="cancel-meal-form">Cancel</button>
+          <button class="more-detail-button" style="flex: 1; text-align: center; border-color: var(--forest); background: var(--forest); color: white" data-action="save-meal" data-original-type="${mealType}">Save meal</button>
+        </div>
+        <button class="more-detail-button" style="text-align: center; color: #c7604e; border-color: #f0c9c2; margin-top: 9px" data-action="delete-meal" data-type="${mealType}">Delete this meal</button>
+      </article>`;
+    }
+    function caffeineFormTemplate({ id, type = 'coffee', count = 1, note = '' } = {}) {
+      const isEdit = Boolean(id);
+      const knownType = CAFFEINE_TYPE_OPTIONS.includes(type) ? type : 'other';
+      return `<article class="card more-detail-panel">
+        <h2>${isEdit ? 'Edit Caffeine' : 'Add Caffeine'}</h2>
+        <div class="field" style="margin-bottom: 14px"><label>Type</label><select id="caffeineFormType">${CAFFEINE_TYPE_OPTIONS.map((t) => `<option value="${t}" ${t === knownType ? 'selected' : ''}>${capitalizeFirst(t)}</option>`).join('')}</select></div>
+        <div class="field" style="margin-bottom: 14px"><label>Count</label><input id="caffeineFormCount" type="number" min="1" value="${count}"></div>
+        <div class="field" style="margin-bottom: 14px"><label>Optional note</label><input id="caffeineFormNote" type="text" value="${note}" placeholder="e.g. iced, decaf"></div>
+        <div style="display: flex; gap: 9px">
+          <button class="more-detail-button" style="flex: 1; text-align: center" data-action="cancel-meal-form">Cancel</button>
+          <button class="more-detail-button" style="flex: 1; text-align: center; border-color: var(--forest); background: var(--forest); color: white" data-action="save-caffeine" data-id="${id || ''}">${isEdit ? 'Save changes' : 'Add caffeine'}</button>
+        </div>
+        ${isEdit ? `<button class="more-detail-button" style="text-align: center; color: #c7604e; border-color: #f0c9c2; margin-top: 9px" data-action="delete-caffeine" data-id="${id}">Delete</button>` : ''}
+      </article>`;
+    }
+    function mealVoiceCaptureTemplate(transcriptText = '') {
+      return `<article class="card more-detail-panel">
+        <h2>Tell me what you ate today</h2>
+        <p class="more-detail-meta">Speak naturally — for example, "This morning I had oatmeal and coffee. For lunch I had rice and chicken."</p>
+        <button class="more-detail-button" id="mealsVoiceMicButton" type="button" style="text-align: center; color: var(--forest)">🎤 Start speaking</button>
+        <p class="trend-panel-meta" id="mealsVoiceStatus" style="margin: 8px 0 4px"></p>
+        <div class="field" style="margin: 12px 0 18px"><label>Transcript (you can edit this)</label><textarea id="mealsVoiceTranscript" rows="4" placeholder="Your words will appear here...">${transcriptText}</textarea></div>
+        <div style="display: flex; gap: 9px">
+          <button class="more-detail-button" style="flex: 1; text-align: center" data-action="cancel-voice-entry">Cancel</button>
+          <button class="more-detail-button" style="flex: 1; text-align: center; border-color: var(--forest); background: var(--forest); color: white" data-action="analyze-voice-entry">Continue</button>
+        </div>
+      </article>`;
+    }
+    function mealVoicePreviewTemplate(parseResult, rawTranscript) {
+      const sections = [];
+      parseResult.meals.forEach(({ mealType, items }) => {
+        sections.push(`<div class="voice-preview-section"><div class="voice-preview-title">${mealTypeLabel(mealType)}</div><ul class="meal-item-list">${items.map((i) => `<li>${i}</li>`).join('')}</ul></div>`);
+      });
+      if (parseResult.waterGlasses > 0) {
+        sections.push(`<div class="voice-preview-section"><div class="voice-preview-title">Water</div><p class="trend-panel-meta">${parseResult.waterGlasses} glass${parseResult.waterGlasses === 1 ? '' : 'es'}</p></div>`);
+      }
+      if (parseResult.caffeine.length) {
+        sections.push(`<div class="voice-preview-section"><div class="voice-preview-title">Caffeine</div><ul class="meal-item-list">${parseResult.caffeine.map((c) => `<li>${capitalizeFirst(c.type)} ×${c.count}</li>`).join('')}</ul></div>`);
+      }
+      const empty = sections.length === 0;
+      return `<article class="card more-detail-panel">
+        <h2>I heard</h2>
+        <div class="voice-preview-section">
+          <div class="voice-preview-title">Raw transcript</div>
+          <p class="trend-panel-meta" style="font-style: italic">"${rawTranscript}"</p>
+        </div>
+        <div class="voice-preview-title">Detected</div>
+        ${empty ? '<p class="more-detail-meta">I could not find any meals, water, or caffeine in that. Tap Edit to fix the transcript and try again.</p>' : sections.join('')}
+        <div style="display: flex; gap: 9px; margin-top: 16px">
+          <button class="more-detail-button" style="flex: 1; text-align: center" data-action="edit-voice-transcript">Edit</button>
+          <button class="more-detail-button" style="flex: 1; text-align: center" data-action="cancel-voice-entry">Cancel</button>
+          ${empty ? '' : '<button class="more-detail-button" style="flex: 1; text-align: center; border-color: var(--forest); background: var(--forest); color: white" data-action="save-voice-entry">Save to Meals</button>'}
+        </div>
+      </article>`;
+    }
+    let mealsVoiceRecognizer = null;
+    // Single source of truth for the in-progress voice entry. rawTranscript is exactly what
+    // SpeechRecognition/the user typed — parsing never mutates it, only reads from a copy.
+    const mealVoiceState = { rawTranscript: '', parsedResult: null };
+    function attachMealsVoiceRecognizer() {
+      const textarea = document.getElementById('mealsVoiceTranscript');
+      const button = document.getElementById('mealsVoiceMicButton');
+      const status = document.getElementById('mealsVoiceStatus');
+      if (!textarea || !button) return;
+      mealsVoiceRecognizer = createSpeechRecognizer(textarea, {
+        continuous: true,
+        onStart: () => { status.textContent = 'Listening...'; button.textContent = '■ Stop'; },
+        onEnd: () => { status.textContent = 'Tap Continue when you are done, or keep editing the text.'; button.textContent = '🎤 Start speaking'; },
+        onError: (error) => {
+          button.textContent = '🎤 Start speaking';
+          if (error === 'not-allowed' || error === 'service-not-allowed') { status.textContent = 'Microphone access was denied.'; return; }
+          if (error === 'no-speech') return;
+          status.textContent = 'I may not have heard that correctly. Please try again or type instead.';
+        },
+      });
+      button.addEventListener('click', () => {
+        if (!mealsVoiceRecognizer) { status.textContent = 'Speech recognition is not supported in this browser. Please type instead.'; return; }
+        if (mealsVoiceRecognizer.isActive()) mealsVoiceRecognizer.stop();
+        else mealsVoiceRecognizer.start();
+      });
+    }
+    function showMealsMain() {
+      document.getElementById('mealsMain').hidden = false;
+      document.getElementById('mealFormPanel').hidden = true;
+      document.getElementById('mealVoicePanel').hidden = true;
+      if (mealsVoiceRecognizer) { mealsVoiceRecognizer.stop(); mealsVoiceRecognizer = null; }
+    }
+    function showFormPanel(html) {
+      document.getElementById('mealFormBody').innerHTML = html;
+      document.getElementById('mealsMain').hidden = true;
+      document.getElementById('mealVoicePanel').hidden = true;
+      document.getElementById('mealFormPanel').hidden = false;
+    }
+    function showMealVoiceCapture(transcriptText = '') {
+      document.getElementById('mealsMain').hidden = true;
+      document.getElementById('mealFormPanel').hidden = true;
+      document.getElementById('mealVoiceBody').innerHTML = mealVoiceCaptureTemplate(transcriptText);
+      document.getElementById('mealVoicePanel').hidden = false;
+      attachMealsVoiceRecognizer();
+    }
+    function closeMealVoicePanel() {
+      if (mealsVoiceRecognizer) { mealsVoiceRecognizer.stop(); mealsVoiceRecognizer = null; }
+      document.getElementById('mealVoicePanel').hidden = true;
+      document.getElementById('mealsMain').hidden = false;
+    }
+    function applyVoiceParseToState(parseResult) {
+      parseResult.meals.forEach(({ mealType, items }) => {
+        if (!mealState.meals[mealType]) mealState.meals[mealType] = [];
+        items.forEach((name) => mealState.meals[mealType].push({ id: makeMealId(), name, note: '', source: 'voice' }));
+      });
+      if (parseResult.waterGlasses > 0) mealState.waterGlasses = Math.min(12, mealState.waterGlasses + parseResult.waterGlasses);
+      parseResult.caffeine.forEach(({ type, count }) => {
+        const existing = mealState.caffeine.find((c) => c.type === type && c.source === 'voice');
+        if (existing) existing.count += count;
+        else mealState.caffeine.push({ id: makeMealId(), type, count, size: null, source: 'voice' });
+      });
+    }
+    function renderCaffeineList() {
+      const container = document.getElementById('caffeineList');
+      if (mealState.caffeine.length === 0) {
+        container.innerHTML = '<p class="trend-panel-meta">No caffeine recorded yet today.</p>';
+        return;
+      }
+      container.innerHTML = mealState.caffeine.map((entry) => `
+        <div class="more-detail-row"><span>${capitalizeFirst(entry.type)} ×${entry.count}</span><button class="review-edit" data-action="edit-caffeine" data-id="${entry.id}">Edit</button></div>`).join('');
+    }
+    function renderWater() {
+      const value = mealState.waterGlasses;
+      document.getElementById('waterCountValue').textContent = value;
+      document.getElementById('waterSlider').value = value;
+      document.getElementById('waterDrops').innerHTML = Array.from({ length: 12 }, (_, i) => `<span class="water-drop${i < value ? ' filled' : ''}">💧</span>`).join('');
+    }
+    function setWaterGlasses(value) {
+      mealState.waterGlasses = Math.max(0, Math.min(12, value));
+      renderWater();
+    }
+    function renderMealsMain() {
+      document.getElementById('mealsToday').textContent = `Today · ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}`;
+      document.getElementById('mealCards').innerHTML = MEAL_TYPES.map(mealCardTemplate).join('') + unspecifiedCardTemplate();
+      renderWater();
+      renderCaffeineList();
+    }
+    // Converts checkinState.diet (populated by Daily Check-in's transcript analysis)
+    // into mealState entries. Called on Confirm & Save — never invents a meal
+    // when the user didn't mention food, since it only ever reads what's already there.
+    function addMealsFromCheckin() {
+      checkinState.diet.forEach((entry) => {
+        const items = splitFoodItems(entry.item);
+        if (items.length === 0) return;
+        const mealType = entry.time && mealState.meals[entry.time] ? entry.time : 'unspecified';
+        items.forEach((name) => mealState.meals[mealType].push({ id: makeMealId(), name, note: '', source: 'daily-checkin' }));
+      });
+    }
+    document.getElementById('waterSlider').addEventListener('input', (event) => setWaterGlasses(Number(event.target.value)));
+    document.getElementById('mealsVoiceCTA').addEventListener('click', () => showMealVoiceCapture());
+    document.getElementById('mealsView').addEventListener('click', (event) => {
+      const actionEl = event.target.closest('[data-action]');
+      if (!actionEl) return;
+      const action = actionEl.dataset.action;
+      if (action === 'add-meal') {
+        showFormPanel(mealFormTemplate({ mealType: actionEl.dataset.type }));
+      } else if (action === 'edit-meal') {
+        const type = actionEl.dataset.type;
+        const items = mealState.meals[type] || [];
+        showFormPanel(mealFormTemplate({ mealType: type, itemsText: items.map((item) => item.name).join(', '), note: items.map((item) => item.note).filter(Boolean).join(' · ') }));
+      } else if (action === 'cancel-meal-form') {
+        showMealsMain();
+        renderMealsMain();
+      } else if (action === 'save-meal') {
+        const newType = document.getElementById('mealFormType').value;
+        const originalType = actionEl.dataset.originalType;
+        const items = parseItemsText(document.getElementById('mealFormItems').value);
+        const note = document.getElementById('mealFormNote').value.trim();
+        if (originalType && originalType !== newType) mealState.meals[originalType] = [];
+        mealState.meals[newType] = items.map((name) => ({ id: makeMealId(), name, note, source: 'manual' }));
+        showMealsMain();
+        renderMealsMain();
+      } else if (action === 'delete-meal') {
+        mealState.meals[actionEl.dataset.type] = [];
+        showMealsMain();
+        renderMealsMain();
+      } else if (action === 'add-caffeine') {
+        showFormPanel(caffeineFormTemplate({}));
+      } else if (action === 'edit-caffeine') {
+        const entry = mealState.caffeine.find((c) => c.id === actionEl.dataset.id);
+        if (entry) showFormPanel(caffeineFormTemplate(entry));
+      } else if (action === 'save-caffeine') {
+        const type = document.getElementById('caffeineFormType').value;
+        const count = Math.max(1, Number(document.getElementById('caffeineFormCount').value) || 1);
+        const note = document.getElementById('caffeineFormNote').value.trim();
+        const id = actionEl.dataset.id;
+        const existing = id && mealState.caffeine.find((c) => c.id === id);
+        if (existing) { existing.type = type; existing.count = count; existing.note = note; }
+        else mealState.caffeine.push({ id: makeMealId(), type, count, size: null, note, source: 'manual' });
+        showMealsMain();
+        renderMealsMain();
+      } else if (action === 'delete-caffeine') {
+        const index = mealState.caffeine.findIndex((c) => c.id === actionEl.dataset.id);
+        if (index !== -1) mealState.caffeine.splice(index, 1);
+        showMealsMain();
+        renderMealsMain();
+      } else if (action === 'water-plus') {
+        setWaterGlasses(mealState.waterGlasses + 1);
+      } else if (action === 'water-minus') {
+        setWaterGlasses(mealState.waterGlasses - 1);
+      } else if (action === 'cancel-voice-entry') {
+        closeMealVoicePanel();
+      } else if (action === 'analyze-voice-entry') {
+        const transcriptText = document.getElementById('mealsVoiceTranscript').value.trim();
+        if (mealsVoiceRecognizer) mealsVoiceRecognizer.stop();
+        if (!transcriptText) return;
+        mealVoiceState.rawTranscript = transcriptText; // preserved verbatim — parsing below never writes back to this
+        mealVoiceState.parsedResult = parseMealTranscript(transcriptText);
+        // Temporary debug aid: lets us tell apart bad speech recognition (check the RAW line)
+        // from a parser bug (check the PARSED line) when the result looks wrong.
+        console.log('RAW MEAL TRANSCRIPT:', mealVoiceState.rawTranscript);
+        console.log('PARSED MEAL RESULT:', mealVoiceState.parsedResult);
+        document.getElementById('mealVoiceBody').innerHTML = mealVoicePreviewTemplate(mealVoiceState.parsedResult, mealVoiceState.rawTranscript);
+      } else if (action === 'edit-voice-transcript') {
+        showMealVoiceCapture(mealVoiceState.rawTranscript);
+      } else if (action === 'save-voice-entry') {
+        if (mealVoiceState.parsedResult) applyVoiceParseToState(mealVoiceState.parsedResult);
+        closeMealVoicePanel();
+        renderMealsMain();
+      }
+    });
     const flowTranscript = document.getElementById('flowTranscript');
     const flowVoiceRecognizer = createSpeechRecognizer(flowTranscript, {
       continuous: true,
@@ -760,8 +1826,284 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
     //   const analysis = await analyzeTranscript(transcript);
     // once the real /api endpoint exists — the shape below is meant to match
     // what that endpoint is expected to return, so the swap is a one-line change.
+    // Single source of truth for the CURRENT Daily Check-in session. Review is
+    // rendered only from this object — never from hard-coded HTML — so it can
+    // only ever show what this session's transcript, guided answers, and
+    // connected data actually contained.
+    const checkinState = {
+      transcript: '',
+      symptoms: [],
+      medications: [],
+      diet: [],
+      vitals: [],
+      functionalImpact: [],
+      painScore: null,
+      completed: false,
+      // A global "I feel fine" report, distinct from a single symptom being reported absent.
+      generalStatus: null,
+      noSymptoms: false,
+      // Symptoms explicitly reported as gone/absent ("I don't have knee pain anymore") —
+      // never active symptoms, so they never trigger severity/pain-score/impact follow-up.
+      resolvedSymptoms: [],
+    };
+    let checkinHistory = [];
+
+    // Mock "connected" data — the only vitals allowed to appear in Review
+    // without the user having said them, and always labeled as connected.
+    const CONNECTED_VITALS = [
+      { type: 'heart rate', value: '72', unit: 'bpm', source: 'connected' },
+    ];
+
+    function resetCheckinState() {
+      checkinState.transcript = '';
+      checkinState.symptoms = [];
+      checkinState.medications = [];
+      checkinState.diet = [];
+      checkinState.functionalImpact = [];
+      checkinState.painScore = null;
+      checkinState.completed = false;
+      checkinState.generalStatus = null;
+      checkinState.noSymptoms = false;
+      checkinState.resolvedSymptoms = [];
+      checkinState.vitals = CONNECTED_VITALS.map((vital) => ({ ...vital }));
+    }
+    resetCheckinState();
+
+    // Later readings of the same vital type replace earlier ones instead of stacking duplicates.
+    function upsertVital(vital) {
+      checkinState.vitals = checkinState.vitals.filter((existing) => existing.type !== vital.type);
+      checkinState.vitals.push(vital);
+    }
+
+    function mergeAnalysisIntoState(analysis) {
+      checkinState.symptoms = analysis.updatedData.symptoms.map((symptom) => ({ ...symptom }));
+      checkinState.medications = analysis.updatedData.medications.map((medication) => ({ ...medication }));
+      checkinState.diet = analysis.updatedData.diet.map((entry) => ({ ...entry }));
+      checkinState.resolvedSymptoms = (analysis.updatedData.resolvedSymptoms || []).map((symptom) => ({ ...symptom }));
+      checkinState.generalStatus = analysis.updatedData.generalStatus || null;
+      checkinState.noSymptoms = Boolean(analysis.updatedData.noSymptoms);
+      analysis.updatedData.vitals.forEach((vital) => {
+        if (vital.value) upsertVital({ ...vital, source: 'reported' });
+      });
+    }
+
+    // The topics screen lets the user uncheck something that was misheard —
+    // this removes it from checkinState so it never reaches Review.
+    function applyTopicExclusions() {
+      const uncheckedInputs = [...checkinFlow.querySelectorAll('.flow-detected-list input[name="topic"]:not(:checked)')];
+      const excluded = { symptom: new Set(), medication: new Set(), diet: new Set(), vital: new Set(), resolved: new Set(), wellness: new Set() };
+      uncheckedInputs.forEach((input) => {
+        const { category, key } = input.dataset;
+        if (excluded[category]) excluded[category].add(category === 'vital' || category === 'wellness' ? key : Number(key));
+      });
+      checkinState.symptoms = checkinState.symptoms.filter((_, i) => !excluded.symptom.has(i));
+      checkinState.medications = checkinState.medications.filter((_, i) => !excluded.medication.has(i));
+      checkinState.diet = checkinState.diet.filter((_, i) => !excluded.diet.has(i));
+      checkinState.vitals = checkinState.vitals.filter((vital) => !(vital.source === 'reported' && excluded.vital.has(vital.type)));
+      checkinState.resolvedSymptoms = checkinState.resolvedSymptoms.filter((_, i) => !excluded.resolved.has(i));
+      if (excluded.wellness.has('status')) {
+        checkinState.noSymptoms = false;
+        checkinState.generalStatus = null;
+      }
+    }
+
+    function vitalSourceLabel(source) {
+      if (source === 'connected') return 'Imported from Apple Health';
+      if (source === 'manual') return 'You entered this reading';
+      return 'You reported this in your check-in';
+    }
+    // Shared by the Review screen and the topic checkboxes so a location-based pain symptom
+    // ("pain" + location: "arm") always reads as "Arm Pain" instead of a bare "Pain".
+    function symptomLabel(symptom) {
+      if (symptom.name === 'pain' && symptom.location) {
+        return `${symptom.location.charAt(0).toUpperCase()}${symptom.location.slice(1)} Pain`;
+      }
+      return symptom.name.replace(/\b\w/g, (letter) => letter.toUpperCase());
+    }
+    // Shared status -> human-readable line, covering every status classifyMedicationStatus can return.
+    function medicationStatusLine(status, time) {
+      const whenSuffix = time ? ` this ${time}` : '';
+      if (status === 'missed') return `Missed${whenSuffix}`;
+      if (status === 'taken') return `Taken${whenSuffix}`;
+      if (status === 'skipped') return `Skipped${whenSuffix}`;
+      if (status === 'not_taken') return 'Not taken';
+      if (status === 'refused') return 'Patient does not want to take this';
+      if (status === 'unclear') return 'Status unclear — please confirm';
+      return '';
+    }
+    function reviewSymptomCard(symptom, index) {
+      const lines = [];
+      if (symptom.severity) lines.push(symptom.severity.charAt(0).toUpperCase() + symptom.severity.slice(1));
+      if (symptom.trend === 'worse') lines.push('Worse than usual');
+      else if (symptom.trend === 'better') lines.push('Better than usual');
+      else if (symptom.trend === 'same') lines.push('About the same as usual');
+      if (index === 0 && checkinState.painScore !== null) lines.push(`Pain score: ${checkinState.painScore} / 10`);
+      if (index === 0 && checkinState.functionalImpact.length) {
+        lines.push(`Affects: ${checkinState.functionalImpact.map((key) => IMPACT_LABELS[key] || key).join(', ')}`);
+      }
+      const name = symptomLabel(symptom);
+      return `<div class="review-card"><div class="review-card-head"><strong class="review-editable">${name}</strong><button class="review-edit" data-edit-review>Edit</button></div>${lines.length ? `<p class="review-editable">${lines.join('\n')}</p>` : ''}</div>`;
+    }
+    function reviewMedicationCard(medication) {
+      const name = medication.name ? `${medication.name}${medication.dose ? ' ' + medication.dose : ''}` : 'Medication';
+      const line = medicationStatusLine(medication.status, medication.time);
+      return `<div class="review-card"><div class="review-card-head"><strong class="review-editable">${name}</strong><button class="review-edit" data-edit-review>Edit</button></div>${line ? `<p class="review-editable">${line}</p>` : ''}</div>`;
+    }
+    function reviewDietCard(entry) {
+      const item = entry.item.replace(/\b\w/g, (letter) => letter.toUpperCase());
+      const time = entry.time ? entry.time.charAt(0).toUpperCase() + entry.time.slice(1) : 'Diet';
+      return `<div class="review-card"><div class="review-card-head"><strong class="review-editable">${time}</strong><button class="review-edit" data-edit-review>Edit</button></div><p class="review-editable">${item}</p></div>`;
+    }
+    function reviewVitalRow(vital) {
+      const label = vital.type.replace(/\b\w/g, (letter) => letter.toUpperCase());
+      const displayValue = vital.type === 'blood pressure' ? vital.value.replace(/\s*\/\s*/, ' / ') : vital.value;
+      const value = vital.unit ? `${displayValue} ${vital.unit}` : displayValue;
+      return `<div class="review-vital"><span>${label}</span><strong>${value}</strong></div>`;
+    }
+    function renderReview() {
+      document.getElementById('reviewWellnessSection').hidden = !checkinState.noSymptoms;
+      if (checkinState.noSymptoms) {
+        const statusLine = checkinState.generalStatus === 'normal' ? 'Feeling normal today' : 'Feeling well today';
+        document.getElementById('reviewWellness').innerHTML = `<div class="review-card"><strong class="review-editable">${statusLine}</strong><p class="review-editable">No symptoms reported</p></div>`;
+      }
+
+      const hasSymptoms = checkinState.symptoms.length > 0;
+      document.getElementById('reviewSymptomsSection').hidden = !hasSymptoms;
+      if (hasSymptoms) document.getElementById('reviewSymptoms').innerHTML = checkinState.symptoms.map(reviewSymptomCard).join('');
+
+      const hasResolved = checkinState.resolvedSymptoms.length > 0;
+      document.getElementById('reviewResolvedSection').hidden = !hasResolved;
+      if (hasResolved) {
+        document.getElementById('reviewResolved').innerHTML = checkinState.resolvedSymptoms.map((symptom) => (
+          `<div class="review-card"><strong class="review-editable">${symptomLabel(symptom)}</strong><p class="review-editable">No longer reported</p></div>`
+        )).join('');
+      }
+
+      const hasMedications = checkinState.medications.length > 0;
+      document.getElementById('reviewMedicationsSection').hidden = !hasMedications;
+      if (hasMedications) document.getElementById('reviewMedications').innerHTML = checkinState.medications.map(reviewMedicationCard).join('');
+
+      const hasVitals = checkinState.vitals.length > 0;
+      document.getElementById('reviewVitalsSection').hidden = !hasVitals;
+      if (hasVitals) {
+        document.getElementById('reviewVitals').innerHTML = checkinState.vitals.map(reviewVitalRow).join('');
+        const sources = [...new Set(checkinState.vitals.map((vital) => vital.source))].map(vitalSourceLabel);
+        document.getElementById('reviewVitalsSource').textContent = sources.join(' · ');
+      }
+
+      const hasDiet = checkinState.diet.length > 0;
+      document.getElementById('reviewDietSection').hidden = !hasDiet;
+      if (hasDiet) document.getElementById('reviewDiet').innerHTML = checkinState.diet.map(reviewDietCard).join('');
+
+      document.getElementById('reviewEmptyNote').hidden = hasSymptoms || hasMedications || hasVitals || hasDiet || hasResolved || checkinState.noSymptoms;
+    }
+
+    // ---- Negation-aware medication status classification ----
+    // Order matters: refusal/negation patterns are checked BEFORE the bare "took/taken" check,
+    // specifically so "I don't want to TAKE my medicine" can never fall through and match on
+    // the word "take" alone. Always resolves to one of six explicit statuses — never guesses.
+    function classifyMedicationStatus(context) {
+      if (/don'?t\s+want\s+to\s+take|do\s+not\s+want\s+to\s+take|don'?t\s+plan\s+to\s+take|do\s+not\s+plan\s+to\s+take|refus(?:e|es|ed|ing)(?:\s+to\s+take)?|not\s+going\s+to\s+take/.test(context)) {
+        return 'refused';
+      }
+      if (/didn'?t\s+take|did\s+not\s+take|haven'?t\s+taken|has\s?n'?t\s+taken|have\s+not\s+taken|has\s+not\s+taken/.test(context)) {
+        return 'not_taken';
+      }
+      if (/forgot|missed/.test(context)) {
+        return 'missed';
+      }
+      if (/\bskip(?:ped|s)?\b/.test(context)) {
+        return 'skipped';
+      }
+      if (/\balready\s+took\b|\btook\b|\btaken\b/.test(context)) {
+        return 'taken';
+      }
+      return 'unclear';
+    }
+
+    // ---- General body-location pain detection ----
+    const BODY_LOCATION_MAP = {
+      arm: 'arm', arms: 'arm', leg: 'leg', legs: 'leg', knee: 'knee', knees: 'knee',
+      back: 'back', shoulder: 'shoulder', shoulders: 'shoulder', neck: 'neck',
+      hip: 'hip', hips: 'hip', hand: 'hand', hands: 'hand', foot: 'foot', feet: 'foot',
+      chest: 'chest', abdomen: 'abdomen', stomach: 'stomach', head: 'head',
+    };
+    const BODY_LOCATION_SOURCE = Object.keys(BODY_LOCATION_MAP).join('|');
+    const PAIN_WORD_SOURCE = 'pain|painful|hurts?|hurting|aches?|aching|sore|discomfort';
+    function severityFromContext(context) {
+      if (/\ba\s+little\s+pain(?:ful)?\b|\bslight(?:ly)?\s+pain(?:ful)?\b/.test(context)) return 'mild';
+      if (/\bmoderate(?:ly)?\s+pain(?:ful)?\b/.test(context)) return 'moderate';
+      if (/\b(?:very|really|super|extremely)\s+pain(?:ful)?\b|\bsevere\s+pain(?:ful)?\b/.test(context)) return 'severe';
+      if (/\bsevere\b/.test(context)) return 'severe';
+      if (/\bmoderate\b/.test(context)) return 'moderate';
+      if (/\bmild\b/.test(context)) return 'mild';
+      return null;
+    }
+    // Specific, local negation ("I don't have knee pain anymore") — this is deliberately narrow
+    // (a curated phrase list, not general grammar parsing) so it only fires on unambiguous
+    // wording, never guessing a symptom away on shaky evidence.
+    const PAIN_NEGATION_PATTERN = /\bdon'?t\s+have\b|\bdo\s+not\s+have\b|\bdoesn'?t\s+hurt\b|\bdoes\s+not\s+hurt\b|\bisn'?t\s+hurting\b|\bis\s+not\s+hurting\b|\bno\s+longer\b|\bnot\s+hurting\b|\bnot\s+painful\b|\bwithout\s+pain\b/i;
+    // Runs per sentence so unrelated mentions elsewhere in a long transcript can't cross-contaminate.
+    // A shared predicate ("my arm and my leg is painful") gives EVERY location in the sentence its
+    // own pain symptom, but severity is only inherited by whichever location is grammatically
+    // nearest to that specific pain word — so "leg is super pain" doesn't also mark arm as severe.
+    // A location whose owned pain word sits in a negated context ("don't have knee pain anymore")
+    // is marked resolved:true instead of being treated as an active symptom.
+    function detectPainSymptoms(sentenceText) {
+      const locations = [];
+      const locRegex = new RegExp(`\\b(${BODY_LOCATION_SOURCE})\\b`, 'gi');
+      let match = locRegex.exec(sentenceText);
+      while (match !== null) {
+        locations.push({ location: BODY_LOCATION_MAP[match[1].toLowerCase()], index: match.index });
+        match = locRegex.exec(sentenceText);
+      }
+      if (locations.length === 0) return [];
+      const painWords = [];
+      const painRegex = new RegExp(`\\b(?:${PAIN_WORD_SOURCE})\\b`, 'gi');
+      match = painRegex.exec(sentenceText);
+      while (match !== null) {
+        painWords.push({ index: match.index });
+        match = painRegex.exec(sentenceText);
+      }
+      if (painWords.length === 0) return [];
+      const infoByLocation = new Map();
+      painWords.forEach((pw) => {
+        let nearest = null;
+        let nearestDist = Infinity;
+        let nearestLocIndex = null;
+        locations.forEach((loc) => {
+          const dist = Math.abs(loc.index - pw.index);
+          if (dist < nearestDist) { nearestDist = dist; nearest = loc.location; nearestLocIndex = loc.index; }
+        });
+        if (nearest && !infoByLocation.has(nearest)) {
+          const spanStart = Math.max(0, Math.min(nearestLocIndex, pw.index) - 30);
+          const spanEnd = Math.min(sentenceText.length, Math.max(nearestLocIndex, pw.index) + 20);
+          const windowText = sentenceText.slice(spanStart, spanEnd);
+          infoByLocation.set(nearest, {
+            severity: severityFromContext(windowText),
+            resolved: PAIN_NEGATION_PATTERN.test(windowText),
+          });
+        }
+      });
+      const seen = new Set();
+      const results = [];
+      locations.forEach(({ location }) => {
+        if (seen.has(location)) return;
+        seen.add(location);
+        const info = infoByLocation.get(location) || { severity: null, resolved: false };
+        results.push({ name: 'pain', location, severity: info.resolved ? null : info.severity, resolved: info.resolved });
+      });
+      return results;
+    }
+
+    // ---- Global wellness / no-symptom reporting ----
+    // A curated phrase list, same philosophy as the negation list above: only fire on
+    // unambiguous "I'm fine" language, never inferred from the mere absence of complaints.
+    const WELLNESS_PATTERN = /\bi\s+feel\s+fine\b|\bi'?m\s+fine\b|\bi\s+feel\s+good\b|\bi'?m\s+doing\s+(?:well|great|good)\b|\bi'?m\s+ok(?:ay)?\s+today\b|\bnothing\s+is\s+bothering\s+me\b|\bnothing'?s\s+bothering\s+me\b|\bnothing\s+feels\s+wrong\b|\bno\s+problems?\s+today\b|\bno\s+symptoms?\b|\bi\s+don'?t\s+have\s+any\s+symptoms\b|\bi\s+don'?t\s+have\s+any\s+pain\b|\bno\s+pain\b|\bnothing\s+unusual\b|\bi\s+feel\s+normal\b|\beverything\s+feels\s+normal\b/i;
+    const WELLNESS_NORMAL_PATTERN = /\bi\s+feel\s+normal\b|\beverything\s+feels\s+normal\b/i;
+
     function mockAnalyzeTranscript(transcript) {
-      console.log('Transcript being analyzed:', transcript);
+      console.log('RAW TRANSCRIPT:', transcript);
       const text = transcript.toLowerCase();
       const contextAround = (keyword, radius = 40) => {
         const index = text.indexOf(keyword);
@@ -769,10 +2111,10 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
         return text.slice(Math.max(0, index - radius), Math.min(text.length, index + keyword.length + radius));
       };
 
+      // Non-location symptoms stay a simple keyword lookup. Location-based pain (including
+      // headache, normalized below to "head hurts" so it flows through the same detector) is
+      // handled separately by detectPainSymptoms so "knee"/"back"/"head" aren't double-detected.
       const symptomKeywords = [
-        { keywords: ['knee'], name: 'knee pain' },
-        { keywords: ['back pain', 'my back'], name: 'back pain' },
-        { keywords: ['headache', 'head hurts'], name: 'headache' },
         { keywords: ['tired', 'fatigue', 'fatigued', 'exhausted', 'low energy', 'no energy'], name: 'fatigue' },
         { keywords: ['nausea', 'nauseous'], name: 'nausea' },
         { keywords: ['dizzy', 'dizziness'], name: 'dizziness' },
@@ -780,11 +2122,19 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
         { keywords: ['fever'], name: 'fever' },
         { keywords: ['shortness of breath', 'out of breath'], name: 'shortness of breath' },
       ];
+      // Same narrow-phrase philosophy as PAIN_NEGATION_PATTERN, applied to the plain-keyword
+      // symptoms below — "I don't feel nauseous" reports nausea as absent, not present.
+      const SYMPTOM_NEGATION_PATTERN = /\bdon'?t\s+feel\b|\bdo\s+not\s+feel\b|\bdoesn'?t\s+feel\b|\bnot\s+feeling\b|\bno\s+longer\b|\bhaven'?t\s+been\b/i;
       const symptoms = [];
+      const resolvedSymptoms = [];
       symptomKeywords.forEach(({ keywords, name }) => {
         const hit = keywords.find((keyword) => text.includes(keyword));
         if (!hit) return;
         const context = contextAround(hit);
+        if (SYMPTOM_NEGATION_PATTERN.test(context)) {
+          resolvedSymptoms.push({ name });
+          return;
+        }
         let trend = null;
         const worseWord = /worse|worsen|increas/.test(context) || (/\bmore\b/.test(context) && !/no more|any more/.test(context));
         const betterWord = /better|improv|decreas/.test(context) || (/\bless\b/.test(context) && !/no less/.test(context));
@@ -800,15 +2150,29 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
         if (impactMatch) functionalImpact = impactMatch[0];
         symptoms.push({ name, trend, severity, functionalImpact });
       });
+      text.replace(/\bheadaches?\b/gi, 'head hurts')
+        .split(/[.!?]+/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .forEach((sentence) => {
+          detectPainSymptoms(sentence).forEach((symptom) => {
+            if (symptom.resolved) resolvedSymptoms.push({ name: symptom.name, location: symptom.location });
+            else symptoms.push({ name: symptom.name, location: symptom.location, severity: symptom.severity });
+          });
+        });
+
+      // A global "I'm fine" report only counts once we know it isn't contradicted by a real,
+      // actively-detected symptom elsewhere in the same transcript ("I don't have any pain,
+      // but I feel dizzy" must report dizziness, not blanket wellness).
+      const noSymptoms = WELLNESS_PATTERN.test(text) && symptoms.length === 0;
+      const generalStatus = noSymptoms ? (WELLNESS_NORMAL_PATTERN.test(text) ? 'normal' : 'well') : null;
 
       const knownMedications = ['prednisone', 'lisinopril', 'metformin', 'ibuprofen', 'aspirin', 'insulin'];
       const medications = [];
       knownMedications.forEach((medName) => {
         if (!text.includes(medName)) return;
         const context = contextAround(medName);
-        let status = null;
-        if (/forgot|missed|didn't take|did not take|skip/.test(context)) status = 'missed';
-        else if (/took|take|taken/.test(context)) status = 'taken';
+        const status = classifyMedicationStatus(context);
         let time = null;
         if (/morning/.test(context)) time = 'morning';
         else if (/afternoon/.test(context)) time = 'afternoon';
@@ -823,19 +2187,17 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
         const genericHit = genericMedicationWords.find((word) => text.includes(word));
         if (genericHit) {
           const context = contextAround(genericHit);
-          let status = null;
-          if (/forgot|missed|didn't take|did not take|skip/.test(context)) status = 'missed';
-          else if (/took|take|taken/.test(context)) status = 'taken';
-          if (status) {
-            let time = null;
-            if (/morning/.test(context)) time = 'morning';
-            else if (/afternoon/.test(context)) time = 'afternoon';
-            else if (/evening/.test(context)) time = 'evening';
-            else if (/night/.test(context)) time = 'night';
-            medications.push({ name: null, status, time, dose: null });
-          }
+          const status = classifyMedicationStatus(context);
+          let time = null;
+          if (/morning/.test(context)) time = 'morning';
+          else if (/afternoon/.test(context)) time = 'afternoon';
+          else if (/evening/.test(context)) time = 'evening';
+          else if (/night/.test(context)) time = 'night';
+          medications.push({ name: null, status, time, dose: null });
         }
       }
+      console.log('PARSED SYMPTOMS:', symptoms);
+      console.log('PARSED MEDICATIONS:', medications);
 
       const vitals = [];
       if (text.includes('blood pressure') || /\bbp\b/.test(text)) {
@@ -883,7 +2245,7 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
       }
 
       const result = {
-        updatedData: { symptoms, medications, vitals, diet },
+        updatedData: { symptoms, medications, vitals, diet, resolvedSymptoms, generalStatus, noSymptoms },
         nextQuestion,
         complete: !nextQuestion,
       };
@@ -896,29 +2258,40 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
       const flowTopicNote = document.querySelector('.flow-topic-note');
       const cards = [];
       const seenCards = new Set();
-      const addCard = (icon, label, value) => {
-        const key = `${value}:${label.toLowerCase()}`;
-        if (seenCards.has(key)) return;
-        seenCards.add(key);
-        cards.push({ icon, label, value });
+      const addCard = (icon, label, value, key) => {
+        const dedupeKey = `${value}:${label.toLowerCase()}`;
+        if (seenCards.has(dedupeKey)) return;
+        seenCards.add(dedupeKey);
+        cards.push({ icon, label, value, key });
       };
-      analysis.updatedData.symptoms.forEach((symptom) => {
+      if (analysis.updatedData.noSymptoms) {
+        const label = analysis.updatedData.generalStatus === 'normal' ? 'Feeling normal today' : 'Feeling well today';
+        addCard('🙂', label, 'wellness', 'status');
+      }
+      analysis.updatedData.symptoms.forEach((symptom, index) => {
         const icon = /fatigue|tired/.test(symptom.name) ? '😴' : '🤕';
-        addCard(icon, symptom.name.replace(/\b\w/g, (letter) => letter.toUpperCase()), 'symptom');
+        addCard(icon, symptomLabel(symptom), 'symptom', index);
       });
-      analysis.updatedData.medications.forEach((medication) => {
-        const medName = medication.name || 'medication';
+      (analysis.updatedData.resolvedSymptoms || []).forEach((symptom, index) => {
+        addCard('✅', `${symptomLabel(symptom)} — Resolved`, 'resolved', index);
+      });
+      analysis.updatedData.medications.forEach((medication, index) => {
+        const medName = medication.name || 'Medication';
         const label = medication.status === 'missed' ? `Missed ${medName}`
-          : medication.status === 'taken' ? `${medName} taken`
+          : medication.status === 'taken' ? `${medName} Taken`
+          : medication.status === 'skipped' ? `${medName} Skipped`
+          : (medication.status === 'refused' || medication.status === 'not_taken') ? `${medName} Not Taken`
+          : medication.status === 'unclear' ? `${medName} — Unclear`
           : medName;
-        addCard('💊', label, 'medication');
+        addCard('💊', label, 'medication', index);
       });
       analysis.updatedData.vitals.forEach((vital) => {
-        addCard('♥', vital.type.replace(/\b\w/g, (letter) => letter.toUpperCase()), 'vital');
+        addCard('♥', vital.type.replace(/\b\w/g, (letter) => letter.toUpperCase()), 'vital', vital.type);
       });
-      analysis.updatedData.diet.forEach((entry) => {
-        addCard('🍽', entry.item.replace(/\b\w/g, (letter) => letter.toUpperCase()), 'diet');
+      analysis.updatedData.diet.forEach((entry, index) => {
+        addCard('🍽', entry.item.replace(/\b\w/g, (letter) => letter.toUpperCase()), 'diet', index);
       });
+      console.log('TOPICS:', cards.map((card) => ({ type: card.value, label: card.label })));
 
       flowDetectedList.innerHTML = '';
       cards.forEach((card) => {
@@ -930,6 +2303,8 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
         input.type = 'checkbox';
         input.name = 'topic';
         input.value = card.value;
+        input.dataset.category = card.value;
+        input.dataset.key = card.key;
         input.checked = true;
         label.append(iconSpan, document.createTextNode(card.label), input);
         flowDetectedList.appendChild(label);
@@ -947,7 +2322,9 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
         flowTranscript.placeholder = 'Please say something or type your response before continuing.';
         return;
       }
+      checkinState.transcript = transcriptText;
       const analysis = mockAnalyzeTranscript(transcriptText);
+      mergeAnalysisIntoState(analysis);
       renderDetectedTopics(analysis);
       showFlowScreen('topics');
     });
@@ -960,11 +2337,14 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
       if (!isEditing) editable[0].focus();
     }));
     checkinFlow.querySelectorAll('[data-severity]').forEach((button) => button.addEventListener('click', () => {
+      const targetSymptom = checkinState.symptoms.find((symptom) => !symptom.severity) || checkinState.symptoms[0];
+      if (targetSymptom) targetSymptom.severity = button.dataset.severity;
       showFlowScreen(button.dataset.severity === 'mild' ? 'additional' : 'pain-score');
     }));
     checkinFlow.querySelectorAll('.pain-score-button').forEach((button) => button.addEventListener('click', () => {
       checkinFlow.querySelectorAll('.pain-score-button').forEach((scoreButton) => scoreButton.classList.remove('selected'));
       button.classList.add('selected');
+      checkinState.painScore = Number(button.textContent);
     }));
     document.getElementById('painScoreContinue').addEventListener('click', () => showFlowScreen('additional'));
     document.getElementById('painScoreSkip').addEventListener('click', () => showFlowScreen('additional'));
@@ -1160,6 +2540,9 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
     });
     document.querySelector('[data-screen="additional"] [data-next]').addEventListener('click', () => {
       if (impactVoiceRecognizer) impactVoiceRecognizer.stop();
+      checkinState.functionalImpact = [...checkinFlow.querySelectorAll('input[name="impact"]:checked')]
+        .map((input) => input.value)
+        .filter((value) => value !== 'none');
     });
     const medVoice = document.getElementById('medVoice');
     const medVoiceStatus = document.getElementById('medVoiceStatus');
@@ -1208,6 +2591,24 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
       medList.hidden = false;
       medVoiceStatus.textContent = `You chose ${button.textContent}.`;
     }));
+    const KNOWN_MEDICATION_DETAILS = {
+      prednisone: { name: 'Prednisone', dose: '5 mg', time: 'morning' },
+      lisinopril: { name: 'Lisinopril', dose: '10 mg', time: 'morning' },
+    };
+    document.querySelector('[data-screen="medication"] [data-next]').addEventListener('click', () => {
+      const selected = checkinFlow.querySelector('input[name="missedMedication"]:checked');
+      const details = selected ? KNOWN_MEDICATION_DETAILS[selected.value] : null;
+      if (details) {
+        const targetMedication = checkinState.medications.find((medication) => medication.status === 'missed') || checkinState.medications[0];
+        if (targetMedication) {
+          targetMedication.name = details.name;
+          targetMedication.dose = details.dose;
+          targetMedication.time = targetMedication.time || details.time;
+        } else {
+          checkinState.medications.push({ name: details.name, dose: details.dose, status: 'missed', time: details.time });
+        }
+      }
+    });
     const connectedObjectiveData = { bloodPressure: false, bloodGlucose: false, heartRate: true, sleep: true, activity: true, weight: false };
     let vitalType = 'pressure';
     const pressureTab = document.getElementById('pressureTab');
@@ -1245,15 +2646,32 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
       document.getElementById('vitalEntry').classList.remove('open');
       document.getElementById('vitalConfirm').classList.add('open');
     });
-    document.getElementById('vitalCorrect').addEventListener('click', () => showFlowScreen('review'));
+    document.getElementById('vitalCorrect').addEventListener('click', () => {
+      const raw = vitalConfirmValue.textContent.trim();
+      if (vitalType === 'pressure') {
+        const match = raw.match(/(\d+)\s*\/\s*(\d+)/);
+        if (match) upsertVital({ type: 'blood pressure', value: `${match[1]}/${match[2]}`, unit: 'mmHg', source: 'manual' });
+      } else {
+        const match = raw.match(/(\d+)/);
+        if (match) upsertVital({ type: 'blood glucose', value: match[1], unit: 'mg/dL', source: 'manual' });
+      }
+      showFlowScreen('review');
+    });
     document.getElementById('vitalEdit').addEventListener('click', () => {
       document.getElementById('vitalConfirm').classList.remove('open');
       document.getElementById('vitalActions').style.display = 'grid';
     });
+    document.getElementById('reviewConfirmSave').addEventListener('click', () => {
+      checkinState.completed = true;
+      addMealsFromCheckin();
+      checkinHistory.push({ timestamp: new Date().toISOString(), ...structuredClone(checkinState) });
+      console.log('Check-in history:', checkinHistory);
+    });
     checkinFlow.addEventListener('click', (event) => { if (event.target === checkinFlow) closeCheckinFlow(); });
-    document.getElementById('trendsNav').addEventListener('click', () => document.getElementById('journal').scrollIntoView({ behavior: 'smooth', block: 'start' }));
-    document.getElementById('homeNav').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-    document.getElementById('moreNav').addEventListener('click', () => document.querySelector('.sidebar').scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    document.getElementById('trendsNav').addEventListener('click', () => showPatientView('trends'));
+    document.getElementById('homeNav').addEventListener('click', () => showPatientView('home'));
+    document.getElementById('moreNav').addEventListener('click', () => showPatientView('more'));
+    document.getElementById('mealsNav').addEventListener('click', () => showPatientView('meals'));
   </script>
 </body>
 </html>
