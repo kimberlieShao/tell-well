@@ -261,17 +261,17 @@ test('microphone startup and playback errors never proceed to an API request', a
   assert.equal(other.captures.length, 0);
 });
 
-test('repeated unresolved question and total turn limits end at review without fabricating answers', async () => {
+test('unresolved question skips only that field; total turn limit still ends at review', async () => {
   const q = question();
   const h = harness({ responses: [record(q), record(q, 2), record(q, 3), record(null, 4)] });
   await h.flow.start();
   await h.capture.say('My arm hurts.');
   await h.capture.say('I am unsure.');
   await h.capture.say('Still unsure.');
-  assert.deepEqual(h.calls.map(call => call.method), ['start', 'answer', 'answer', 'review']);
+  assert.deepEqual(h.calls.map(call => call.method), ['start', 'answer', 'answer', 'skip']);
   assert.equal(h.captures.length, 3);
   assert.equal(h.reviews.length, 1);
-  assert.match(h.flow.state.message, /missing details/);
+  assert.ok(h.log.some(entry=>entry.includes('leave it unconfirmed')));
   const limited = harness({ maxTurns: 1, responses: [record(q), record(null, 2)] });
   await limited.flow.start();
   await limited.capture.say('My arm hurts.');
@@ -333,4 +333,16 @@ test('destroy cancels devices and ignores late API or recorder callbacks', async
   assert.equal(h.calls.length, 1);
   assert.equal(h.captures.length, 1);
   assert.ok(h.log.includes('speaker:destroy'));
+});
+
+
+test('unknown medication does not block the remaining pain questions',async()=>{
+ const med={...question('med:name'),category:'medications',field:'name'};
+ const pain=question('arm:severity');
+ const h=harness({responses:[record(med),record(med,2),record(med,3),record(pain,4)]});
+ await h.flow.start();await h.capture.say('My arm hurts and I took medicine.');
+ await h.capture.say('An unknown medication');await h.capture.say('The same medication');
+ assert.deepEqual(h.calls.map(call=>call.method),['start','answer','answer','skip']);
+ assert.equal(h.reviews.length,0);assert.equal(h.questions.at(-1).id,'arm:severity');
+ assert.equal(h.flow.state.phase,'listening');
 });

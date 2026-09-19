@@ -1,7 +1,7 @@
 // Translate transport fields into Version B's existing view state. Never infer
 // clinical facts or identify a medication here; interpretation belongs to the API.
 const fields = {
-  symptoms: ['id', 'name', 'location', 'severity', 'severityScore', 'trend', 'functionalImpact', 'duration'],
+  symptoms: ['id', 'name', 'location', 'severity', 'severityScore', 'trend', 'functionalImpact', 'duration', 'firstOccurrence'],
   medications: ['id', 'name', 'description', 'dose', 'status', 'time'],
   diet: ['id', 'description', 'time'],
   vitals: ['id', 'name', 'value', 'unit', 'time'],
@@ -14,8 +14,10 @@ export function normalizeBackendResponse(response, { transcript = '', excludedId
     response[category].filter(item => !excludedIds.has(item.id)).map(item => pick(item, fields[category])),
   ]));
   record.wellness = clone(response.wellness ?? null);
+  record.reportedAnswers = clone(response.reportedAnswers ?? []).filter(answer=>!answer.entityId || !excludedIds.has(answer.entityId));
   return {
     transcript,
+    reportedAnswers: record.reportedAnswers,
     symptoms: record.symptoms.map(symptom => ({ ...symptom, painScore: symptom.severityScore })),
     medications: record.medications.map(medication => ({ ...medication })),
     diet: record.diet.map(entry => ({ ...entry, item: entry.description })),
@@ -36,6 +38,7 @@ export function normalizeBackendResponse(response, { transcript = '', excludedId
 
 export function toBackendRecord(state) {
   return {
+    reportedAnswers: clone(state.reportedAnswers ?? []),
     symptoms: state.symptoms.map(symptom => pick({ ...symptom,
       severityScore: Object.hasOwn(symptom, 'painScore') ? symptom.painScore : symptom.severityScore ?? null,
     }, fields.symptoms)),

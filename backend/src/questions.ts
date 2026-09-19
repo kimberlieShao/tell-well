@@ -1,3 +1,4 @@
+import { parsePainScore } from '../../frontend/pain-score.js';
 import type { Category, HealthRecord, Question } from './schema.js';
 
 export function questionsFor(record: HealthRecord, { numericPain = false }: { numericPain?: boolean } = {}): Question[] {
@@ -20,8 +21,12 @@ export function questionsFor(record: HealthRecord, { numericPain = false }: { nu
       add('symptoms', s.id, 'severity', `Would you describe your ${s.name} as mild, moderate, or severe?`, ['Mild', 'Moderate', 'Severe']);
     if (!s.functionalImpact)
       add('symptoms', s.id, 'functionalImpact', `How is your ${s.name} affecting your usual activities?`, ['Not affecting activities', 'Making activities harder', 'Unable to do usual activities']);
-    if (!s.trend)
+    if (numericPain && isPain && s.firstOccurrence == null)
+      add('symptoms', s.id, 'firstOccurrence', `Is this the first time you have had this ${s.name}?`, ['Yes, first time', 'No, I have had it before']);
+    if (!s.trend && (!(numericPain && isPain) || s.firstOccurrence === false))
       add('symptoms', s.id, 'trend', `Compared with before, is your ${s.name} better, about the same, or worse?`, ['Better', 'Same', 'Worse']);
+    if (numericPain && isPain && !s.duration)
+      add('symptoms', s.id, 'duration', `How long has this episode of ${s.name} lasted?`);
   }
   for (const med of record.medications) {
     if (med.status === null || med.status === 'mentioned')
@@ -52,12 +57,23 @@ export function applyAnswer(record: HealthRecord, q: Question, raw: string, from
   if (q.field === 'severity') {
     const severity = normalized.match(/^(?:(?:it(?:'s| is)|i(?:'d| would) say) )?(mild|moderate|severe)$/)?.[1];
     if (severity) { item.severity = severity; item.severityScore = null; return true; }
+    const spokenScore = parsePainScore(value);
+    if (spokenScore !== null) { item.severityScore = spokenScore; item.severity = null; return true; }
     const score = normalized.match(/^(\d+(?:\.\d+)?)(?:\s*(?:\/|out of)\s*10)?$/);
     if (score && Number(score[1]) <= 10) { item.severityScore = Number(score[1]); item.severity = null; return true; }
     return false;
   }
+  if (q.field === 'firstOccurrence') {
+    if (/^(?:yes(?:,? (?:this is |it is )?(?:the )?first time)?|(?:this is |it is )?(?:the |my )?first time)$/i.test(value)) { item.firstOccurrence = true; return true; }
+    if (/^(?:no(?:,? (?:i have|i've) had it before)?|(?:i have|i've) had (?:it|this) before|not (?:the |my )?first time)$/i.test(value)) { item.firstOccurrence = false; return true; }
+    return false;
+  }
+  if (q.field === 'duration') {
+    if (!fromVoice || /^(?:(?:it(?:'s| has) been|(?:i have|i've) had (?:it|this)(?: pain)?|for|since|about|around)\s+)*(?:(?:\d+|a|an|one|two|three|four|five|six|seven|eight|nine|ten|a few|several)\s+(?:seconds?|minutes?|hours?|days?|weeks?|months?|years?)|this morning|last night|yesterday|today)$/i.test(value)) { item.duration = value; return true; }
+    return false;
+  }
   if (q.field === 'trend') {
-    const trend = normalized.replace(/^(?:it(?:'s| is) |about the )/, '');
+    const trend = normalized.replace(/^(?:(?:it(?:'s| is)|i feel|it feels) )/, '').replace(/^(?:getting |a little |much |about the )/, '');
     if (['better', 'same', 'worse'].includes(trend)) { item.trend = trend; return true; }
     return false;
   }

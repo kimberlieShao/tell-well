@@ -1,3 +1,4 @@
+import { parsePainScore } from './pain-score.js';
 // The browser talks only to our health API. Provider credentials stay on the server.
 export class CheckinError extends Error {
   constructor(message, { code = 'CLIENT_ERROR', status = 0, details = [], uncertain = false } = {}) {
@@ -25,7 +26,7 @@ const looksLikeState = (value) => value && value.schemaVersion === '1.0'
   && (value.nextQuestion === null || (typeof value.nextQuestion?.id === 'string'
     && typeof value.nextQuestion?.text === 'string' && Array.isArray(value.nextQuestion?.options)));
 
-export function createCheckinClient({ baseUrl = '', fetchImpl = globalThis.fetch, timeoutMs = 30000, painScale } = {}) {
+export function createCheckinClient({ baseUrl = '', fetchImpl = globalThis.fetch, timeoutMs = 30000, painScale, getMedications = () => [] } = {}) {
   if (typeof fetchImpl !== 'function') throw new TypeError('A fetch implementation is required.');
   const base = baseUrl.replace(/\/$/, '');
   let state = null;
@@ -123,7 +124,21 @@ export function createCheckinClient({ baseUrl = '', fetchImpl = globalThis.fetch
     async answer(value, { spoken = false } = {}) {
       const body = sessionBody();
       const questionId = currentQuestion();
-      const answer = text(value);
+      let answer = text(value);
+      const question = state.nextQuestion;
+      if (state.extractionMode !== 'gemini' && spoken && question.category === 'medications' && question.field === 'name') {
+        const normalize = value => String(value ?? '').toLowerCase().trim().replace(/[.!]+$/, '').replace(/\s+/g, ' ');
+        const reported = normalize(answer).replace(/^(?:i took|i take|it is|it's|the medication is)\s+/, '');
+        const matches = getMedications().filter(med => med.name &&
+          [normalize(med.name), normalize(`${med.name} ${med.dose || ''}`)].includes(reported));
+        const names = [...new Set(matches.map(med => med.name))];
+        if (names.length === 1) { answer = names[0]; spoken = false; }
+      }
+      if (state.extractionMode !== 'gemini' && question.category === 'symptoms' && question.field === 'severity'
+          && question.options.includes('10')) {
+        const score = parsePainScore(answer);
+        if (score !== null) { answer = String(score); spoken = false; }
+      }
       return request('/api/analyze', spoken
         ? { ...body, questionId, transcript: answer }
         : { ...body, answer: { questionId, value: answer } });

@@ -31,7 +31,7 @@ function merge(record: HealthRecord, extraction: Extraction): HealthRecord {
       }
       if (target) {
         for (const [key, value] of Object.entries(patch)) if (key !== 'id' && value !== null) target[key] = value;
-        if ('severity' in patch && patch.severity !== null && patch.severityScore === null) target.severityScore = null;
+        // A later descriptive answer must not erase an already reported numeric score.
         if ('severityScore' in patch && patch.severityScore !== null && patch.severity === null) target.severity = null;
       } else items.push({ ...patch, id: randomUUID() });
     }
@@ -94,7 +94,7 @@ export class Checkins {
         session.status = 'collecting';
         const answer = input.answer?.value ?? (questionId ? input.transcript : undefined);
         if (answer && currentQuestion && isUnknown(answer)) session.skipped.push(currentQuestion.id);
-        else if (answer && currentQuestion && applyAnswer(session.record, currentQuestion, answer, !input.answer)) {
+        else if (answer && currentQuestion && !(this.extractor.mode === 'gemini' && !input.answer) && applyAnswer(session.record, currentQuestion, answer, !input.answer)) {
           // A direct answer updates only its targeted field.
         } else if (input.answer) {
           throw new ApiError(422, 'INVALID_ANSWER', 'Choose a listed option, enter a clear answer, or skip this question.');
@@ -103,7 +103,23 @@ export class Checkins {
           if (categories.every(category => extraction[category].length === 0) && extraction.wellness === null)
             session.notices.push('No new structured details were extracted. Rephrase or edit the record during final review.');
           session.record = merge(session.record, extraction);
+          // A natural-language answer is a valid report even without an enum match.
+          // Keep it for review and avoid repeatedly asking the same question.
+          if (answer && currentQuestion && this.extractor.mode === 'gemini'
+              && questionsFor(session.record, { numericPain: session.numericPain }).some(q => q.id === currentQuestion.id)) {
+            session.skipped.push(currentQuestion.id);
+            session.notices.push('Your answer was kept in your own words for review. The unconfirmed field is left blank.');
+          }
         }
+      }
+      if (input.transcript || input.answer) {
+        const raw = input.transcript ?? input.answer!.value;
+        const target = questionId ? currentQuestion : null;
+        const unresolved = target && questionsFor(session.record, { numericPain: session.numericPain }).some(q => q.id === target.id);
+        const reports = session.record.reportedAnswers ??= [];
+        if (reports.length >= 100) throw new ApiError(422, 'REPORT_LIMIT', 'Please review this check-in before adding more answers.');
+        reports.push({questionId:target?.id ?? null,entityId:target?.entityId ?? null,field:target?.field ?? null,
+          question:target?.text ?? null,transcript:raw,interpretation:unresolved?'unconfirmed':'recorded'});
       }
       const pending = questionsFor(session.record, { numericPain: session.numericPain }).filter(q => !session.skipped.includes(q.id));
       if (session.status !== 'review') session.status = pending.length ? 'collecting' : 'review';
@@ -130,6 +146,8 @@ export class Checkins {
       const ids = categories.flatMap(c => input.record![c].map(item => item.id));
       if (new Set(ids).size !== ids.length) throw new ApiError(422, 'DUPLICATE_IDS', 'Each record item needs a unique id.');
       session.record = structuredClone(input.record);
+      const keptIds = new Set(categories.flatMap(category=>session.record[category].map(item=>item.id)));
+      session.record.reportedAnswers = structuredClone(existing.record.reportedAnswers ?? []).filter(answer=>!answer.entityId || keptIds.has(answer.entityId));
     }
     if (categories.every(c => session.record[c].length === 0) && session.record.wellness === null)
       throw new ApiError(422, 'EMPTY_RECORD', 'There are no health details to save.');

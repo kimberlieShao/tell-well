@@ -1,10 +1,11 @@
+import { parsePainScore } from './pain-score.js';
 import { createCheckinClient } from './checkin-api.js';
 import { createElevenLabsSpeechInput, createVoiceSpeechFactory } from './elevenlabs-speech.js';
 import { normalizeBackendResponse, toBackendRecord } from './version-b-adapter.js';
 import { createElevenLabsSpeaker } from './elevenlabs-speaker.js';
 import { createVoiceConversation } from './voice-conversation.js';
 
-export function mountVersionB(document, {client = createCheckinClient({painScale:'1-10'}), mealClient = createCheckinClient(), speechFactory = createElevenLabsSpeechInput, speakerFactory = createElevenLabsSpeaker, conversationEnabled = true, initialProfile = null, profileStore = null} = {}) {
+export function mountVersionB(document, {client = null, mealClient = createCheckinClient(), speechFactory = createElevenLabsSpeechInput, speakerFactory = createElevenLabsSpeaker, conversationEnabled = true, initialProfile = null, profileStore = null} = {}) {
   const window = document.defaultView;
   let conversation = null;
 
@@ -191,6 +192,8 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
         medicationAdherence:'—', missedDoses:0, painSeries:[], painLabels:[],
       }])),
     };
+
+    client ??= createCheckinClient({painScale:'1-10',getMedications:()=>patientState.medications});
 
     function formatDateOfBirth(iso) {
       if(!iso)return 'Not provided';
@@ -827,7 +830,7 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
     });
     // The existing Version B state remains the source of truth for its screens.
     const flowTranscript = document.getElementById('flowTranscript');
-    const checkinState = {transcript:'',symptoms:[],medications:[],diet:[],vitals:[],functionalImpact:[],painScore:null,completed:false,generalStatus:null,noSymptoms:false,resolvedSymptoms:[],sessionId:null,version:null,nextQuestion:null,status:null,backendRecord:null};
+    const checkinState = {reportedAnswers:[],transcript:'',symptoms:[],medications:[],diet:[],vitals:[],functionalImpact:[],painScore:null,completed:false,generalStatus:null,noSymptoms:false,resolvedSymptoms:[],sessionId:null,version:null,nextQuestion:null,status:null,backendRecord:null};
     const excludedIds = new Set();
     let uiBusy = false;
     let selectedScore = null;
@@ -883,6 +886,7 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
         if(state.phase==='error')showError(new Error(state.message));
         if(!state.active && ['error','paused'].includes(state.phase))copyVoiceDraftToManual();
         voiceReply.value=flowTranscript.value;
+        if(currentFlowScreen==='pain-score' && flowTranscript.value.trim())selectPainScore(parsePainScore(flowTranscript.value));
         document.getElementById('voiceReplyLabel').hidden=currentFlowScreen==='listening'||!voiceReply.value;
         setListeningDisplay(state.phase==='listening',state.phase);
         document.getElementById('voicePause').hidden=!state.active;
@@ -906,10 +910,18 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
       conversation.pause();
       copyVoiceDraftToManual();
     }
+    function selectPainScore(score) {
+      selectedScore=score;
+      checkinFlow.querySelectorAll('.pain-score-button').forEach(button=>{
+        const selected=score!==null && Number(button.textContent)===score;
+        button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));
+      });
+    }
     function copyVoiceDraftToManual() {
       // Retain the last words in the existing manual answer field after pausing.
       const input=checkinFlow.querySelector('[data-screen]:not([hidden]) #followupAnswer, [data-screen]:not([hidden]) #impactTranscript');
       if(input)input.value=flowTranscript.value;
+      if(currentFlowScreen==='pain-score')selectPainScore(parsePainScore(flowTranscript.value));
     }
     document.getElementById('voiceResume').addEventListener('click',startVoiceConversation);
     document.getElementById('voicePause').addEventListener('click',pauseVoiceConversation);
@@ -946,7 +958,7 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
     }
     function resetCheckinState() {
       client.reset(); excludedIds.clear(); selectedScore=null;
-      Object.assign(checkinState,{transcript:'',symptoms:[],medications:[],diet:[],vitals:[],functionalImpact:[],painScore:null,completed:false,generalStatus:null,noSymptoms:false,resolvedSymptoms:[],sessionId:null,version:null,nextQuestion:null,status:null,backendRecord:null});
+      Object.assign(checkinState,{reportedAnswers:[],transcript:'',symptoms:[],medications:[],diet:[],vitals:[],functionalImpact:[],painScore:null,completed:false,generalStatus:null,noSymptoms:false,resolvedSymptoms:[],sessionId:null,version:null,nextQuestion:null,status:null,backendRecord:null});
       flowTranscript.value=''; integrationStatus.textContent=''; clearError();
       voiceControls.hidden=!conversationEnabled; voiceReply.value=''; document.getElementById('voiceReplyLabel').hidden=true;
       for(const id of ['voicePause','voiceManual','voiceReview'])document.getElementById(id).hidden=true;
@@ -994,11 +1006,11 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
       mergeAnalysisIntoState(await client.answer(String(value),{spoken}));
       await advanceQuestion();
     }
-    function attachQuestionSpeech(textarea,button,status) {
+    function attachQuestionSpeech(textarea,button,status,onAnswer) {
       followupRecognizer?.destroy();
       followupRecognizer=createSpeechRecognizer(textarea,{
         onStart:()=>{button.textContent='■ Stop speaking';if(status)status.textContent='Listening…';},
-        onEnd:()=>{button.textContent='🎤 Tell me';if(status)status.textContent='Review your answer, then continue.';},
+        onEnd:()=>{button.textContent='🎤 Tell me';if(status)status.textContent='Review your answer, then continue.';onAnswer?.();},
         onError:message=>showError(new Error(message)),
       });
       button.onclick=()=>run(async()=>{if(followupRecognizer.isActive()) await followupRecognizer.stop();else await followupRecognizer.start();});
@@ -1031,7 +1043,15 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
         const screen=checkinFlow.querySelector('[data-screen="pain-score"]');screen.querySelector('h2').textContent=`How severe is your ${name.toLowerCase()} right now?`;
         screen.querySelector('.guided-context').textContent=`About your ${name.toLowerCase()}`;
         screen.querySelector('.guided-count').textContent='1–10';
-        screen.querySelectorAll('.pain-score-button').forEach(button=>button.classList.remove('selected'));
+        selectPainScore(null);
+        const area=document.createElement('div');area.className='integration-question-controls';
+        const textarea=document.createElement('textarea');textarea.id='followupAnswer';textarea.className='transcript';textarea.setAttribute('aria-label','Your spoken pain score');textarea.placeholder='Say seven, seven out of ten, or type your score.';
+        const voice=document.createElement('button');voice.type='button';voice.className='severity-voice';voice.textContent='🎤 Tell me';
+        const status=document.createElement('p');status.setAttribute('aria-live','polite');
+        const update=()=>{const score=parsePainScore(textarea.value);selectPainScore(score);status.textContent=score===null?'Choose a number from 1 to 10, or edit your answer.':`Selected ${score} out of 10. You can change it before continuing.`;};
+        textarea.addEventListener('input',update);
+        area.append(textarea,voice,status);screen.insertBefore(area,screen.querySelector('.integration-question-actions'));
+        attachQuestionSpeech(textarea,voice,status,update);
       } else if(question.category==='symptoms' && question.field==='functionalImpact') {
         screenName='additional';const screen=checkinFlow.querySelector('[data-screen="additional"]');screen.querySelector('.guided-context').textContent=`About your ${name.toLowerCase()}`;screen.querySelector('h2').textContent=question.text;
         screen.querySelectorAll('input[name="impact"]').forEach(input=>input.checked=false);
@@ -1062,7 +1082,7 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
       showFlowScreen(screenName);
     }
     const reviewFields={
-      symptoms:[['name','Symptom'],['location','Location'],['severityScore','Pain score (1–10)'],['severity','Severity',['','mild','moderate','severe']],['functionalImpact','Effect on activities'],['trend','Trend',['','better','same','worse']],['duration','Duration']],
+      symptoms:[['name','Symptom'],['location','Location'],['severityScore','Pain score (1–10)'],['severity','Severity',['','mild','moderate','severe']],['functionalImpact','Effect on activities'],['trend','Trend',['','better','same','worse']],['duration','Duration'],['firstOccurrence','First time',['','yes','no']]],
       medications:[['name','Medication name'],['description','Description'],['dose','Dose'],['status','Status',['','taken','missed','stopped','mentioned']],['time','Time']],
       diet:[['description','Food or drink'],['time','Meal / time']],
       vitals:[['name','Measurement'],['value','Value'],['unit','Unit'],['time','Time']],
@@ -1073,18 +1093,22 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
       const title=document.createElement('strong');title.textContent=category==='symptoms'?symptomLabel(item):category==='diet'?(item.time||'Diet'):category==='vitals'?item.type:item.name||'Unidentified medication';
       const edit=document.createElement('button');edit.className='review-edit';edit.textContent='Edit';edit.dataset.editReview='';
       const summary=document.createElement('p');
-      const readable=category==='symptoms'?[item.painScore==null?'':`${item.painScore} / 10`,item.severity,item.location,item.functionalImpact,item.trend,item.duration]:category==='medications'?[item.dose,item.status?.replaceAll('_',' '),item.time,item.description]:category==='diet'?[item.item]:[item.value,item.unit,item.time];
+      const readable=category==='symptoms'?[item.painScore==null?'':`${item.painScore} / 10`,(/pain|ache|hurt/i.test(item.name||'')?'':item.severity),item.location,item.functionalImpact,item.firstOccurrence==null?'':item.firstOccurrence?'First occurrence':'Experienced before',item.trend,item.duration]:category==='medications'?[item.dose,item.status?.replaceAll('_',' '),item.time,item.description]:category==='diet'?[item.item]:[item.value,item.unit,item.time];
       summary.textContent=readable.filter(Boolean).join(' · ')||'Details not provided';
       const form=document.createElement('div');form.className='integration-fields';form.hidden=true;
       for(const [field,labelText,options] of reviewFields[category]) {
+        const isPain=category==='symptoms' && /pain|ache|hurt/i.test(item.name||'');
+        if(isPain && field==='severity')continue;
+        if(category==='symptoms' && !isPain && ['severityScore','firstOccurrence'].includes(field))continue;
         const label=document.createElement('label');label.textContent=labelText;
         const input=document.createElement(options?'select':'input');input.dataset.recordCategory=category;input.dataset.recordId=item.id;input.dataset.recordField=field;
         input.setAttribute('aria-label',`${labelText}: ${title.textContent}`);
         if(options)for(const value of options){const option=document.createElement('option');option.value=value;option.textContent=value?capitalizeFirst(value.replaceAll('_',' ')):'Not provided';input.append(option);}
         if(field==='severityScore'){input.type='number';input.min='1';input.max='10';input.step='1';}
-        input.value=item[field]??'';
+        input.value=field==='severityScore'?(item.painScore??item.severityScore??''):field==='firstOccurrence'?(item.firstOccurrence==null?'':item.firstOccurrence?'yes':'no'):item[field]??'';
         input.addEventListener('input',()=>{
           let value=input.value.trim();if(field==='severityScore'){value=value===''?null:Number(value);item.painScore=value;}
+          else if(field==='firstOccurrence')value=value===''?null:value==='yes';
           else value=value||null;
           item[field]=value;
           if(category==='diet'&&field==='description')item.item=value;
@@ -1097,6 +1121,20 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
       head.append(title,edit);card.append(head,summary,form);return card;
     }
     function renderReview() {
+      let reports=document.getElementById('reviewReportedAnswers');
+      if(!reports){reports=document.createElement('section');reports.id='reviewReportedAnswers';document.getElementById('reviewSymptomsSection').before(reports);}
+      reports.replaceChildren();reports.hidden=!checkinState.reportedAnswers?.length;
+      if(!reports.hidden){
+        const heading=document.createElement('h3');heading.textContent='In your own words';reports.append(heading);
+        for(const answer of checkinState.reportedAnswers){
+          const card=document.createElement('div');card.className='review-card';
+          const label=document.createElement('strong');label.textContent=answer.question||'Your initial check-in';
+          const words=document.createElement('p');words.textContent=answer.transcript;
+          card.append(label,words);
+          if(answer.interpretation==='unconfirmed'){const note=document.createElement('p');note.textContent='Recorded as reported. Structured details need your review.';card.append(note);}
+          reports.append(card);
+        }
+      }
       for(const [category,sectionId,targetId] of [['symptoms','reviewSymptomsSection','reviewSymptoms'],['medications','reviewMedicationsSection','reviewMedications'],['diet','reviewDietSection','reviewDiet'],['vitals','reviewVitalsSection','reviewVitals']]) {
         const entries=checkinState[category];document.getElementById(sectionId).hidden=!entries.length;document.getElementById(targetId).replaceChildren(...entries.map(item=>renderReviewCard(category,item)));
       }
@@ -1128,7 +1166,7 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
     checkinFlow.querySelector('[data-screen="topics"] [data-next]').addEventListener('click',()=>run(async()=>{applyTopicExclusions();await advanceQuestion();}));
     document.getElementById('editTopics').addEventListener('click',()=>{if(!uiBusy){flowTranscript.value=checkinState.transcript;showFlowScreen('listening');}});
     checkinFlow.querySelectorAll('.pain-score-button').forEach(button=>button.addEventListener('click',()=>{
-      if(uiBusy)return;selectedScore=Number(button.textContent);checkinFlow.querySelectorAll('.pain-score-button').forEach(other=>other.classList.toggle('selected',other===button));
+      if(uiBusy)return;selectPainScore(Number(button.textContent));
     }));
     document.getElementById('painScoreContinue').addEventListener('click',()=>run(async()=>{if(selectedScore===null)throw new Error('Choose a pain score from 1 to 10, or skip this question.');await submitAnswer(selectedScore);}));
     document.getElementById('painScoreSkip').addEventListener('click',()=>run(async()=>{mergeAnalysisIntoState(await client.skip());await advanceQuestion();}));

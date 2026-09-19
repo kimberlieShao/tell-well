@@ -1,10 +1,10 @@
-/* Frontend-only account screens. No auth SDK, network requests, storage or login simulation. */
+/* Frontend-only account screens. Demo sign-in only: no credential verification, credential storage or account API. */
 (() => {
   const screen = document.getElementById('screen');
   const status = document.getElementById('status');
   let mode = 'signin';
   const copy = {
-    signin: { title: 'Welcome back', subtitle: 'Sign in to continue your health journal.', action: 'Sign in' },
+    signin: { title: 'Welcome back', subtitle: 'Demo: enter any username and password to explore.', action: 'Sign in' },
     signup: { title: 'Make space for your health', subtitle: 'Create your account to get started.', action: 'Create account' },
     reset: { title: 'Forgot your password?', subtitle: 'Enter the email address you use for Pulsewise.', action: 'Send reset link' }
   };
@@ -15,7 +15,7 @@
     const c = copy[mode];
     document.title = `${mode==='signin'?'Sign in':mode==='signup'?'Sign up':'Reset password'} · Pulsewise`;
     status.textContent = '';
-    screen.innerHTML = `<h2 tabindex="-1">${c.title}</h2><p class="subtitle">${c.subtitle}</p>${mode!=='reset'?'<button type="button" class="google" id="google"><span aria-hidden="true">G</span>Continue with Google</button><div class="divider">or use your email</div>':''}<form id="authForm" novalidate><label for="email">Email address</label><input id="email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="you@example.com" required aria-describedby="email-error"><p class="field-error" id="email-error"></p>${mode!=='reset'?passwordField('password','Password',mode==='signup'?'new-password':'current-password'):''}${mode==='signup'?'<p id="password-help" class="help">Use at least 8 characters. Final account requirements will be confirmed when sign-up is connected.</p>'+passwordField('confirmPassword','Confirm password','new-password'):''}${mode==='signin'?'<div class="row"><button class="link-button" type="button" data-mode="reset">Forgot password?</button></div>':''}<button class="primary" type="submit">${c.action}</button></form><p class="switch-copy">${mode==='signin'?'New to Pulsewise? <button type="button" class="link-button" data-mode="signup">Create an account</button>':'<button type="button" class="link-button" data-mode="signin">← Back to sign in</button>'}</p>`;
+    screen.innerHTML = `<h2 tabindex="-1">${c.title}</h2><p class="subtitle">${c.subtitle}</p>${mode!=='reset'?'<button type="button" class="google" id="google"><span aria-hidden="true">G</span>Continue with Google</button><div class="divider">or use your email</div>':''}<form id="authForm" novalidate><label for="email">${mode==='signin'?'Username or email':'Email address'}</label><input id="email" name="email" type="${mode==='signin'?'text':'email'}" autocomplete="${mode==='signin'?'off':'email'}" inputmode="${mode==='signin'?'text':'email'}" autocapitalize="none" spellcheck="false" placeholder="you@example.com" required aria-describedby="email-error"><p class="field-error" id="email-error"></p>${mode!=='reset'?passwordField('password','Password',mode==='signup'?'new-password':'off'):''}${mode==='signup'?'<p id="password-help" class="help">Use at least 8 characters. Final account requirements will be confirmed when sign-up is connected.</p>'+passwordField('confirmPassword','Confirm password','new-password'):''}${mode==='signin'?'<div class="row"><button class="link-button" type="button" data-mode="reset">Forgot password?</button></div>':''}<button class="primary" type="submit">${c.action}</button></form><p class="switch-copy">${mode==='signin'?'New to Pulsewise? <button type="button" class="link-button" data-mode="signup">Create an account</button>':'<button type="button" class="link-button" data-mode="signin">← Back to sign in</button>'}</p>`;
     if(focus) screen.querySelector('h2').focus();
   }
   screen.addEventListener('click', event => {
@@ -42,20 +42,22 @@
     const password=document.getElementById('password'),confirm=document.getElementById('confirmPassword');
     let firstInvalid=null;
     function error(input,message){document.getElementById(`${input.id}-error`).textContent=message;if(message){input.setAttribute('aria-invalid','true');firstInvalid??=input;}else input.removeAttribute('aria-invalid');}
-    error(email,!email.value?'Enter your email address.':email.validity.typeMismatch?'Enter a valid email address.':'');
+    error(email,!email.value?(mode==='signin'?'Enter any demo username or email.':'Enter your email address.'):mode!=='signin'&&email.validity.typeMismatch?'Enter a valid email address.':'');
     if(password)error(password,!password.value?'Enter your password.':mode==='signup'&&password.value.length<8?'Use at least 8 characters.':'');
     if(confirm)error(confirm,!confirm.value?'Confirm your password.':confirm.value!==password.value?'Passwords do not match.':'');
     if(firstInvalid){firstInvalid.focus();return;}
+    if(mode==='signin'){password.value='';email.value='';enterDemo();return;}
     status.textContent=mode==='signin'?'Your form is ready, but sign-in is not connected yet. You have not been signed in.':mode==='signup'?'Your form is ready, but registration is not connected yet. No account has been created.':'Password reset is not connected yet. No email has been sent.';
     // Do not retain password values once this preview submission is complete.
     if(password)password.value='';if(confirm)confirm.value='';
   });
   window.addEventListener('pagehide',()=>{screen.querySelectorAll('input').forEach(input=>{input.value='';});});
-  document.getElementById('tryDemo').addEventListener('click',()=>{
+  function enterDemo(){
     try {
       const profile=window.PulsewiseProfile.read();
       window.location.assign(profile?.onboardingCompleted ? '/app' : '../onboarding/');
     } catch { status.textContent='Demo storage is unavailable or could not be read. Enable session storage or use a new browser tab; existing data was not replaced.'; }
-  });
+  }
+  document.getElementById('tryDemo').addEventListener('click',enterDemo);
   render(false);
 })();

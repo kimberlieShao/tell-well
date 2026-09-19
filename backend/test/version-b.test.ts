@@ -273,7 +273,10 @@ test('choosing a follow-up option stops speech before the request, including a f
     click(page, '#painScoreSkip');
     await until(() => ready(page) && screen(page) === 'additional', 'impact question');
     click(page, '[data-screen="additional"] [data-integration-skip]');
-    await until(() => ready(page) && screen(page) === 'guided', 'trend question');
+    await until(() => ready(page) && screen(page) === 'guided', 'first occurrence question');
+    const repeat=[...page.document.querySelectorAll<HTMLButtonElement>('.integration-question-controls .severity-card')].find(button=>button.textContent==='No, I have had it before')!;
+    repeat.click();
+    await until(()=>ready(page)&&page.client.state.nextQuestion.field==='trend','trend question');
     click(page, '#followupVoice');
     await until(() => ready(page), 'speech started');
     const speech = page.speech.at(-1);
@@ -401,7 +404,7 @@ test('one click starts a spoken conversation that reaches the existing review wi
     assert.equal(page.client.state.symptoms.length, 2);
     assert.match(page.spokenQuestions.at(-1)!, /arm/);
     assert.equal((page.document.getElementById('voiceReview') as HTMLButtonElement).disabled, false);
-    for (const answer of ['7', 'Not affecting activities', 'same', '3', 'Walking is harder', 'worse']) {
+    for (const answer of ['seven out of ten', 'Not affecting activities', 'No, I have had it before', 'same', 'For three days', 'three', 'Walking is harder', 'No, I have had it before', 'worse', 'Since yesterday']) {
       await until(() => page.app.conversation.state.phase === 'listening', `ready for ${answer}`);
       await page.speech.at(-1).turn(answer);
     }
@@ -410,6 +413,11 @@ test('one click starts a spoken conversation that reaches the existing review wi
     assert.equal(page.client.state.status, 'review');
     assert.equal(page.app.state.transcript, 'My arm and leg hurt.');
     assert.deepEqual(page.app.state.symptoms.map((item: any) => item.painScore), [7,3]);
+    assert.deepEqual([...page.document.querySelectorAll<HTMLInputElement>('[data-record-field="severityScore"]')].map(input=>input.value), ['7','3']);
+    assert.equal(page.document.querySelector('[data-record-field="severity"]'),null);
+    assert.match(page.document.getElementById('reviewReportedAnswers')!.textContent!, /seven out of ten|7/);
+    assert.match(page.document.getElementById('reviewReportedAnswers')!.textContent!, /Since yesterday/);
+    assert.equal(page.spokenQuestions.filter((text:string)=>/scale of 1 to 10/.test(text)).length,2);
     assert.equal(page.requests.filter(request => request.path.endsWith('/save')).length, 0);
     assert.ok(page.speech.every(input => !input.isActive));
     click(page, '#reviewConfirmSave');

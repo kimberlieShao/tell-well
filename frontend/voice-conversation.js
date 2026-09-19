@@ -109,7 +109,18 @@ export function createVoiceConversation({
       return;
     }
     repeatedAnswers = answeredQuestionId && question.id === answeredQuestionId ? repeatedAnswers + 1 : 0;
-    if (turns >= maxTurns || repeatedAnswers >= maxRepeats) {
+    if (repeatedAnswers >= maxRepeats && turns < maxTurns) {
+      // Leave only the unresolved field blank; do not discard the remaining questions.
+      const notice = 'I could not confirm that answer. I will leave it unconfirmed for you to edit in Review and continue with the other questions.';
+      report('speaking', notice);
+      await speaker.speak(notice);
+      if (!current(id)) return;
+      const next = await request(() => client.skip(), id);
+      repeatedAnswers = 0;
+      if (current(id)) await advance(next, id);
+      return;
+    }
+    if (turns >= maxTurns) {
       await requestReview(id, 'Let’s review what you have shared. You can edit or complete any missing details on screen.');
       return;
     }

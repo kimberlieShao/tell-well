@@ -10,6 +10,7 @@ export const symptomSchema = z.strictObject({
   severityScore: z.number().min(0).max(10).nullable(),
   trend: z.enum(['better', 'same', 'worse']).nullable(),
   functionalImpact: nullableText, duration: nullableText,
+  firstOccurrence: z.boolean().nullable().optional(),
 });
 export const medicationSchema = z.strictObject({
   id, name: nullableText, description: nullableText, dose: nullableText,
@@ -25,12 +26,18 @@ export const vitalSchema = z.strictObject({
 export const wellnessSchema = z.strictObject({
   status: z.enum(['well', 'normal']), statement: text,
 }).nullable();
+// Written by the server from actual input, never supplied by the extraction model.
+export const reportedAnswerSchema = z.strictObject({
+  questionId: text.nullable(), entityId: id.nullable(), field: text.nullable(), question: nullableText,
+  transcript: z.string().min(1).max(8000), interpretation: z.enum(['recorded', 'unconfirmed']),
+});
 export const recordSchema = z.strictObject({
   symptoms: z.array(symptomSchema).max(20),
   medications: z.array(medicationSchema).max(20),
   diet: z.array(dietSchema).max(20),
   vitals: z.array(vitalSchema).max(20),
   wellness: wellnessSchema.default(null),
+  reportedAnswers: z.array(reportedAnswerSchema).max(100).optional(),
 });
 export type HealthRecord = z.infer<typeof recordSchema>;
 export type Category = typeof categories[number];

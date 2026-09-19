@@ -23,3 +23,7 @@ JSDOM checks cover invalid/valid forms, confirmation mismatch, visibility toggle
 ## Connected demo update
 
 Use the backend URL /auth/ rather than opening this file directly. Try demo uses frontend/profile-store.js to route to /onboarding/ or /app. Login form submission still never logs in; Google and reset remain unavailable. Only the demo profile is saved in sessionStorage, never login credentials. The Node backend now serves an explicit allowlist of auth page assets, excluding test/docs files.
+
+## Demo sign-in
+
+Sign in now accepts any nonempty username/email and password, clears both fields, then uses the same routing as Try demo. Incomplete setup goes to /onboarding/; completed setup goes to /app. Credentials are never verified or stored, and changing the entered name does not create/switch accounts: this tab still has one shared demo profile. Google, registration and email reset remain unconnected. No backend database was added.
