@@ -21,11 +21,6 @@
     }
 
     * { box-sizing: border-box; }
-      transcript.value = exampleTranscript;
-      voiceStatus.innerHTML = 'Review your check-in<small>Edit the preview or speak again when microphone access is available.</small>';
-      if (recognition) {
-        try { recognition.start(); } catch (error) { }
-      }
     .app-shell { min-height: 100vh; display: grid; grid-template-columns: 244px minmax(0, 1fr); }
     .sidebar { background: var(--forest); color: #edf6ef; padding: 28px 18px 20px; display: flex; flex-direction: column; }
     .brand { display: flex; align-items: center; gap: 10px; margin: 0 10px 46px; font: 700 21px/1.1 Georgia, serif; letter-spacing: -.5px; }
@@ -408,12 +403,12 @@
         <div class="flow-panel">
           <div class="flow-top"><button class="flow-back" id="flowBack" aria-label="Go back">←</button><span class="flow-title">Daily Check-in</span><span class="flow-step" id="flowStep">Step 2 of 10</span><button class="flow-close" id="flowClose" aria-label="Close check-in">×</button></div>
           <div class="flow-progress"><span id="flowProgress"></span></div>
-          <section class="flow-screen flow-intro" data-screen="intro"><h2>How are you feeling today?</h2><p>You can tell me about:</p><div class="flow-intro-list"><div class="flow-intro-item"><span>🤕</span>Pain or discomfort</div><div class="flow-intro-item"><span>😴</span>Fatigue or sleep</div><div class="flow-intro-item"><span>💊</span>Medication</div><div class="flow-intro-item"><span>🍽</span>Food or appetite</div><div class="flow-intro-item"><span>🙂</span>Anything different today</div></div><button class="flow-intro-mic" id="flowIntroMic" aria-label="Tap to start speaking" data-next="listening">●</button><div class="flow-mic-label">Tap to start speaking</div><button class="flow-type" id="flowType" data-next="listening">Or type instead</button></section>
-          <section class="flow-screen flow-listening" data-screen="listening" hidden><div><h2>I'm listening</h2><div class="voice-wave" aria-label="Voice recording active"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><textarea class="transcript flow-transcript" id="flowTranscript" aria-label="Live transcript" placeholder="Your words will appear here..."></textarea><button class="flow-primary flow-done" data-next="topics">■ Done</button><button class="flow-cancel" data-close>Cancel recording</button></div></section>
-          <section class="flow-screen" data-screen="topics" hidden><h2>I heard you mention:</h2><p>Here is what I understood from what you said.</p><div class="flow-detected-list"><label class="flow-topic-card"><span>🤕</span>Knee pain<input type="checkbox" name="topic" value="symptom" checked></label><label class="flow-topic-card"><span>😴</span>Fatigue<input type="checkbox" name="topic" value="symptom-detail" checked></label><label class="flow-topic-card"><span>💊</span>Missed medication<input type="checkbox" name="topic" value="medication" checked></label><label class="flow-topic-card"><span>♥</span>Blood pressure<input type="checkbox" name="topic" value="vital" checked></label></div><p class="flow-topic-note">Let’s go through these together.</p><button class="flow-primary" data-next="guided">Continue</button><button class="flow-edit" id="editTopics">Something isn’t right? Edit</button></section>
+          <section class="flow-screen flow-intro" data-screen="intro"><h2>How are you feeling today?</h2><p>You can tell me about:</p><div class="flow-intro-list"><div class="flow-intro-item"><span>🤕</span>Pain or discomfort</div><div class="flow-intro-item"><span>😴</span>Fatigue or sleep</div><div class="flow-intro-item"><span>💊</span>Medication</div><div class="flow-intro-item"><span>🍽</span>Food or appetite</div><div class="flow-intro-item"><span>🙂</span>Anything different today</div></div><button class="flow-intro-mic" id="flowIntroMic" aria-label="Tap to start speaking">●</button><div class="flow-mic-label">Tap to start speaking</div><button class="flow-type" id="flowType" data-next="listening">Or type instead</button></section>
+          <section class="flow-screen flow-listening" data-screen="listening" hidden><div><h2>I'm listening</h2><div class="voice-wave" aria-label="Voice recording active"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><textarea class="transcript flow-transcript" id="flowTranscript" aria-label="Live transcript" placeholder="Your words will appear here..."></textarea><button class="flow-primary flow-done">■ Done</button><button class="flow-cancel" data-close>Cancel recording</button></div></section>
+          <section class="flow-screen" data-screen="topics" hidden><h2>I heard you mention:</h2><p>Here is what I understood from what you said.</p><div class="flow-detected-list"></div><p class="flow-topic-note">Let’s go through these together.</p><button class="flow-primary" data-next="guided">Continue</button><button class="flow-edit" id="editTopics">Something isn’t right? Edit</button></section>
           <section class="flow-screen" data-screen="guided" hidden><div class="guided-header"><div><div class="guided-context">About your knee pain</div></div><span class="guided-count">1 of 3</span></div><h2>How severe is your pain right now?</h2><div class="severity-list"><button class="severity-card" data-severity="mild"><strong>Mild</strong><span>Noticeable, but manageable</span></button><button class="severity-card" data-severity="moderate"><strong>Moderate</strong><span>Interferes with some activities</span></button><button class="severity-card" data-severity="severe"><strong>Severe</strong><span>Difficult to do normal activities</span></button></div><button class="severity-voice" id="severityVoice"><span class="severity-voice-icon">●</span>Or tell me in your own words</button><div class="severity-voice-status" id="severityVoiceStatus"></div></section>
           <section class="flow-screen" data-screen="pain-score" hidden><div class="guided-header"><div><div class="guided-context">Optional detail · About your knee pain</div></div><span class="guided-count">Optional</span></div><h2>How does the pain feel on a scale?</h2><p class="pain-score-prompt">If 0 means no pain and 10 means the worst pain you can imagine, what number feels closest?</p><div class="pain-score-grid"><button class="pain-score-button">0</button><button class="pain-score-button">1</button><button class="pain-score-button">2</button><button class="pain-score-button">3</button><button class="pain-score-button">4</button></div><div class="pain-score-grid"><button class="pain-score-button">5</button><button class="pain-score-button">6</button><button class="pain-score-button">7</button><button class="pain-score-button">8</button><button class="pain-score-button">9</button><button class="pain-score-button">10</button></div><div class="pain-score-scale"><span>No pain</span><span>Worst pain</span></div><button class="flow-primary" id="painScoreContinue">Continue</button><button class="pain-score-skip" id="painScoreSkip">Skip this optional question</button></section>
-          <section class="flow-screen" data-screen="additional" hidden><div class="guided-context">About your knee pain</div><h2>Is the pain making anything harder today?</h2><p>Select all that apply.</p><div class="impact-list"><label class="impact-choice"><input type="checkbox" name="impact" value="walking">Walking</label><label class="impact-choice"><input type="checkbox" name="impact" value="sleeping">Sleeping</label><label class="impact-choice"><input type="checkbox" name="impact" value="eating">Eating</label><label class="impact-choice"><input type="checkbox" name="impact" value="dressing">Getting dressed</label><label class="impact-choice"><input type="checkbox" name="impact" value="other">Other</label><label class="impact-choice"><input type="checkbox" name="impact" value="none">No major impact</label></div><button class="flow-primary" data-next="medication">Continue</button><button class="impact-voice" id="impactVoice"><span class="impact-voice-icon">🎤</span>Tell me in your own words</button><div class="impact-voice-status" id="impactVoiceStatus"></div></section>
+          <section class="flow-screen" data-screen="additional" hidden><div class="guided-context">About your knee pain</div><h2>Is the pain making anything harder today?</h2><p>Select all that apply.</p><div class="impact-list"><label class="impact-choice"><input type="checkbox" name="impact" value="walking">Walking</label><label class="impact-choice"><input type="checkbox" name="impact" value="sleeping">Sleeping</label><label class="impact-choice"><input type="checkbox" name="impact" value="eating">Eating</label><label class="impact-choice"><input type="checkbox" name="impact" value="dressing">Getting dressed</label><label class="impact-choice"><input type="checkbox" name="impact" value="other">Other</label><label class="impact-choice"><input type="checkbox" name="impact" value="none">No major impact</label></div><button class="flow-primary" data-next="medication">Continue</button><button class="impact-voice" id="impactVoice"><span class="impact-voice-icon" id="impactVoiceIcon">🎤</span><span id="impactVoiceLabel">Start speaking</span></button><textarea class="transcript" id="impactTranscript" aria-label="Describe how pain is affecting you" placeholder="For example: It hurts when I walk upstairs."></textarea><div class="impact-voice-status" id="impactVoiceStatus"></div></section>
           <section class="flow-screen" data-screen="medication" hidden><div class="guided-context">Medication list</div><h2>Which medication did you miss?</h2><p>Choose from your saved medications, or tell me if you are not sure.</p><div class="med-list" id="medList"><label class="med-card"><input type="radio" name="missedMedication" value="prednisone"><span class="med-card-copy"><strong>Prednisone</strong><span>5 mg · Morning</span></span></label><label class="med-card"><input type="radio" name="missedMedication" value="lisinopril"><span class="med-card-copy"><strong>Lisinopril</strong><span>10 mg · Morning</span></span></label><label class="med-card"><input type="radio" name="missedMedication" value="unknown"><span class="med-card-copy"><strong>I don’t know</strong><span>We can add more detail later</span></span></label></div><button class="med-voice" id="medVoice"><span class="med-voice-icon">🎤</span>Tell me</button><div class="med-voice-status" id="medVoiceStatus"></div><div class="med-ambiguity" id="medAmbiguity" hidden><p>I’m not sure which medication you mean.</p><p>Was it:</p><div class="med-ambiguity-list"><button class="med-ambiguity-choice" data-med-choice="prednisone">Prednisone 5 mg</button><button class="med-ambiguity-choice" data-med-choice="lisinopril">Lisinopril 10 mg</button><button class="med-ambiguity-choice" data-med-choice="unknown">I’m not sure</button></div></div><button class="flow-primary" data-next="vital">Continue</button></section>
           <section class="flow-screen" data-screen="vital" hidden><div class="guided-context">Connected health data</div><div class="measurement-switch"><button id="pressureTab" class="active">Blood pressure</button><button id="glucoseTab">Blood glucose</button></div><h2 id="vitalMissingTitle">I don’t have a blood pressure reading from today.</h2><p id="vitalQuestion">Did you measure it?</p><div class="vital-source-note">I checked Apple Health and your other connected sources first.</div><div class="vital-actions" id="vitalActions"><button class="vital-action" id="enterVital"><span class="vital-action-icon">＋</span>Enter reading</button><button class="vital-action" id="sayVital"><span class="vital-action-icon">🎤</span>Say my reading</button><button class="vital-action" id="notTodayVital"><span class="vital-action-icon">—</span>Not today</button></div><div class="vital-entry" id="vitalEntry"><div class="field-grid"><div class="flow-field"><label for="flowSystolic" id="firstVitalLabel">Top number</label><input id="flowSystolic" placeholder="138" inputmode="numeric" /></div><div class="flow-field"><label for="flowDiastolic" id="secondVitalLabel">Bottom number</label><input id="flowDiastolic" placeholder="85" inputmode="numeric" /></div></div><button class="flow-primary" id="saveVital">Save reading</button></div><div class="vital-confirm" id="vitalConfirm"><div class="vital-confirm-label">I heard:</div><div class="vital-confirm-value" id="vitalConfirmValue">138 / 85 mmHg</div><div class="vital-confirm-actions"><button class="vital-correct" id="vitalCorrect">Correct</button><button class="vital-edit" id="vitalEdit">Edit</button></div></div></section>
           <section class="flow-screen" data-screen="review" hidden><h2>Today’s Check-in</h2><div class="review-date">Friday, September 18</div><div class="review-section"><div class="review-section-title">Symptoms</div><div class="review-card"><div class="review-card-head"><strong class="review-editable">Knee Pain</strong><button class="review-edit" data-edit-review>Edit</button></div><p class="review-editable">Moderate
@@ -524,7 +519,6 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
     const micButton = document.getElementById('micButton');
     const voiceStatus = document.getElementById('voiceStatus');
     const transcript = document.getElementById('transcript');
-    const exampleTranscript = 'My blood pressure this morning was 135 over 82. I took my medication after breakfast, but I have been feeling more tired than usual today.';
     const speakPrompt = document.getElementById('speakPrompt');
     speakPrompt.addEventListener('click', () => {
       if (!('speechSynthesis' in window)) return;
@@ -536,22 +530,145 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
       window.speechSynthesis.speak(utterance);
     });
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let recognition;
-    if (SpeechRecognition) {
-      recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.onstart = () => { micButton.classList.add('recording'); micButton.textContent = '■'; voiceStatus.innerHTML = 'Listening...<small>Take your time. I will organize the details after you finish.</small>'; };
-      recognition.onresult = (event) => { transcript.value = event.results[0][0].transcript; voiceStatus.innerHTML = 'Review your check-in<small>Edit the words or details before saving.</small>'; };
-      recognition.onend = () => { micButton.classList.remove('recording'); micButton.textContent = '●'; };
-      recognition.onerror = () => { voiceStatus.innerHTML = 'I could not hear that<small>Try again, or type your check-in below.</small>'; micButton.classList.remove('recording'); micButton.textContent = '●'; };
+    // CJK Unified Ideographs (+ Extension A). This app is English-only, so if this
+    // ever shows up in a transcript despite lang being forced to en-US, treat the
+    // whole segment as a recognition failure rather than use or display it.
+    const CJK_PATTERN = /[㐀-鿿]/;
+
+    // Single source of truth for every SpeechRecognition instance in this app.
+    // Always explicitly forces English — never relies on browser/OS locale
+    // defaults, which is what let recognition silently fall back to a non-English
+    // language on screens that constructed their own recognizer.
+    function createEnglishRecognition() {
+      if (!SpeechRecognition) return null;
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.interimResults = true;
+      return recognition;
     }
+
+    // Re-forces lang immediately before every start() (so no prior screen/session
+    // could have left it in a different state) and logs it for verification.
+    function startEnglishRecognition(recognition) {
+      recognition.lang = 'en-US';
+      console.log('Recognition language:', recognition.lang);
+      recognition.start();
+    }
+
+    // Shared helper: wraps a SpeechRecognition session for a given textarea with
+    // live interim + final transcription, a start/stop duplicate-session guard,
+    // and pluggable lifecycle callbacks for UI-specific status updates.
+    // `continuous: true` keeps a session alive across natural pauses (the caller
+    // is responsible for calling stop() when the user is actually done — e.g. a
+    // Done button). Chrome can still end a "continuous" session on its own after
+    // a longer silence, so this transparently restarts it as long as the caller's
+    // intent (shouldKeepListening) is still true, and only resets the accumulated
+    // transcript on a genuine caller-initiated start(), never on that internal
+    // restart, so text from before the gap isn't lost.
+    function createSpeechRecognizer(textarea, { onStart, onEnd, onError, continuous = false } = {}) {
+      const instance = createEnglishRecognition();
+      if (!instance) return null;
+      instance.continuous = continuous;
+      let recognitionActive = false;
+      let shouldKeepListening = false;
+      let isFreshSession = true;
+      let finalText = '';
+      instance.onstart = () => {
+        recognitionActive = true;
+        if (isFreshSession) {
+          finalText = '';
+          textarea.value = '';
+        }
+        isFreshSession = false;
+        if (onStart) onStart();
+      };
+      instance.onresult = (event) => {
+        let interimText = '';
+        let cjkDetected = false;
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const text = event.results[i][0].transcript;
+          if (CJK_PATTERN.test(text)) {
+            cjkDetected = true;
+            continue; // never use or display a non-English segment
+          }
+          if (event.results[i].isFinal) finalText += text + ' ';
+          else interimText += text;
+        }
+        textarea.value = (finalText + interimText).trim();
+        if (cjkDetected && onError) onError('unexpected-language');
+      };
+      instance.onerror = (event) => {
+        recognitionActive = false;
+        console.error('Speech recognition error:', event.error);
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+          shouldKeepListening = false;
+        }
+        if (onError) onError(event.error);
+      };
+      instance.onend = () => {
+        recognitionActive = false;
+        if (continuous && shouldKeepListening) {
+          try {
+            startEnglishRecognition(instance);
+          } catch (error) {
+            console.log('Recognition restart skipped:', error);
+          }
+          return;
+        }
+        shouldKeepListening = false;
+        if (onEnd) onEnd();
+      };
+      return {
+        start() {
+          if (recognitionActive) return;
+          isFreshSession = true;
+          shouldKeepListening = true;
+          try { startEnglishRecognition(instance); } catch (error) { console.error(error); }
+        },
+        stop() {
+          shouldKeepListening = false;
+          try { instance.stop(); } catch (error) { console.error(error); }
+        },
+        isActive: () => recognitionActive,
+      };
+    }
+
+    let micHadError = false;
+    const micRecognizer = createSpeechRecognizer(transcript, {
+      onStart: () => {
+        micHadError = false;
+        micButton.classList.add('recording');
+        micButton.textContent = '■';
+        voiceStatus.innerHTML = 'Listening...<small>Take your time. I will organize the details after you finish.</small>';
+      },
+      onEnd: () => {
+        micButton.classList.remove('recording');
+        micButton.textContent = '●';
+        if (!micHadError) {
+          voiceStatus.innerHTML = 'Review your check-in<small>Edit the words or details before saving.</small>';
+        }
+      },
+      onError: (error) => {
+        micHadError = true;
+        micButton.classList.remove('recording');
+        micButton.textContent = '●';
+        let message = 'I could not hear that<small>Try again, or type your check-in below.</small>';
+        if (error === 'not-allowed' || error === 'service-not-allowed') {
+          message = 'Microphone access was denied<small>Please allow microphone access and try again.</small>';
+        } else if (error === 'no-speech') {
+          message = "I didn't hear anything<small>Please try again.</small>";
+        } else if (error === 'unexpected-language') {
+          message = 'I may not have heard that correctly. Please try again.<small>This app only supports English.</small>';
+        }
+        voiceStatus.innerHTML = message;
+      },
+    });
     micButton.addEventListener('click', () => {
-      transcript.value = exampleTranscript;
-      voiceStatus.innerHTML = 'Review your check-in<small>Edit the preview or speak again when microphone access is available.</small>';
-      if (recognition) {
-        try { recognition.start(); } catch (error) { }
+      if (!micRecognizer) {
+        voiceStatus.innerHTML = 'Speech recognition is not supported in this browser<small>Please use Chrome or type your response instead.</small>';
+        return;
       }
+      micRecognizer.start();
     });
     document.getElementById('confirmCheckin').addEventListener('click', () => {
       const savedEvent = document.createElement('div');
@@ -581,13 +698,20 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
         flowProgress.style.width = `${(screenNumber / 10) * 100}%`;
       }
       if (screenName === 'listening') {
-        const flowTranscript = document.getElementById('flowTranscript');
-        flowTranscript.value = exampleTranscript;
-        flowTranscript.focus();
+        document.getElementById('flowTranscript').focus();
       }
     };
-    const openCheckinFlow = () => { checkinFlow.classList.add('open'); showFlowScreen('intro'); };
-    const closeCheckinFlow = () => checkinFlow.classList.remove('open');
+    const openCheckinFlow = () => {
+      checkinFlow.classList.add('open');
+      document.querySelector('.flow-mic-label').textContent = 'Tap to start speaking';
+      document.getElementById('flowTranscript').placeholder = 'Your words will appear here...';
+      showFlowScreen('intro');
+    };
+    const closeCheckinFlow = () => {
+      checkinFlow.classList.remove('open');
+      if (flowVoiceRecognizer) flowVoiceRecognizer.stop();
+      if (impactVoiceRecognizer) impactVoiceRecognizer.stop();
+    };
     const nextFlowScreen = () => {
       if (currentFlowScreen === 'topics') {
         showFlowScreen(hasTopic('symptom') ? 'guided' : hasTopic('medication') ? 'medication' : hasTopic('vital') ? 'vital' : 'review');
@@ -608,6 +732,225 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
     document.getElementById('dailyCheckinButton').addEventListener('click', openCheckinFlow);
     document.getElementById('checkinNav').addEventListener('click', openCheckinFlow);
     checkinFlow.querySelectorAll('[data-next]').forEach((button) => button.addEventListener('click', nextFlowScreen));
+    const flowTranscript = document.getElementById('flowTranscript');
+    const flowVoiceRecognizer = createSpeechRecognizer(flowTranscript, {
+      continuous: true,
+      onError: (error) => {
+        if (error === 'not-allowed' || error === 'service-not-allowed') {
+          flowTranscript.placeholder = 'Microphone access was denied. Please allow microphone access and try again.';
+          return;
+        }
+        if (error === 'no-speech') return; // a natural pause — the session restarts automatically, nothing to show the user
+        if (error === 'unexpected-language') {
+          flowTranscript.placeholder = 'I may not have heard that correctly. Please try again.';
+          return;
+        }
+        flowTranscript.placeholder = 'Something went wrong with voice input. Please try again or type your response.';
+      },
+    });
+    document.getElementById('flowIntroMic').addEventListener('click', () => {
+      if (!flowVoiceRecognizer) {
+        document.querySelector('.flow-mic-label').textContent = 'Speech recognition is not supported in this browser. Please use Chrome or type your response instead.';
+        return;
+      }
+      showFlowScreen('listening');
+      flowVoiceRecognizer.start();
+    });
+    // Local placeholder for the future backend call. Swap this out for:
+    //   const analysis = await analyzeTranscript(transcript);
+    // once the real /api endpoint exists — the shape below is meant to match
+    // what that endpoint is expected to return, so the swap is a one-line change.
+    function mockAnalyzeTranscript(transcript) {
+      console.log('Transcript being analyzed:', transcript);
+      const text = transcript.toLowerCase();
+      const contextAround = (keyword, radius = 40) => {
+        const index = text.indexOf(keyword);
+        if (index === -1) return '';
+        return text.slice(Math.max(0, index - radius), Math.min(text.length, index + keyword.length + radius));
+      };
+
+      const symptomKeywords = [
+        { keywords: ['knee'], name: 'knee pain' },
+        { keywords: ['back pain', 'my back'], name: 'back pain' },
+        { keywords: ['headache', 'head hurts'], name: 'headache' },
+        { keywords: ['tired', 'fatigue', 'fatigued', 'exhausted', 'low energy', 'no energy'], name: 'fatigue' },
+        { keywords: ['nausea', 'nauseous'], name: 'nausea' },
+        { keywords: ['dizzy', 'dizziness'], name: 'dizziness' },
+        { keywords: ['cough'], name: 'cough' },
+        { keywords: ['fever'], name: 'fever' },
+        { keywords: ['shortness of breath', 'out of breath'], name: 'shortness of breath' },
+      ];
+      const symptoms = [];
+      symptomKeywords.forEach(({ keywords, name }) => {
+        const hit = keywords.find((keyword) => text.includes(keyword));
+        if (!hit) return;
+        const context = contextAround(hit);
+        let trend = null;
+        const worseWord = /worse|worsen|increas/.test(context) || (/\bmore\b/.test(context) && !/no more|any more/.test(context));
+        const betterWord = /better|improv|decreas/.test(context) || (/\bless\b/.test(context) && !/no less/.test(context));
+        if (worseWord) trend = 'worse';
+        else if (betterWord) trend = 'better';
+        else if (/same as|about the same/.test(context)) trend = 'same';
+        let severity = null;
+        if (/severe/.test(context)) severity = 'severe';
+        else if (/moderate/.test(context)) severity = 'moderate';
+        else if (/mild/.test(context)) severity = 'mild';
+        let functionalImpact = null;
+        const impactMatch = context.match(/(walk\w*|stairs?|stand\w*|sleep\w*|dress\w*|eat\w*)/);
+        if (impactMatch) functionalImpact = impactMatch[0];
+        symptoms.push({ name, trend, severity, functionalImpact });
+      });
+
+      const knownMedications = ['prednisone', 'lisinopril', 'metformin', 'ibuprofen', 'aspirin', 'insulin'];
+      const medications = [];
+      knownMedications.forEach((medName) => {
+        if (!text.includes(medName)) return;
+        const context = contextAround(medName);
+        let status = null;
+        if (/forgot|missed|didn't take|did not take|skip/.test(context)) status = 'missed';
+        else if (/took|take|taken/.test(context)) status = 'taken';
+        let time = null;
+        if (/morning/.test(context)) time = 'morning';
+        else if (/afternoon/.test(context)) time = 'afternoon';
+        else if (/evening/.test(context)) time = 'evening';
+        else if (/night/.test(context)) time = 'night';
+        const doseMatch = context.match(/(\d+(?:\.\d+)?)\s?(?:mg|milligrams?)/);
+        const dose = doseMatch ? `${doseMatch[1]} mg` : null;
+        medications.push({ name: medName.charAt(0).toUpperCase() + medName.slice(1), status, time, dose });
+      });
+      if (medications.length === 0) {
+        const genericMedicationWords = ['medication', 'medicine', 'meds', 'pill', 'prescription'];
+        const genericHit = genericMedicationWords.find((word) => text.includes(word));
+        if (genericHit) {
+          const context = contextAround(genericHit);
+          let status = null;
+          if (/forgot|missed|didn't take|did not take|skip/.test(context)) status = 'missed';
+          else if (/took|take|taken/.test(context)) status = 'taken';
+          if (status) {
+            let time = null;
+            if (/morning/.test(context)) time = 'morning';
+            else if (/afternoon/.test(context)) time = 'afternoon';
+            else if (/evening/.test(context)) time = 'evening';
+            else if (/night/.test(context)) time = 'night';
+            medications.push({ name: null, status, time, dose: null });
+          }
+        }
+      }
+
+      const vitals = [];
+      if (text.includes('blood pressure') || /\bbp\b/.test(text)) {
+        const bpMatch = text.match(/(\d{2,3})\s*(?:over|\/)\s*(\d{2,3})/);
+        vitals.push({ type: 'blood pressure', value: bpMatch ? `${bpMatch[1]}/${bpMatch[2]}` : null, unit: bpMatch ? 'mmHg' : null });
+      }
+      if (text.includes('blood sugar') || text.includes('blood glucose') || text.includes('glucose')) {
+        const glucoseMatch = contextAround('glucos').match(/(\d{2,3})/) || contextAround('sugar').match(/(\d{2,3})/);
+        vitals.push({ type: 'blood glucose', value: glucoseMatch ? glucoseMatch[1] : null, unit: glucoseMatch ? 'mg/dL' : null });
+      }
+      if (text.includes('heart rate') || text.includes('pulse')) {
+        const hrMatch = contextAround(text.includes('heart rate') ? 'heart rate' : 'pulse').match(/(\d{2,3})/);
+        vitals.push({ type: 'heart rate', value: hrMatch ? hrMatch[1] : null, unit: hrMatch ? 'bpm' : null });
+      }
+      if (text.includes('temperature') || text.includes('fever')) {
+        const tempMatch = contextAround(text.includes('temperature') ? 'temperature' : 'fever').match(/(\d{2,3}(?:\.\d+)?)/);
+        vitals.push({ type: 'temperature', value: tempMatch ? tempMatch[1] : null, unit: tempMatch ? 'degrees' : null });
+      }
+
+      const diet = [];
+      const dietMatch = text.match(/\b(?:ate|had|drank)\s+([a-z0-9 ,'-]{3,40})/);
+      if (dietMatch) {
+        let time = null;
+        if (text.includes('breakfast')) time = 'breakfast';
+        else if (text.includes('lunch')) time = 'lunch';
+        else if (text.includes('dinner')) time = 'dinner';
+        diet.push({ item: dietMatch[1].trim(), time });
+      }
+
+      let nextQuestion = null;
+      const symptomNeedingSeverity = symptoms.find((symptom) => !symptom.severity);
+      const medicationNeedingTime = medications.find((medication) => medication.status === 'missed' && !medication.time);
+      if (symptomNeedingSeverity) {
+        nextQuestion = {
+          field: 'severity',
+          text: `Would you describe your ${symptomNeedingSeverity.name} as mild, moderate, or severe?`,
+          options: ['Mild', 'Moderate', 'Severe'],
+        };
+      } else if (medicationNeedingTime) {
+        nextQuestion = {
+          field: 'time',
+          text: `When do you usually take your ${medicationNeedingTime.name || 'medication'}?`,
+          options: ['Morning', 'Afternoon', 'Evening', 'Night'],
+        };
+      }
+
+      const result = {
+        updatedData: { symptoms, medications, vitals, diet },
+        nextQuestion,
+        complete: !nextQuestion,
+      };
+      console.log('Mock analysis result:', result);
+      return result;
+    }
+
+    function renderDetectedTopics(analysis) {
+      const flowDetectedList = document.querySelector('.flow-detected-list');
+      const flowTopicNote = document.querySelector('.flow-topic-note');
+      const cards = [];
+      const seenCards = new Set();
+      const addCard = (icon, label, value) => {
+        const key = `${value}:${label.toLowerCase()}`;
+        if (seenCards.has(key)) return;
+        seenCards.add(key);
+        cards.push({ icon, label, value });
+      };
+      analysis.updatedData.symptoms.forEach((symptom) => {
+        const icon = /fatigue|tired/.test(symptom.name) ? '😴' : '🤕';
+        addCard(icon, symptom.name.replace(/\b\w/g, (letter) => letter.toUpperCase()), 'symptom');
+      });
+      analysis.updatedData.medications.forEach((medication) => {
+        const medName = medication.name || 'medication';
+        const label = medication.status === 'missed' ? `Missed ${medName}`
+          : medication.status === 'taken' ? `${medName} taken`
+          : medName;
+        addCard('💊', label, 'medication');
+      });
+      analysis.updatedData.vitals.forEach((vital) => {
+        addCard('♥', vital.type.replace(/\b\w/g, (letter) => letter.toUpperCase()), 'vital');
+      });
+      analysis.updatedData.diet.forEach((entry) => {
+        addCard('🍽', entry.item.replace(/\b\w/g, (letter) => letter.toUpperCase()), 'diet');
+      });
+
+      flowDetectedList.innerHTML = '';
+      cards.forEach((card) => {
+        const label = document.createElement('label');
+        label.className = 'flow-topic-card';
+        const iconSpan = document.createElement('span');
+        iconSpan.textContent = card.icon;
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.name = 'topic';
+        input.value = card.value;
+        input.checked = true;
+        label.append(iconSpan, document.createTextNode(card.label), input);
+        flowDetectedList.appendChild(label);
+      });
+
+      flowTopicNote.textContent = cards.length
+        ? 'Let’s go through these together.'
+        : 'I didn’t catch anything specific — you can continue or go back and try again.';
+    }
+
+    document.querySelector('.flow-done').addEventListener('click', () => {
+      if (flowVoiceRecognizer) flowVoiceRecognizer.stop();
+      const transcriptText = flowTranscript.value.trim();
+      if (!transcriptText) {
+        flowTranscript.placeholder = 'Please say something or type your response before continuing.';
+        return;
+      }
+      const analysis = mockAnalyzeTranscript(transcriptText);
+      renderDetectedTopics(analysis);
+      showFlowScreen('topics');
+    });
     checkinFlow.querySelectorAll('[data-edit-review]').forEach((button) => button.addEventListener('click', () => {
       const card = button.closest('.review-card');
       const editable = card.querySelectorAll('.review-editable');
@@ -629,63 +972,200 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
     checkinFlow.querySelectorAll('[data-back]').forEach((button) => button.addEventListener('click', () => showFlowScreen(button.dataset.back)));
     document.getElementById('editTopics').addEventListener('click', () => {
       document.querySelector('.flow-topic-note').textContent = 'Choose which topics you want to discuss before continuing.';
-      document.querySelector('.flow-topic-card input').focus();
+      document.querySelector('.flow-topic-card input')?.focus();
     });
     document.getElementById('flowClose').addEventListener('click', closeCheckinFlow);
     document.getElementById('flowBack').addEventListener('click', () => {
+      if (flowVoiceRecognizer) flowVoiceRecognizer.stop();
+      if (impactVoiceRecognizer) impactVoiceRecognizer.stop();
       if (currentFlowScreen === 'intro') closeCheckinFlow();
       else showFlowScreen('intro');
     });
     const severityVoice = document.getElementById('severityVoice');
     const severityVoiceStatus = document.getElementById('severityVoiceStatus');
-    const severityRecognition = SpeechRecognition ? new SpeechRecognition() : null;
+    const severityRecognition = createEnglishRecognition();
     if (severityRecognition) {
       severityRecognition.continuous = false;
-      severityRecognition.interimResults = false;
       severityRecognition.onstart = () => { severityVoiceStatus.textContent = 'Listening...'; };
-      severityRecognition.onresult = (event) => { severityVoiceStatus.textContent = `“${event.results[0][0].transcript}”`; };
+      severityRecognition.onresult = (event) => {
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (!event.results[i].isFinal) continue;
+          const transcriptText = event.results[i][0].transcript;
+          if (CJK_PATTERN.test(transcriptText)) {
+            severityVoiceStatus.textContent = 'I may not have heard that correctly. Please try again.';
+            return;
+          }
+          severityVoiceStatus.textContent = `“${transcriptText}”`;
+        }
+      };
       severityRecognition.onerror = () => { severityVoiceStatus.textContent = 'I could not hear that. Please try again.'; };
     }
     severityVoice.addEventListener('click', () => {
       if (severityRecognition) {
-        try { severityRecognition.start(); } catch (error) { severityVoiceStatus.textContent = 'Listening...'; }
+        try { startEnglishRecognition(severityRecognition); } catch (error) { severityVoiceStatus.textContent = 'Listening...'; }
       } else {
         severityVoiceStatus.textContent = 'Voice is unavailable here. You can choose an answer above.';
       }
     });
     const impactVoice = document.getElementById('impactVoice');
+    const impactVoiceIcon = document.getElementById('impactVoiceIcon');
+    const impactVoiceLabel = document.getElementById('impactVoiceLabel');
     const impactVoiceStatus = document.getElementById('impactVoiceStatus');
-    const impactRecognition = SpeechRecognition ? new SpeechRecognition() : null;
-    const markWalkingImpact = () => {
-      const walking = checkinFlow.querySelector('input[name="impact"][value="walking"]');
-      walking.checked = true;
-      impactVoiceStatus.textContent = '“It mostly hurts when I walk upstairs.”  →  Walking';
+    const impactTranscript = document.getElementById('impactTranscript');
+
+    // Independent (non-exclusive) keyword sets — a single transcript can match
+    // several of these at once, which is why each is checked with its own `if`
+    // rather than an if/else-if chain.
+    const IMPACT_KEYWORD_GROUPS = {
+      walking: ['walk', 'walking', 'stairs', 'upstairs', 'downstairs', 'stand', 'standing', 'move', 'moving', 'mobility'],
+      sleeping: ['sleep', 'sleeping', 'asleep', 'bed', 'awake', 'woke', 'night'],
+      eating: ['eat', 'eating', 'food', 'meal', 'chew', 'swallow', 'appetite'],
+      dressing: ['dress', 'dressing', 'dressed', 'clothes', 'clothing', 'shirt', 'pants', 'shoes', 'socks'],
     };
-    if (impactRecognition) {
-      impactRecognition.continuous = false;
-      impactRecognition.interimResults = false;
-      impactRecognition.onresult = (event) => {
-        const transcriptText = event.results[0][0].transcript;
-        if (/walk|stair/i.test(transcriptText)) {
-          const walking = checkinFlow.querySelector('input[name="impact"][value="walking"]');
-          walking.checked = true;
-          impactVoiceStatus.textContent = `“${transcriptText}”  →  Walking`;
-        } else {
-          impactVoiceStatus.textContent = `“${transcriptText}”  →  Other`;
-        }
-      };
-    }
-    impactVoice.addEventListener('click', () => {
-      markWalkingImpact();
-      if (impactRecognition) {
-        try { impactRecognition.start(); } catch (error) { }
+    // Patterns rather than exact phrases, so a natural paraphrase like
+    // "it doesn't really affect anything" still matches "doesn't ... affect".
+    const NO_IMPACT_PATTERNS = [
+      /no impact/i,
+      /doesn'?t\s+(\w+\s+)?affect/i,
+      /does\s+not\s+(\w+\s+)?affect/i,
+      /not really/i,
+      /\bnothing\b/i,
+      /no problem/i,
+      /i'?m fine/i,
+      /can do everything normally/i,
+    ];
+    const IMPACT_LABELS = { walking: 'Walking', sleeping: 'Sleeping', eating: 'Eating', dressing: 'Getting dressed', other: 'Other', none: 'No major impact' };
+
+    function detectFunctionalImpacts(text) {
+      const trimmed = text.trim();
+      if (!trimmed) return { matched: [], none: false, other: false };
+      const lower = trimmed.toLowerCase();
+      // Bare numbers ("10", "two") are pain-score-style noise on this screen, not an impact — never select anything for them.
+      const isJustNumber = /^(\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten)$/i.test(trimmed);
+      const none = NO_IMPACT_PATTERNS.some((pattern) => pattern.test(lower));
+
+      const matched = [];
+      if (!none) {
+        Object.entries(IMPACT_KEYWORD_GROUPS).forEach(([key, keywords]) => {
+          if (keywords.some((keyword) => new RegExp(`\\b${keyword}\\b`, 'i').test(lower))) matched.push(key);
+        });
       }
+
+      const wordCount = trimmed.split(/\s+/).length;
+      // Only fall back to "Other" for a real (multi-word, non-numeric) description that didn't match a known category.
+      const other = !none && matched.length === 0 && !isJustNumber && wordCount >= 2;
+      return { matched, none, other };
+    }
+
+    function renderImpactDetectionSummary(detection, text) {
+      if (!text.trim()) {
+        impactVoiceStatus.textContent = '';
+        return;
+      }
+      const detectedKeys = detection.none ? ['none'] : [...detection.matched, ...(detection.other ? ['other'] : [])];
+      impactVoiceStatus.innerHTML = '';
+      if (detectedKeys.length === 0) {
+        impactVoiceStatus.textContent = "I couldn't match this to one of the options. You can select an option above or edit your response.";
+        return;
+      }
+      const heading = document.createElement('div');
+      heading.textContent = 'Detected from your answer:';
+      impactVoiceStatus.appendChild(heading);
+      detectedKeys.forEach((key) => {
+        const line = document.createElement('div');
+        line.textContent = `✓ ${IMPACT_LABELS[key]}`;
+        impactVoiceStatus.appendChild(line);
+      });
+    }
+
+    function applyFunctionalImpactDetection(text) {
+      const detection = detectFunctionalImpacts(text);
+      const impactInputs = {
+        walking: checkinFlow.querySelector('input[name="impact"][value="walking"]'),
+        sleeping: checkinFlow.querySelector('input[name="impact"][value="sleeping"]'),
+        eating: checkinFlow.querySelector('input[name="impact"][value="eating"]'),
+        dressing: checkinFlow.querySelector('input[name="impact"][value="dressing"]'),
+        other: checkinFlow.querySelector('input[name="impact"][value="other"]'),
+        none: checkinFlow.querySelector('input[name="impact"][value="none"]'),
+      };
+      if (detection.none) {
+        impactInputs.walking.checked = false;
+        impactInputs.sleeping.checked = false;
+        impactInputs.eating.checked = false;
+        impactInputs.dressing.checked = false;
+        impactInputs.other.checked = false;
+        impactInputs.none.checked = true;
+      } else if (detection.matched.length > 0 || detection.other) {
+        impactInputs.none.checked = false;
+        detection.matched.forEach((key) => { impactInputs[key].checked = true; });
+        if (detection.other) impactInputs.other.checked = true;
+      }
+      renderImpactDetectionSummary(detection, text);
+    }
+
+    // "No major impact" is mutually exclusive with every other option, including
+    // ones the user checks by hand — not just ones voice/text detection sets.
+    checkinFlow.querySelectorAll('input[name="impact"]').forEach((input) => {
+      input.addEventListener('change', () => {
+        if (!input.checked) return;
+        const noneInput = checkinFlow.querySelector('input[name="impact"][value="none"]');
+        if (input === noneInput) {
+          checkinFlow.querySelectorAll('input[name="impact"]').forEach((other) => { if (other !== noneInput) other.checked = false; });
+        } else {
+          noneInput.checked = false;
+        }
+      });
+    });
+
+    let impactDetectionTimer = null;
+    impactTranscript.addEventListener('input', () => {
+      clearTimeout(impactDetectionTimer);
+      impactDetectionTimer = setTimeout(() => applyFunctionalImpactDetection(impactTranscript.value), 400);
+    });
+
+    const impactVoiceRecognizer = createSpeechRecognizer(impactTranscript, {
+      continuous: true,
+      onStart: () => {
+        impactVoiceIcon.textContent = '🎙';
+        impactVoiceLabel.textContent = 'Listening...';
+      },
+      onEnd: () => {
+        impactVoiceIcon.textContent = '🎤';
+        impactVoiceLabel.textContent = 'Speak again';
+        applyFunctionalImpactDetection(impactTranscript.value);
+      },
+      onError: (error) => {
+        if (error === 'not-allowed' || error === 'service-not-allowed') {
+          impactVoiceStatus.textContent = 'Microphone access was denied. Please allow microphone access and try again.';
+          return;
+        }
+        if (error === 'no-speech') return; // a natural pause — the session restarts automatically
+        if (error === 'unexpected-language') {
+          impactVoiceStatus.textContent = 'I may not have heard that correctly. Please try again.';
+          return;
+        }
+        impactVoiceStatus.textContent = 'Something went wrong with voice input. Please try again or type your response.';
+      },
+    });
+    impactVoice.addEventListener('click', () => {
+      if (!impactVoiceRecognizer) {
+        impactVoiceStatus.textContent = 'Speech recognition is not supported in this browser. Please type your response instead.';
+        return;
+      }
+      if (impactVoiceRecognizer.isActive()) {
+        impactVoiceRecognizer.stop();
+      } else {
+        impactVoiceRecognizer.start();
+      }
+    });
+    document.querySelector('[data-screen="additional"] [data-next]').addEventListener('click', () => {
+      if (impactVoiceRecognizer) impactVoiceRecognizer.stop();
     });
     const medVoice = document.getElementById('medVoice');
     const medVoiceStatus = document.getElementById('medVoiceStatus');
     const medList = document.getElementById('medList');
     const medAmbiguity = document.getElementById('medAmbiguity');
-    const medRecognition = SpeechRecognition ? new SpeechRecognition() : null;
+    const medRecognition = createEnglishRecognition();
     const showMedicationAmbiguity = (spokenText = 'I forgot the white pill.') => {
       checkinFlow.querySelectorAll('input[name="missedMedication"]').forEach((input) => { input.checked = false; });
       medList.hidden = true;
@@ -694,23 +1174,31 @@ Half an apple</p></div></div><button class="flow-primary review-confirm" data-ne
     };
     if (medRecognition) {
       medRecognition.continuous = false;
-      medRecognition.interimResults = false;
       medRecognition.onresult = (event) => {
-        const transcriptText = event.results[0][0].transcript;
-        if (/prednisone/i.test(transcriptText)) {
-          checkinFlow.querySelector('input[name="missedMedication"][value="prednisone"]').checked = true;
-          medList.hidden = false;
-          medAmbiguity.hidden = true;
-          medVoiceStatus.textContent = `“${transcriptText}”  →  Prednisone`;
-        } else {
-          showMedicationAmbiguity(transcriptText);
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (!event.results[i].isFinal) continue;
+          const transcriptText = event.results[i][0].transcript;
+          if (CJK_PATTERN.test(transcriptText)) {
+            medList.hidden = false;
+            medAmbiguity.hidden = true;
+            medVoiceStatus.textContent = 'I may not have heard that correctly. Please try again.';
+            return;
+          }
+          if (/prednisone/i.test(transcriptText)) {
+            checkinFlow.querySelector('input[name="missedMedication"][value="prednisone"]').checked = true;
+            medList.hidden = false;
+            medAmbiguity.hidden = true;
+            medVoiceStatus.textContent = `“${transcriptText}”  →  Prednisone`;
+          } else {
+            showMedicationAmbiguity(transcriptText);
+          }
         }
       };
     }
     medVoice.addEventListener('click', () => {
       showMedicationAmbiguity();
       if (medRecognition) {
-        try { medRecognition.start(); } catch (error) { }
+        try { startEnglishRecognition(medRecognition); } catch (error) { }
       }
     });
     medAmbiguity.querySelectorAll('[data-med-choice]').forEach((button) => button.addEventListener('click', () => {
