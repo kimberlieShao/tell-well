@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Pulsewise · Check-in lab</title>
+    <link rel="stylesheet" href="/test/styles.css">
+    <script type="module" src="/test/app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#workspace">Skip to check-in</a>
+    <header class="site-header">
+      <a class="brand" href="/test/" aria-label="Pulsewise check-in lab home"><span class="brand-mark" aria-hidden="true">P</span><span>Pulsewise<span class="brand-subtitle">Check-in lab</span></span></a>
+      <span class="environment-label"><span aria-hidden="true"></span>Local development</span>
+    </header>
+
+    <main id="workspace">
+      <section class="intro" aria-labelledby="page-title">
+        <div><p class="eyebrow">TRANSCRIPT → STRUCTURED RECORD</p><h1 id="page-title">Try a check-in.</h1><p class="intro-copy">Your teammate’s voice code will send this transcript. Use this text-only tester to inspect extraction, follow-up questions, and saving.</p></div>
+        <button id="new-button" class="button secondary" type="button">New check-in</button>
+      </section>
+
+      <div class="session-bar" aria-label="Current session">
+        <div class="status-badges"><span id="stage-badge" class="badge">Ready</span><span id="mode-badge" class="badge neutral">Mode: waiting for backend</span></div>
+        <p id="session-meta">Fictional data only · saved records live in server memory</p>
+      </div>
+      <p id="request-status" class="request-status" role="status" aria-live="polite" aria-atomic="true">Ready for a fictional transcript.</p>
+      <div id="error-box" class="error-box" role="alert" aria-atomic="true" hidden></div>
+
+      <div class="workspace-grid">
+        <section class="panel workflow-panel" aria-labelledby="workflow-title">
+          <div class="panel-heading"><div><p class="eyebrow">01 / CONVERSATION</p><h2 id="workflow-title">Transcript & follow-up</h2></div><span class="small-tag">Text input</span></div>
+
+          <form id="transcript-form">
+            <label for="transcript">Starting transcript</label>
+            <p id="transcript-help" class="help-text">A fictional example is ready to try. Edit it to test another check-in.</p>
+            <textarea id="transcript" name="transcript" rows="8" maxlength="8000" required aria-describedby="transcript-help">My knees hurt more today and I forgot my prednisone this morning. I ate oatmeal for breakfast. My blood pressure was 120/80 mmHg.</textarea>
+            <button id="analyze-button" class="button primary full-width" type="submit">Analyze transcript <span aria-hidden="true">→</span></button>
+          </form>
+
+          <section id="submitted-section" class="submitted-section" aria-labelledby="submitted-title" hidden>
+            <h3 id="submitted-title">Submitted transcript</h3>
+            <blockquote id="submitted-transcript"></blockquote>
+          </section>
+
+          <section id="question-section" class="step-section" aria-labelledby="question-title" hidden>
+            <div class="section-kicker"><span class="step-dot" aria-hidden="true"></span><span>Rule-based follow-up</span></div>
+            <h3 id="question-title" tabindex="-1"></h3>
+            <p id="question-meta" class="help-text"></p>
+            <div id="choices" class="choices" aria-label="Answer choices"></div>
+            <form id="answer-form">
+              <label id="answer-label" for="answer">Or type your answer</label>
+              <div class="answer-row"><input id="answer" name="answer" type="text" maxlength="500" required autocomplete="off"><button id="answer-button" class="button primary" type="submit">Send</button></div>
+            </form>
+            <div class="step-actions"><button id="skip-button" class="button secondary" type="button">Skip question</button><button id="review-button" class="button text-button" type="button">Finish & review <span aria-hidden="true">→</span></button></div>
+          </section>
+
+          <section id="review-section" class="step-section" aria-labelledby="review-title" hidden>
+            <div class="section-kicker"><span class="step-dot" aria-hidden="true"></span><span>Ready for your review</span></div>
+            <h3 id="review-title" tabindex="-1">Does this record look right?</h3>
+            <p class="body-copy">Review all four categories. Unknown values remain unknown, including skipped answers. You can correct the complete record below before confirming.</p>
+            <details id="editor-details" class="editor-details">
+              <summary>Edit full record JSON <span class="optional-label">Optional</span></summary>
+              <p id="json-help" class="help-text">Include all four arrays and every field on each item. Keep existing IDs; use a new UUID for an added item. Use <code>null</code> for unknown values. The backend validates all edits.</p>
+              <label class="checkbox-label" for="use-edits"><input id="use-edits" type="checkbox">Use this edited JSON when saving</label>
+              <label class="sr-only" for="record-json">Full record JSON</label>
+              <textarea id="record-json" class="code-input" rows="16" spellcheck="false" aria-describedby="json-help"></textarea>
+              <p id="draft-hint" class="help-text">The formatted record shows the latest backend response. Edits take effect only after saving.</p>
+            </details>
+            <button id="save-button" class="button primary full-width" type="button">Confirm and save</button>
+            <button id="resume-button" class="button text-button full-width" type="button">Back to questions</button>
+          </section>
+
+          <section id="saved-section" class="step-section saved-section" aria-labelledby="saved-title" hidden>
+            <span class="saved-icon" aria-hidden="true">✓</span>
+            <h3 id="saved-title" tabindex="-1">Check-in saved.</h3>
+            <p id="saved-description" class="body-copy"></p>
+            <p class="help-text">This session is now read-only. Start a new check-in to try another transcript.</p>
+          </section>
+
+          <div class="workflow-footer"><span aria-hidden="true">↳</span><p>New check-in resets this page only. It does not delete a server session.</p></div>
+        </section>
+
+        <section class="panel record-panel" aria-labelledby="record-title">
+          <div class="panel-heading"><div><p class="eyebrow">02 / BACKEND RECORD</p><h2 id="record-title">What was captured</h2></div><span id="item-count" class="small-tag">0 items</span></div>
+          <p id="record-intro" class="help-text record-intro">The four categories will appear here after analysis. Missing details are shown as Unknown.</p>
+          <div id="record-categories" class="record-categories"></div>
+          <div id="record-flags" class="record-flags" hidden></div>
+          <section id="notices-section" class="notices" aria-labelledby="notices-title" hidden><h3 id="notices-title">Backend notices</h3><ul id="notices"></ul></section>
+        </section>
+      </div>
+
+      <details id="inspector" class="panel inspector">
+        <summary><span>Request inspector</span><span class="inspector-summary">Last request & response</span></summary>
+        <p class="help-text">Payloads from this page only. Expand to inspect IDs, versions, and validation errors.</p>
+        <div class="inspector-grid"><section><h3>Request</h3><pre id="request-json">No request yet.</pre></section><section><h3>Response</h3><pre id="response-json">No response yet.</pre></section></div>
+      </details>
+      <footer class="page-footer">Development tester · No browser persistence · Same-origin backend API</footer>
+    </main>
+    <noscript><p class="error-box">JavaScript is required to use the check-in tester.</p></noscript>
+  </body>
+</html>
