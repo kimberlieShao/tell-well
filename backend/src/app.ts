@@ -1,6 +1,7 @@
 import express, { type ErrorRequestHandler } from 'express';
 import { fileURLToPath } from 'node:url';
 import { ZodError, z } from 'zod';
+import { BiometricsUnavailable, metricKeys, reading, type BiometricsSource } from './biometrics.js';
 import { Checkins } from './checkins.js';
 import { ApiError } from './errors.js';
 import type { Extractor } from './extractor.js';
@@ -8,7 +9,7 @@ import { analyzeInputSchema, saveInputSchema } from './schema.js';
 import type { SpeechTokenProvider } from './speech.js';
 import type { SpeechAudioProvider } from './tts.js';
 
-export function createApp(extractor: Extractor, config: { origins?: string[]; store?: Checkins; speechTokenProvider?: SpeechTokenProvider; speechAudioProvider?: SpeechAudioProvider } = {}) {
+export function createApp(extractor: Extractor, config: { origins?: string[]; store?: Checkins; speechTokenProvider?: SpeechTokenProvider; speechAudioProvider?: SpeechAudioProvider; wearable?: BiometricsSource } = {}) {
   const app = express();
   const store = config.store ?? new Checkins(extractor);
   const origins = new Set(config.origins ?? ['http://localhost:8081', 'http://localhost:5500', 'http://127.0.0.1:5500']);
@@ -54,6 +55,20 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
     if (!config.speechAudioProvider) throw new ApiError(503, 'VOICE_NOT_CONFIGURED', 'Spoken questions need ElevenLabs configured on the server. You can continue using buttons or typing.');
     const audio = await config.speechAudioProvider(text);
     res.type('audio/mpeg').send(Buffer.from(audio));
+  });
+  app.get('/api/biometrics', async (req, res) => {
+    // ?days= sets how many recent nights come back (the card uses 7, the doctor summary 30–90).
+    const { days } = z.object({ days: z.coerce.number().int().min(1).max(90).default(7) }).parse(req.query);
+    try {
+      if (!config.wearable) throw new BiometricsUnavailable('not_configured', 'No wearable is set up on the server.');
+      const rows = (await config.wearable.fetchDays(Math.max(38, days))).sort((a, b) => a.date.localeCompare(b.date));
+      const last = rows.findLast(r => metricKeys.some(k => r[k] !== null));
+      const readings = last ? Object.fromEntries(metricKeys.map(k => [k, reading(rows, k, last, new Set())])) : {};
+      res.json({ connected: true, source: config.wearable.name, date: last?.date ?? null, readings, days: rows.slice(-days) });
+    } catch (error) {
+      if (!(error instanceof BiometricsUnavailable)) throw error;
+      res.json({ connected: false, reason: error.reason, message: error.message });
+    }
   });
   app.use((_req, _res, next) => next(new ApiError(404, 'NOT_FOUND', 'Use POST /api/analyze or POST /api/checkin/save.')));
   const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {

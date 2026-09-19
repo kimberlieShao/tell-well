@@ -1,0 +1,112 @@
+/* Home page additions: check-in button, wearable section, tables, medications, doctor summary
+   (wearable.js, medications.js, visit-summary.js). */
+
+/* A bigger check-in button */
+#dailyCheckinButton { padding: 40px 20px 38px; }
+#dailyCheckinButton .daily-checkin-icon { width: 76px; height: 76px; margin-bottom: 18px; box-shadow: 0 0 0 10px #ffede8; font-size: 30px; }
+#dailyCheckinButton .daily-checkin-button { font-size: 26px; }
+
+/* Both tile rows ("Today's health" and "From your wearable") use the same three-column grid. */
+.patient-metrics { grid-template-columns: repeat(3, 1fr); }
+.metric-unit { margin-left: 3px; color: var(--muted); font: 700 11px Arial, sans-serif; }
+.trend-arrow { margin-left: 6px; font: 700 17px/1 Arial, sans-serif; }
+.trend-arrow.up, .trend-arrow.down { color: #c4453a; }
+.trend-arrow.in { color: #2f7a4f; }
+/* Tiles in both rows share one height; the foot sits at the bottom. */
+.patient-home .patient-metric { display: flex; flex-direction: column; min-height: var(--tile-height, 142px); }
+.patient-home .patient-metric-foot { margin-top: auto; padding-top: 8px; }
+/* Wearable tiles: the usual range as a shaded band, a dot for last night (green inside, red outside). */
+.wearable-range { position: relative; height: 6px; margin-top: 12px; border-radius: 999px; background: #edf0ec; }
+.wearable-range-band { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: #bcdcc7; }
+.wearable-range-dot { position: absolute; top: 50%; width: 13px; height: 13px; margin-left: -6.5px; border: 2px solid var(--surface); border-radius: 50%; background: #2f7a4f; box-shadow: 0 0 0 1px rgba(23, 74, 59, .25); transform: translateY(-50%); }
+.wearable-range-dot.out { background: #c4453a; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* From your wearable */
+.wearable-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin: 28px 0 12px; }
+.wearable-head .today-heading { margin: 0; }
+.wearable-updated { color: var(--muted); font: 11px Arial, sans-serif; }
+.wearable-live { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 116px; border-radius: 12px; padding: 14px 22px; color: #ffffff; background: var(--forest); }
+.wearable-live-label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: #c4d9ca; font: 700 10px Arial, sans-serif; letter-spacing: 1.2px; text-transform: uppercase; }
+.wearable-live-pill { border-radius: 999px; padding: 3px 8px; color: #c4d9ca; background: rgba(255, 255, 255, .1); letter-spacing: .4px; text-transform: none; }
+.wearable-live.is-live .wearable-live-pill { color: var(--forest); background: var(--lime); }
+.wearable-live-value { display: flex; align-items: baseline; gap: 8px; margin-top: 12px; }
+.wearable-live-value strong { font: 400 42px/1 Georgia, serif; letter-spacing: -.5px; font-variant-numeric: tabular-nums; }
+.wearable-live-value span { color: #c4d9ca; font: 700 13px Arial, sans-serif; }
+.wearable-live-heart { flex: none; color: rgba(255, 255, 255, .16); font: 52px/1 Georgia, serif; transition: color .3s; }
+.wearable-live.is-live .wearable-live-heart { color: var(--coral); animation: wearable-beat var(--beat, 1s) ease-in-out infinite; }
+@keyframes wearable-beat { 0%, 45%, 100% { transform: scale(1); } 12% { transform: scale(1.16); } 28% { transform: scale(1.05); } }
+.wearable-live + .patient-metrics { margin-top: 10px; }
+
+/* Tables */
+.data-card { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.data-table { width: 100%; border-collapse: collapse; color: var(--ink); font: 13px Arial, sans-serif; font-variant-numeric: tabular-nums; }
+.data-table caption { caption-side: bottom; padding: 10px 14px; border-top: 1px solid #edf0ec; color: var(--muted); font: 11px Arial, sans-serif; text-align: left; }
+.data-table th { padding: 11px 14px 9px; border-bottom: 1px solid var(--line); color: var(--muted); font: 700 10px Arial, sans-serif; letter-spacing: 1px; text-align: left; text-transform: uppercase; white-space: nowrap; }
+.data-table td { padding: 11px 14px; border-top: 1px solid #edf0ec; vertical-align: middle; }
+.data-table tbody tr:first-child td { border-top: 0; }
+.data-table td.value, .data-table td.muted { white-space: nowrap; }
+.data-table td.empty, .data-table td.muted { color: var(--muted); }
+.data-table .trend-arrow { font-size: 14px; }
+.data-table .remove-med { border: 0; padding: 4px 0; color: var(--muted); background: transparent; font: 700 11px Arial, sans-serif; text-decoration: underline; cursor: pointer; }
+
+/* Add a medication */
+.med-form { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.med-form #medName { flex: 2 1 180px; }
+.med-form #medDose { flex: 1 1 130px; }
+.med-form #medWhen { flex: 1 1 120px; }
+.med-form input, .med-form select { min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 10px 11px; color: var(--ink); background: #fbfcfa; font: 12px Arial, sans-serif; }
+.med-form button { flex: none; border: 1px solid var(--forest); border-radius: 8px; padding: 10px 14px; color: #ffffff; background: var(--forest); font: 700 12px Arial, sans-serif; white-space: nowrap; cursor: pointer; }
+
+/* Prepare for your visit */
+.visit-card { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; background: var(--surface); }
+.visit-card strong { color: var(--ink); font: 400 17px Georgia, serif; }
+.visit-card p { max-width: 52ch; margin: 4px 0 0; color: var(--muted); font: 12px/1.5 Arial, sans-serif; }
+.visit-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.visit-actions select { border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; color: var(--ink); background: #fbfcfa; font: 12px Arial, sans-serif; }
+
+/* Connect a device */
+.wearable-connect { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; border: 1px solid #d7e8dc; border-radius: 12px; padding: 16px 20px; background: #f7fcf7; }
+.wearable-connect-status { margin: 0; color: var(--muted); font: 12px/1.5 Arial, sans-serif; }
+
+.home-button { flex: none; border: 1px solid var(--forest); border-radius: 10px; padding: 11px 18px; color: #ffffff; background: var(--forest); font: 700 13px Arial, sans-serif; cursor: pointer; }
+.home-button:hover:not(:disabled), .med-form button:hover { background: #1f5c49; }
+.home-button:disabled { cursor: default; opacity: .65; }
+.home-button:focus-visible, .med-form :focus-visible, .remove-med:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+
+/* Doctor summary: built on click, shown only in the print window (Save as PDF). */
+#pw-visit-summary { display: none; }
+@media print {
+  @page { size: letter; margin: .5in; }
+  body.printing-visit-summary > * { display: none !important; }
+  body.printing-visit-summary > #pw-visit-summary { display: block !important; }
+}
+.visit-summary { color: #111111; font: 10px/1.4 Arial, sans-serif; }
+.visit-summary h1 { margin: 0; color: #174a3b; font: 400 22px/1.2 Georgia, serif; }
+.visit-summary h2 { margin: 14px 0 5px; color: #174a3b; font: 700 9px Arial, sans-serif; letter-spacing: 1px; text-transform: uppercase; }
+.visit-summary p { margin: 3px 0; }
+.visit-summary .vs-meta { color: #555555; }
+.visit-summary .vs-note { margin-top: 8px; border-left: 3px solid #174a3b; padding: 4px 8px; background: #f2f6f2; }
+.visit-summary .vs-warning { margin-top: 8px; border-left: 3px solid #c4453a; padding: 4px 8px; background: #fbeeec; font-weight: 700; }
+.visit-summary ol { margin: 0; padding-left: 18px; }
+.visit-summary li { margin: 2px 0; }
+.visit-summary table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.visit-summary th { padding: 3px 6px 3px 0; border-bottom: 1px solid #b9c4bb; color: #555555; font-size: 8.5px; text-align: left; text-transform: uppercase; letter-spacing: .5px; }
+.visit-summary td { padding: 3px 6px 3px 0; border-bottom: 1px solid #e3e8e3; vertical-align: top; }
+.visit-summary .vs-in { color: #2f7a4f; font-weight: 700; }
+.visit-summary .vs-out { color: #c4453a; font-weight: 700; }
+.visit-summary .vs-caption { margin: -2px 0 4px; color: #555555; font-size: 8.5px; }
+.visit-summary .vs-chart { width: 200px; }
+.visit-summary .vs-chart svg { display: block; }
+.visit-summary .vs-concern { color: #c4453a; font-weight: 700; }
+.visit-summary .vs-footer { margin-top: 14px; color: #777777; font-size: 8.5px; }
+
+@media (max-width: 520px) {
+  .wearable-live { padding: 14px 18px; }
+  .wearable-live-value strong { font-size: 36px; }
+  .wearable-live-heart { font-size: 42px; }
+  .trend-arrow { margin-left: 4px; font-size: 15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wearable-live.is-live .wearable-live-heart { animation: none; }
+}

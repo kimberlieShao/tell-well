@@ -1,4 +1,5 @@
 import { createApp } from './app.js';
+import { demoSource, whoopSource } from './biometrics.js';
 import { createGeminiExtractor, demoExtractor } from './extractor.js';
 import { createSpeechTokenProvider } from './speech.js';
 import { createSpeechAudioProvider } from './tts.js';
@@ -11,16 +12,22 @@ const extractor = mode === 'gemini' ? createGeminiExtractor({
 const port = Number(process.env.PORT ?? 3001);
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('PORT must be between 1 and 65535.');
 const host = process.env.HOST ?? '127.0.0.1';
+const today = () => new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
+const wearable = process.env.WEARABLE_MODE === 'demo'
+  ? demoSource(today, [today()])
+  : whoopSource(process.env.WHOOP_URL ?? 'http://127.0.0.1:8000');
 const app = createApp(extractor, {
   origins: process.env.CORS_ORIGINS?.split(',').map(s => s.trim()).filter(Boolean),
   speechTokenProvider: process.env.ELEVENLABS_API_KEY?.trim()
     ? createSpeechTokenProvider({ apiKey: process.env.ELEVENLABS_API_KEY }) : undefined,
   speechAudioProvider: process.env.ELEVENLABS_API_KEY?.trim()
     ? createSpeechAudioProvider({ apiKey: process.env.ELEVENLABS_API_KEY, voiceId: process.env.ELEVENLABS_VOICE_ID || undefined, modelId: process.env.ELEVENLABS_TTS_MODEL || undefined }) : undefined,
+  wearable,
 });
 const server = app.listen(port, host, () => {
   console.log(`Pulsewise API running at http://${host}:${port} (${mode} extraction)`);
   console.log('POST /api/analyze | POST /api/checkin/save');
+  console.log(`Wearable data: ${wearable.name}`);
   console.log(`Connected frontend: http://${host}:${port}/app`);
   console.log(`Text-only backend tester: http://${host}:${port}/test/`);
   console.log('Hackathon prototype: in-memory sessions expire after 2 hours of inactivity or on restart.');
