@@ -51,5 +51,11 @@
     if(password)password.value='';if(confirm)confirm.value='';
   });
   window.addEventListener('pagehide',()=>{screen.querySelectorAll('input').forEach(input=>{input.value='';});});
+  document.getElementById('tryDemo').addEventListener('click',()=>{
+    try {
+      const profile=window.PulsewiseProfile.read();
+      window.location.assign(profile?.onboardingCompleted ? '/app' : '../onboarding/');
+    } catch { status.textContent='Demo storage is unavailable or could not be read. Enable session storage or use a new browser tab; existing data was not replaced.'; }
+  });
   render(false);
 })();

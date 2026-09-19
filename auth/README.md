@@ -19,3 +19,7 @@ The Google entry is sign-in, not existing-account linking. No main App, onboardi
 With existing backend development dependencies installed: node auth/test/forms.cjs
 
 JSDOM checks cover invalid/valid forms, confirmation mismatch, visibility toggle, screen switching, provider-unavailable messages, password clearing and absence of storage. Syntax checked with node --check auth/app.js. These do not establish live authentication, mobile/browser rendering or email delivery. Visual browser QA remains pending.
+
+## Connected demo update
+
+Use the backend URL /auth/ rather than opening this file directly. Try demo uses frontend/profile-store.js to route to /onboarding/ or /app. Login form submission still never logs in; Google and reset remain unavailable. Only the demo profile is saved in sessionStorage, never login credentials. The Node backend now serves an explicit allowlist of auth page assets, excluding test/docs files.

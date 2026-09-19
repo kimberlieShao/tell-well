@@ -98,3 +98,9 @@ TypeScript checking and all **127 automated tests** passed at checkpoint `5a7fd5
 Earlier live checks verified ElevenLabs with synthetic audio, plus Gemini wellness, separate arm/leg pain, and unnamed missed medication. The earlier browser Gemini flow completed scores 7/3, impact/trend follow-ups, review, and save. Live refusal and meals checks hit provider busy/quota limits (503/429), so not all live cases passed.
 
 For this conversation update, live Gemini wellness returned review, live ElevenLabs text-to-speech returned a valid MP3 response, and a synthetic audio test triggered one VAD turn without manually calling `finish()`. Physical microphone input and the complete live hands-free browser conversation still need a manual check; simulated provider tests do not establish that those live paths passed.
+
+## Connected personal onboarding demo
+
+The wearable-integration branch is combined with Kimberly's auth/onboarding UI on codex/connect-onboarding. Root `/` now opens `/auth/`. Choose **Try demo** (not Sign in) to start. First-time demo setup is `/onboarding/`; after saving choose **Continue to Home** to open `/app`. Completed profiles go directly to Home on subsequent Try demo clicks within the same tab. More links reopen profile, device and settings editors.
+
+Profile persistence is **sessionStorage in the current tab**, not an authenticated account or database. Root index.html and WHOOP/speech services are retained. `frontend/profile-store.js` is shared by onboarding and the app; Home/More medication lists and the visit summary read the demo medication list. Onboarding selections do not create measurements, symptoms, dose events or wearable connections. Auth/profile APIs are still pending. Use backend-served pages rather than file:// so scripts and storage share the same origin.

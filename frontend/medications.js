@@ -33,6 +33,7 @@ export function mountMedications(doc) {
     name.focus();
     render();
   });
+  window.addEventListener('pulsewise:profile',()=>{meds=loadMedications();render();});
   render();
 }
 
@@ -67,6 +68,8 @@ function emptyRow(doc) {
 
 export function loadMedications() {
   try {
+    const profile=window.PulsewiseProfile?.read();
+    if(profile)return (profile.medications||[]).map(m=>({...m,when:m.schedule||m.when||''}));
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]');
     return Array.isArray(saved) ? saved.filter(m => typeof m?.name === 'string' && m.name) : [];
   } catch {
@@ -75,5 +78,6 @@ export function loadMedications() {
 }
 
 function save(meds) {
+  if(window.PulsewiseProfile?.read()){try{window.PulsewiseProfile.patch({medications:meds.map(m=>({...m,id:m.id||crypto.randomUUID(),schedule:m.when||m.schedule||''}))});}catch{window.alert('Medication changes could not be saved. Please retry.');}return;}
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(meds)); } catch { /* private window: keep it for this visit only */ }
 }

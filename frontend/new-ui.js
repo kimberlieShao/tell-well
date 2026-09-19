@@ -4,7 +4,7 @@ import { normalizeBackendResponse, toBackendRecord } from './version-b-adapter.j
 import { createElevenLabsSpeaker } from './elevenlabs-speaker.js';
 import { createVoiceConversation } from './voice-conversation.js';
 
-export function mountVersionB(document, {client = createCheckinClient({painScale:'1-10'}), mealClient = createCheckinClient(), speechFactory = createElevenLabsSpeechInput, speakerFactory = createElevenLabsSpeaker, conversationEnabled = true} = {}) {
+export function mountVersionB(document, {client = createCheckinClient({painScale:'1-10'}), mealClient = createCheckinClient(), speechFactory = createElevenLabsSpeechInput, speakerFactory = createElevenLabsSpeaker, conversationEnabled = true, initialProfile = null, profileStore = null} = {}) {
   const window = document.defaultView;
   let conversation = null;
 
@@ -179,12 +179,12 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
     // User-editable profile and medication list; health history starts empty.
     const patientState = {
       profile: {
-        firstName: 'Mary',
-        dateOfBirth: '1958-03-04',
+        firstName: initialProfile ? (initialProfile.displayName || 'there') : 'Mary',
+        dateOfBirth: initialProfile ? '' : '1958-03-04',
         preferredLanguage: 'English',
-        emergencyContact: 'Daniel (Son)',
+        emergencyContact: initialProfile ? '' : 'Daniel (Son)',
       },
-      medications: [],
+      medications: structuredClone(initialProfile?.medications || []),
       trends: Object.fromEntries([['7d','Last 7 days'],['30d','Last 30 days'],['3m','Last 3 months']].map(([key,rangeLabel]) => [key, {
         rangeLabel, painAverage:'—', painTrendLabel:'No recorded data', painTrendClass:'stable',
         bloodPressure:'—', bpTrendLabel:'No recorded data', bpTrendClass:'stable', glucose:'—', glucoseTrendLabel:'No recorded data', glucoseTrendClass:'stable',
@@ -193,6 +193,7 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
     };
 
     function formatDateOfBirth(iso) {
+      if(!iso)return 'Not provided';
       const [y, m, d] = iso.split('-').map(Number);
       return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     }
@@ -213,6 +214,14 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
       const el = document.querySelector('[data-more="medications"] .more-card-copy span');
       const count = patientState.medications.length;
       if (el) el.textContent = `${count} active medication${count === 1 ? '' : 's'}`;
+    }
+
+    if(profileStore){
+      window.addEventListener('pulsewise:profile',event=>{
+        patientState.medications=structuredClone(event.detail.medications||[]);
+        updateMedicationCardSubtitle();
+        if(!document.getElementById('moreDetail').hidden&&document.getElementById('moreDetail').dataset.subview==='medications')renderMoreSubview('medications');
+      });
     }
 
     // ---------- Trends: renderTrends(range) drives every number/chart on the page ----------
@@ -268,6 +277,14 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
     let medicationFormMode = { type: 'list' };
 
     function profileViewTemplate() {
+      if(initialProfile){
+        const p=profileStore.read();
+        const describe=value=>value===null||value===undefined?'Not provided':Array.isArray(value)?value.join(', ')||'None':String(value);
+        const rows=[['Name',p.displayName||'Not provided'],['Age group',p.ageRange],['Health background',p.conditions],['Diet preferences',p.dietaryPreferences],['Allergies',p.allergies],['Tracking',p.trackingPreferences],['Devices (selected only)',p.devices],['Notes',p.profileNotes||'Not provided']];
+        const photo=typeof p.photo==='string'&&/^data:image\/(png|jpeg|webp);base64,/.test(p.photo)?`<img class="profile-summary-photo" src="${escapeHTML(p.photo)}" alt="Your profile photo">`:'';
+        return `<article class="card more-detail-panel"><h2>Profile</h2>${photo}<p class="profile-integration-note">Demo profile · saved in this browser tab, not a signed-in account.</p>${rows.map(([label,value])=>`<div class="more-detail-row"><span>${label}</span><strong>${escapeHTML(describe(value))}</strong></div>`).join('')}<a class="profile-setup-link" href="/onboarding/?edit=profile">Edit profile & photo</a></article>`;
+      }
+
       const p = patientState.profile;
       return `<article class="card more-detail-panel">
         <h2>Profile</h2>
@@ -332,6 +349,8 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
       return medicationsListTemplate();
     }
     function connectedTemplate() {
+      if(initialProfile)return `<article class="card more-detail-panel"><h2>Connected Health Data</h2><p>Check Home for the live WHOOP connection status. Selected devices in your profile are not automatically connected.</p><a class="profile-setup-link" href="/onboarding/?edit=devices">Edit device list</a></article>`;
+
       return `<article class="card more-detail-panel">
         <h2>Connected Health Data</h2>
         <p class="more-detail-meta">No health source connected</p>
@@ -344,6 +363,7 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
       </article>`;
     }
     function accessibilityTemplate() {
+      if(initialProfile)return settingsTemplate();
       return `<article class="card more-detail-panel">
         <h2>Accessibility</h2>
         <div class="more-detail-row"><span>Text size</span><strong id="textSizeLabel">Normal</strong></div>
@@ -357,6 +377,7 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
       </article>`;
     }
     function notificationsTemplate() {
+      if(initialProfile)return settingsTemplate();
       return `<article class="card more-detail-panel">
         <h2>Notifications</h2>
         <div class="more-toggle-row"><span>Medication reminders</span><button class="more-switch on" aria-label="Toggle medication reminders"></button></div>
@@ -373,6 +394,8 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
       </article>`;
     }
     function settingsTemplate() {
+      if(initialProfile){const p=profileStore.read();return `<article class="card more-detail-panel"><h2>Settings</h2><p>Text size: ${escapeHTML(p.accessibility?.textSize||'normal')}</p><p>Reduce animation: ${p.accessibility?.reduceMotion?'On':'Off'}</p><p class="profile-integration-note">Reminder preferences are saved only; notifications are not enabled.</p><a class="profile-setup-link" href="/onboarding/?edit=settings">Edit app settings</a></article>`;}
+
       return `<article class="card more-detail-panel">
         <h2>Settings</h2>
         <div class="more-detail-list">
@@ -467,6 +490,10 @@ export function mountVersionB(document, {client = createCheckinClient({painScale
         document.getElementById('textSizeLabel').textContent = actionEl.dataset.size;
         actionEl.parentElement.querySelectorAll('.trend-range-button').forEach((b) => b.classList.remove('active'));
         actionEl.classList.add('active');
+      }
+      if(profileStore&&['save-new-medication','save-medication-edit','delete-medication'].includes(action)){
+        try{profileStore.patch({medications:patientState.medications});}
+        catch{window.alert('Your medication change could not be saved to this tab. Please retry.');}
       }
     });
 

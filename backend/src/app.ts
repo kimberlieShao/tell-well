@@ -31,12 +31,23 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
     next();
   });
   app.use(express.json({ limit: '64kb' }));
-  app.get('/', (_req, res) => { res.redirect('/app'); });
+  app.get('/', (_req, res) => { res.redirect('/auth/'); });
   app.get(['/app', '/app/'], (_req, res) => {
     res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' wss://api.elevenlabs.io; worker-src 'self'; media-src 'self' blob:; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.sendFile(fileURLToPath(new URL('../../index.html', import.meta.url)));
   });
+  // Explicit page/asset allowlists: do not expose tests, documentation or the repository.
+  for (const page of ['auth', 'onboarding']) {
+    app.get(new RegExp(`^/${page}$`), (_req, res) => { res.redirect(`/${page}/`); });
+    for (const asset of ['', 'index.html', 'app.js', page === 'auth' ? 'styles.css' : 'style.css']) {
+      app.get(`/${page}/${asset}`, (_req, res) => {
+        res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
+        res.setHeader('Referrer-Policy', 'no-referrer');
+        res.sendFile(fileURLToPath(new URL(`../../${page}/${asset || 'index.html'}`, import.meta.url)));
+      });
+    }
+  }
   // Serve only the browser modules, never the repository or backend secrets.
   app.use('/frontend', express.static(fileURLToPath(new URL('../../frontend/', import.meta.url)), { dotfiles: 'deny', index: false }));
   app.use('/test', (_req, res, next) => {
