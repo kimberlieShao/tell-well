@@ -449,7 +449,7 @@
     </aside>
 
     <main class="main">
-      <header class="topbar"><div class="crumb">Mary / Home</div><div class="top-actions"><button class="icon-button" aria-label="Notifications">♢</button><div class="avatar">M</div></div></header>
+      <header class="topbar"><div class="crumb">Mary / Home</div><div class="top-actions"><span class="demo-toggle" id="demoToggle"></span><button class="icon-button" aria-label="Notifications">♢</button><div class="avatar">M</div></div></header>
       <section class="patient-home" aria-label="Patient home">
         <div class="patient-greeting"><div class="eyebrow" style="color: var(--forest)">Your health today</div><h1>Good morning, Mary</h1><div class="patient-date" id="patientDate">Friday, September 18</div></div>
         <p class="patient-prompt">Tell me how you’re feeling</p>
@@ -484,6 +484,7 @@
             <tbody id="wearableTableBody"><tr><td class="empty" colspan="3">Loading…</td></tr></tbody>
           </table>
         </div>
+        <div class="demo-patterns" id="demoPatterns" hidden></div>
         <div class="today-heading">Medications</div>
         <div class="data-card">
           <table class="data-table">

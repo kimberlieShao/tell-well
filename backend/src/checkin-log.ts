@@ -14,6 +14,7 @@ export class CheckinLog {
   private saved = new Map<string, { date: string; symptoms: { name: string; score: number | null }[] }>();
   private alert: (Screen & { at: number }) | null = null;
   readonly feedback: NudgeFeedback[] = [];
+  private seeded: { date: string; symptoms: { name: string; score: number | null }[] }[] = [];
   constructor(private now: () => number = Date.now) {}
 
   today() { return localDate(new Date(this.now())); }
@@ -42,10 +43,17 @@ export class CheckinLog {
     });
   }
 
+  /** Preload the example check-ins (the Arthur Itis demo). Real check-ins are kept separately. */
+  seed(days: { date: string; symptoms: { name: string; score: number | null }[] }[]) {
+    this.seeded = days;
+  }
+
+  clearSeed() { this.seeded = []; }
+
   days(): Day[] {
     const flares = new Set(this.feedback.filter(f => f.verdict === 'was_a_flare').map(f => f.date));
     const byDate = new Map<string, Day>();
-    for (const entry of this.saved.values()) {
+    for (const entry of [...this.seeded, ...this.saved.values()]) {
       const day = byDate.get(entry.date) ?? { date: entry.date, symptoms: [], peak: null, flare: flares.has(entry.date) };
       for (const symptom of entry.symptoms) {
         day.symptoms.push({ name: symptom.name });

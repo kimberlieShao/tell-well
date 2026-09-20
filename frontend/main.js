@@ -1,6 +1,7 @@
 import './profile-store.js';
 import { mountVersionB } from './new-ui.js';
 import { mountMedications } from './medications.js';
+import { mountDemoToggle } from './demo-toggle.js';
 import { mountNudges } from './nudges.js';
 import { mountRecords } from './records.js';
 import { PLACEHOLDER_CHECKINS } from './records-placeholder.js'; // PLACEHOLDER: remove with records-placeholder.js
@@ -17,6 +18,7 @@ try {
     mountMedications(document);
     mountRecords(document, { checkins: PLACEHOLDER_CHECKINS }); // PLACEHOLDER: replace with real records
     mountVisitSummary(document);
+    mountDemoToggle(document);
     document.documentElement.dataset.textSize=profile.accessibility?.textSize||'normal';
     document.documentElement.classList.toggle('reduce-motion',!!profile.accessibility?.reduceMotion);
   }
