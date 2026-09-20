@@ -1175,7 +1175,9 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
         for(const [label,value] of detailRows) {
           const row=document.createElement('tr');const key=document.createElement('th');const cell=document.createElement('td');
           key.scope='row';key.textContent=label;key.style.cssText='text-align:left;padding:5px 12px 5px 0;font-weight:500';
-          cell.textContent=value==null||(typeof value==='string'&&!value.trim())?'Not Provided':String(value);row.append(key,cell);summary.append(row);
+          if(value==null||(typeof value==='string'&&!value.trim())){const empty=document.createElement('span');empty.className='review-empty';empty.setAttribute('role','img');empty.setAttribute('aria-label','Not provided');empty.textContent='—';cell.append(empty);}
+          else cell.textContent=String(value);
+          row.append(key,cell);summary.append(row);
         }
       } else summary.textContent=readable.filter(Boolean).join(' · ')||'Details not provided';
       const form=document.createElement('div');form.className='integration-fields';form.hidden=true;
@@ -1224,6 +1226,7 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
       for(const [category,sectionId,targetId] of [['symptoms','reviewSymptomsSection','reviewSymptoms'],['medications','reviewMedicationsSection','reviewMedications'],['diet','reviewDietSection','reviewDiet'],['vitals','reviewVitalsSection','reviewVitals']]) {
         const entries=checkinState[category];document.getElementById(sectionId).hidden=!entries.length;document.getElementById(targetId).replaceChildren(...entries.map(item=>renderReviewCard(category,item)));
       }
+      document.getElementById('reviewHint').hidden=!['symptoms','medications','diet','vitals'].some(category=>checkinState[category].length);
       const hasWellness=Boolean(checkinState.generalStatus&&checkinState.backendRecord?.wellness);
       document.getElementById('reviewWellnessSection').hidden=!hasWellness;
       const wellness=document.getElementById('reviewWellness');wellness.replaceChildren();

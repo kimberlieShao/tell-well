@@ -76,7 +76,12 @@ test('brief mixed check-in asks once, shows a compact symptom table, and waits f
     assert.equal(page.app.getCurrentScreen(),'review');assert.equal(page.client.state.nextQuestion,null);
     assert.equal(page.requests.filter((r:any)=>r.path.endsWith('/save')).length,0);
     const tables=[...page.document.querySelectorAll('.brief-symptom-table')];assert.equal(tables.length,2);
-    assert.match(tables[0].textContent,/Not Provided/);assert.match(tables[1].textContent,/Not Provided/);
+    for(const table of tables){
+      assert.doesNotMatch(table.textContent,/Not Provided/);
+      const empty=table.querySelector('.review-empty');
+      assert.equal(empty.textContent,'—');assert.equal(empty.getAttribute('role'),'img');assert.equal(empty.getAttribute('aria-label'),'Not provided');
+    }
+    assert.equal(page.document.getElementById('reviewHint').hidden,false);
     assert.equal(page.document.querySelector('[data-record-id="knee"][data-record-field="location"]').value,'');
     page.click('#reviewConfirmSave');await until(()=>page.ready());
     const saved=page.requests.find((r:any)=>r.path.endsWith('/save')).body.record;

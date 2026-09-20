@@ -63,7 +63,7 @@ test('one consolidated complaint renders one populated table with consistent unk
     assert.deepEqual(page.rows(), {
       Symptom: 'arm pain and itchiness', Location: 'elbows', 'Pain score (1–10)': '2',
       Activities: 'problems with eating', 'Since when': 'started yesterday',
-      Trend: 'Not Provided', 'First time': 'Not Provided',
+      Trend: '—', 'First time': '—',
     });
   });
 });
@@ -73,7 +73,11 @@ test('pain and nonpain use the same missing-value label without storing that lab
     for (const index of [0, 1]) {
       const rows = page.rows(index);
       for (const field of ['Location', 'Pain score (1–10)', 'Activities', 'Since when', 'Trend', 'First time'])
-        assert.equal(rows[field], 'Not Provided', `${index}: ${field}`);
+        assert.equal(rows[field], '—', `${index}: ${field}`);
+      for (const empty of page.document.querySelectorAll('.brief-symptom-table')[index].querySelectorAll('.review-empty')) {
+        assert.equal(empty.getAttribute('role'), 'img');
+        assert.equal(empty.getAttribute('aria-label'), 'Not provided');
+      }
     }
     assert.equal(page.rows(1).Severity, 'mild');
     const reviewSection = page.document.getElementById('reviewSymptoms');
@@ -92,6 +96,22 @@ test('the review renderer retains zero and false values instead of treating them
   await review([symptom({ severityScore: 0, firstOccurrence: false, functionalImpact: '   ' })], page => {
     assert.equal(page.rows()['Pain score (1–10)'], '0');
     assert.equal(page.rows()['First time'], 'No');
-    assert.equal(page.rows().Activities, 'Not Provided');
+    assert.equal(page.rows().Activities, '—');
   });
+});
+
+test('the review hint shows only while there is a card to edit', async () => {
+  await review([symptom()], page => {
+    assert.equal(page.document.getElementById('reviewHint').hidden, false);
+    assert.equal(page.document.getElementById('reviewHint').textContent, 'Something missing? Tap Edit on any card to add more details.');
+  });
+  await review([], page => {
+    assert.equal(page.document.getElementById('reviewHint').hidden, true);
+  });
+});
+
+test('every symptom card shares one fixed label column so the value column lines up', async () => {
+  const css = await readFile(new URL('../../frontend/integration.css', import.meta.url), 'utf8');
+  assert.match(css, /\.brief-symptom-table\s*\{\s*table-layout:\s*fixed;\s*\}/);
+  assert.match(css, /\.brief-symptom-table th\s*\{\s*width:\s*\d+px;\s*\}/);
 });
