@@ -3,6 +3,7 @@ import { demoSource, snapshotSource, whoopSource } from './biometrics.js';
 import { createGeminiExtractor, demoExtractor } from './extractor.js';
 import { createSpeechTokenProvider } from './speech.js';
 import { createSpeechAudioProvider } from './tts.js';
+import { Visitors } from './visitors.js';
 
 const mode = process.env.EXTRACTION_MODE ?? 'demo';
 if (!['demo', 'gemini'].includes(mode)) throw new Error('EXTRACTION_MODE must be demo or gemini.');
@@ -31,6 +32,7 @@ const app = createApp(extractor, {
     ? createSpeechAudioProvider({ apiKey: process.env.ELEVENLABS_API_KEY, voiceId: process.env.ELEVENLABS_VOICE_ID || undefined, modelId: process.env.ELEVENLABS_TTS_MODEL || undefined }) : undefined,
   wearable,
   checkinLimit,
+  visitors: process.env.VISITOR_STATE === 'cookie' ? new Visitors() : undefined,
   demo: { on: process.env.DEMO_DEFAULT === 'on', locked: process.env.DEMO_LOCKED === '1' },
 });
 // Behind a platform's HTTPS proxy the browser's Origin is https while the request arrives as http.

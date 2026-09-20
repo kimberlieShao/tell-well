@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import express, { type ErrorRequestHandler } from 'express';
 import { fileURLToPath } from 'node:url';
 import { ZodError, z } from 'zod';
@@ -10,9 +11,10 @@ import { ApiError } from './errors.js';
 import type { Extractor } from './extractor.js';
 import { analyzeInputSchema, saveInputSchema } from './schema.js';
 import type { SpeechTokenProvider } from './speech.js';
+import { DEMO_COOKIE, isVisitorId, readCookie, VISITOR_COOKIE, type Visitors } from './visitors.js';
 import { MAX_SPOKEN_TEXT_LENGTH, SPEECH_VOICE_PRESETS, type SpeechAudioProvider } from './tts.js';
 
-export function createApp(extractor: Extractor, config: { origins?: string[]; store?: Checkins; speechTokenProvider?: SpeechTokenProvider; speechAudioProvider?: SpeechAudioProvider; wearable?: BiometricsSource; log?: CheckinLog; demo?: { on?: boolean; locked?: boolean }; checkinLimit?: number } = {}) {
+export function createApp(extractor: Extractor, config: { origins?: string[]; store?: Checkins; speechTokenProvider?: SpeechTokenProvider; speechAudioProvider?: SpeechAudioProvider; wearable?: BiometricsSource; log?: CheckinLog; demo?: { on?: boolean; locked?: boolean }; checkinLimit?: number; visitors?: Visitors } = {}) {
   const app = express();
   const store = config.store ?? new Checkins(extractor);
   const log = config.log ?? new CheckinLog();
@@ -24,6 +26,30 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
   const demoLocked = config.demo?.locked ?? false;
   const demoNights = arthritisSource(() => log.today());
   if (demo) log.seed(arthritisCheckins(log.today()).map(c => ({ date: c.date, symptoms: c.symptoms.map(s => ({ name: s.name, score: s.score })) })));
+  // With `visitors` (VISITOR_STATE=cookie, the public deployment) the demo switch and the saved check-ins
+  // belong to each visitor's browser, so one person turning the demo off changes nothing for anyone else.
+  // Without it (a laptop) there is one switch and one log for the whole server, as before.
+  const who = (req: express.Request, res: express.Response): { log: CheckinLog; demo: boolean } => {
+    if (!config.visitors) return { log, demo };
+    const fromCookie = readCookie(req.headers.cookie, DEMO_COOKIE);
+    const on = demoLocked ? config.demo?.on ?? false : fromCookie === 'on' ? true : fromCookie === 'off' ? false : (config.demo?.on ?? false);
+    const entry = config.visitors.get(res.locals.visitor as string);
+    if (entry.seeded !== on) {
+      if (on) entry.log.seed(arthritisCheckins(entry.log.today()).map(c => ({ date: c.date, symptoms: c.symptoms.map(s => ({ name: s.name, score: s.score })) })));
+      else entry.log.clearSeed();
+      entry.seeded = on;
+    }
+    return { log: entry.log, demo: on };
+  };
+  const remember = (req: express.Request, res: express.Response, name: string, value: string) =>
+    res.cookie(name, value, { httpOnly: true, sameSite: 'lax', secure: req.secure, maxAge: 30 * 24 * 3_600_000, path: '/' });
+  // A visitor is a browser holding this cookie. The server makes the cookie up on the first visit.
+  if (config.visitors) app.use(['/api', '/app'], (req, res, next) => {
+    const sent = readCookie(req.headers.cookie, VISITOR_COOKIE);
+    if (isVisitorId(sent)) res.locals.visitor = sent;
+    else { res.locals.visitor = randomUUID(); remember(req, res, VISITOR_COOKIE, res.locals.visitor); }
+    next();
+  });
   // A public deployment spends the owner's Gemini quota, so it opens only so many check-ins a day in
   // all (CHECKIN_DAILY_TOTAL), whoever asks: a shared Wi-Fi must not use up one person's turn. 0 means no
   // limit, as on a laptop. The count sits in this process's memory, like the sessions: a restart resets it.
@@ -87,7 +113,7 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
     }
     const day = countedDay;
     try {
-      log.screen(input.transcript ?? input.answer?.value); // red-flag screen on everything the person says
+      who(req, res).log.screen(input.transcript ?? input.answer?.value); // red-flag screen on everything the person says
       res.json(await store.analyze(input));
     } catch (error) {
       if (opening && day === countedDay) openedToday = Math.max(0, openedToday - 1); // a check-in that never opened is not used up
@@ -100,7 +126,7 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
   });
   app.post('/api/checkin/save', (req, res) => {
     const saved = store.save(saveInputSchema.parse(req.body));
-    log.remember(saved);
+    who(req, res).log.remember(saved);
     res.json(saved);
   });
   app.post('/api/speech/token', async (_req, res) => {
@@ -119,6 +145,7 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
   app.get('/api/biometrics', async (req, res) => {
     // ?days= sets how many recent nights come back (the card uses 7, the doctor summary 30–90).
     const { days } = z.object({ days: z.coerce.number().int().min(1).max(90).default(7) }).parse(req.query);
+    const { demo } = who(req, res);
     try {
       if (!config.wearable) throw new BiometricsUnavailable('not_configured', 'No wearable is set up on the server.');
       // The demo keeps the real wearable when the connector answers, and falls back to example nights.
@@ -139,7 +166,8 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
   });
   // "Worth a look" on the home page: a red-flag alert from the latest check-in, plus a nudge when
   // wearable numbers drift from usual while symptoms are being logged. Numbers alone never nudge.
-  app.get('/api/nudges', async (_req, res) => {
+  app.get('/api/nudges', async (req, res) => {
+    const { log, demo } = who(req, res);
     let nudges: Nudge[] = [];
     let wearable = config.wearable ? 'connected' : 'not_configured';
     if (config.wearable) {
@@ -155,17 +183,23 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
   });
   app.post('/api/nudges/feedback', (req, res) => {
     const { nudgeId, verdict } = z.strictObject({ nudgeId: z.string().max(200), verdict: z.enum(['was_a_flare', 'not_a_flare']) }).parse(req.body);
-    log.feedback.push(feedbackFor(nudgeId, verdict));
+    who(req, res).log.feedback.push(feedbackFor(nudgeId, verdict));
     res.json({ ok: true });
   });
-  app.post('/api/nudges/read-alert', (_req, res) => { log.dismissAlert(); res.json({ ok: true }); });
+  app.post('/api/nudges/read-alert', (req, res) => { who(req, res).log.dismissAlert(); res.json({ ok: true }); });
   // Demo toggle: the example person's week of check-ins, medications, blood pressure and patterns.
   // The patterns quote whichever nights the card is showing, real or example.
   // Enough nights to cover every day the example person checked in on, so the sleep pattern counts them all.
   const nightsInUse = async () => config.wearable ? await config.wearable.fetchDays(40).catch(() => undefined) : undefined;
-  app.get('/api/demo', async (_req, res) => { res.json({ on: demo, locked: demoLocked, name: DEMO_NAME, story: demo ? arthritisToday(log.today(), await nightsInUse()) : null }); });
+  app.get('/api/demo', async (req, res) => { const { demo } = who(req, res); res.json({ on: demo, locked: demoLocked, name: DEMO_NAME, story: demo ? arthritisToday(log.today(), await nightsInUse()) : null }); });
   app.post('/api/demo', async (req, res) => {
     const { on } = z.strictObject({ on: z.boolean() }).parse(req.body);
+    if (config.visitors) {
+      if (!demoLocked) remember(req, res, DEMO_COOKIE, on ? 'on' : 'off');
+      const current = demoLocked ? config.demo?.on ?? false : on;
+      res.json({ on: current, locked: demoLocked, name: DEMO_NAME, story: current ? arthritisToday(log.today(), await nightsInUse()) : null });
+      return;
+    }
     if (!demoLocked) {
       demo = on;
       if (on) log.seed(arthritisCheckins(log.today()).map(c => ({ date: c.date, symptoms: c.symptoms.map(s => ({ name: s.name, score: s.score })) })));
@@ -176,7 +210,8 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
   // What the Records calendar shows: the example person's check-ins while the demo is on, otherwise the
   // confirmed check-ins this server has kept. Check-ins are in the record format (see RECORDS-DATA-FORMAT.md).
   // `quietDays` are days with a short daily reading but no check-in; only the example person has them.
-  app.get('/api/records', (_req, res) => {
+  app.get('/api/records', (req, res) => {
+    const { log, demo } = who(req, res);
     res.json(demo
       ? { source: 'demo', name: DEMO_NAME, checkins: arthritisRecords(log.today()), quietDays: arthritisQuietDays(log.today()) }
       : { source: 'real', name: null, checkins: log.savedRecords(), quietDays: [] });
