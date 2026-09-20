@@ -92,11 +92,16 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
     try {
       if (!config.wearable) throw new BiometricsUnavailable('not_configured', 'No wearable is set up on the server.');
       // The demo keeps the real wearable when the connector answers, and falls back to example nights.
-      const source = demo ? await config.wearable.fetchDays(Math.max(38, days)).catch(() => demoNights.fetchDays(Math.max(38, days))) : await config.wearable.fetchDays(Math.max(38, days));
-      const rows = source.sort((a, b) => a.date.localeCompare(b.date));
+      // If it falls back, say so: "demo" is what makes the card and the doctor summary label the
+      // numbers as example data. Never let invented nights go out under the real wearable's name.
+      let invented = false;
+      const fetched = demo
+        ? await config.wearable.fetchDays(Math.max(38, days)).catch(() => { invented = true; return demoNights.fetchDays(Math.max(38, days)); })
+        : await config.wearable.fetchDays(Math.max(38, days));
+      const rows = fetched.sort((a, b) => a.date.localeCompare(b.date));
       const last = rows.findLast(r => metricKeys.some(k => r[k] !== null));
       const readings = last ? Object.fromEntries(metricKeys.map(k => [k, reading(rows, k, last, new Set())])) : {};
-      res.json({ connected: true, source: config.wearable.name, date: last?.date ?? null, readings, days: rows.slice(-days) });
+      res.json({ connected: true, source: invented ? 'demo' : config.wearable.name, date: last?.date ?? null, readings, days: rows.slice(-days) });
     } catch (error) {
       if (!(error instanceof BiometricsUnavailable)) throw error;
       res.json({ connected: false, reason: error.reason, message: error.message });

@@ -1,0 +1,348 @@
+{
+  "about": "A snapshot of real WHOOP nights, taken so the deployed app can show real wearable data without reaching the connector. Not generated: every number came from the band. Refresh it with: npm run whoop:snapshot (needs the connector running).",
+  "capturedAt": "2026-09-20",
+  "nights": [
+    {
+      "date": "2026-07-28",
+      "restingHr": 54,
+      "hrv": 70.557,
+      "skinTemp": null,
+      "spo2": 96.47059,
+      "sleepHours": 8.37,
+      "respiratoryRate": 17.167969
+    },
+    {
+      "date": "2026-07-29",
+      "restingHr": 57,
+      "hrv": 54.8131,
+      "skinTemp": 34.353,
+      "spo2": 91.111115,
+      "sleepHours": 8.13,
+      "respiratoryRate": 17.036133
+    },
+    {
+      "date": "2026-08-02",
+      "restingHr": 63,
+      "hrv": 38.089355,
+      "skinTemp": 34.186333,
+      "spo2": 96,
+      "sleepHours": 2.87,
+      "respiratoryRate": 17.26123
+    },
+    {
+      "date": "2026-08-03",
+      "restingHr": 56,
+      "hrv": 66.12105,
+      "skinTemp": 34.794,
+      "spo2": 95.34375,
+      "sleepHours": 7.38,
+      "respiratoryRate": 16.97168
+    },
+    {
+      "date": "2026-08-17",
+      "restingHr": 54,
+      "hrv": 79.1537,
+      "skinTemp": 34.220333,
+      "spo2": 95.3,
+      "sleepHours": 7.96,
+      "respiratoryRate": 17.695312
+    },
+    {
+      "date": "2026-08-18",
+      "restingHr": 52,
+      "hrv": 75.840096,
+      "skinTemp": 34.527332,
+      "spo2": 93.05882,
+      "sleepHours": 7.38,
+      "respiratoryRate": 17.229004
+    },
+    {
+      "date": "2026-08-19",
+      "restingHr": 53,
+      "hrv": 76.63736,
+      "skinTemp": 35.124264,
+      "spo2": 96.35714,
+      "sleepHours": 6.2,
+      "respiratoryRate": 17.302734
+    },
+    {
+      "date": "2026-08-20",
+      "restingHr": 53,
+      "hrv": 87.71945,
+      "skinTemp": 34.511497,
+      "spo2": 96.15625,
+      "sleepHours": 9.83,
+      "respiratoryRate": 17.144531
+    },
+    {
+      "date": "2026-08-21",
+      "restingHr": 51,
+      "hrv": 103.192245,
+      "skinTemp": 34.368,
+      "spo2": 96.804344,
+      "sleepHours": 8.51,
+      "respiratoryRate": 17.050781
+    },
+    {
+      "date": "2026-08-22",
+      "restingHr": 52,
+      "hrv": 88.67548,
+      "skinTemp": 35.139164,
+      "spo2": 96.5625,
+      "sleepHours": 6.18,
+      "respiratoryRate": 17.332031
+    },
+    {
+      "date": "2026-08-23",
+      "restingHr": 64,
+      "hrv": 44.45008,
+      "skinTemp": 34.31167,
+      "spo2": 96.85714,
+      "sleepHours": 4.29,
+      "respiratoryRate": 17.402344
+    },
+    {
+      "date": "2026-08-24",
+      "restingHr": 56,
+      "hrv": 66.145645,
+      "skinTemp": 34.996,
+      "spo2": 96.333336,
+      "sleepHours": 6.38,
+      "respiratoryRate": 16.986328
+    },
+    {
+      "date": "2026-08-25",
+      "restingHr": 53,
+      "hrv": 84.11785,
+      "skinTemp": 34.623,
+      "spo2": 96.07692,
+      "sleepHours": 7.44,
+      "respiratoryRate": 17.34375
+    },
+    {
+      "date": "2026-08-26",
+      "restingHr": 67,
+      "hrv": 38.620842,
+      "skinTemp": 35.735,
+      "spo2": 93.85,
+      "sleepHours": 4.81,
+      "respiratoryRate": 17.44336
+    },
+    {
+      "date": "2026-08-27",
+      "restingHr": 60,
+      "hrv": 59.69866,
+      "skinTemp": 34.309666,
+      "spo2": 95.64286,
+      "sleepHours": 7.82,
+      "respiratoryRate": 17.572266
+    },
+    {
+      "date": "2026-08-28",
+      "restingHr": 54,
+      "hrv": 93.56004,
+      "skinTemp": 34.796833,
+      "spo2": 96,
+      "sleepHours": 7.17,
+      "respiratoryRate": 17.402344
+    },
+    {
+      "date": "2026-08-29",
+      "restingHr": 65,
+      "hrv": 41.87145,
+      "skinTemp": 34.9655,
+      "spo2": 94.5,
+      "sleepHours": 6.7,
+      "respiratoryRate": 17.9375
+    },
+    {
+      "date": "2026-08-30",
+      "restingHr": 64,
+      "hrv": 48.651836,
+      "skinTemp": 33.799,
+      "spo2": 93.90625,
+      "sleepHours": 7.08,
+      "respiratoryRate": 17.232422
+    },
+    {
+      "date": "2026-08-31",
+      "restingHr": 48,
+      "hrv": 117.23422,
+      "skinTemp": 34.417667,
+      "spo2": 95.5,
+      "sleepHours": 8.35,
+      "respiratoryRate": 16.757812
+    },
+    {
+      "date": "2026-09-01",
+      "restingHr": 50,
+      "hrv": 85.1501,
+      "skinTemp": 33.823666,
+      "spo2": 96.6,
+      "sleepHours": 7.16,
+      "respiratoryRate": 16.92871
+    },
+    {
+      "date": "2026-09-02",
+      "restingHr": 53,
+      "hrv": 70.813225,
+      "skinTemp": 33.528336,
+      "spo2": 95.73333,
+      "sleepHours": 8.37,
+      "respiratoryRate": 17.097656
+    },
+    {
+      "date": "2026-09-03",
+      "restingHr": 51,
+      "hrv": 85.96175,
+      "skinTemp": 34.225,
+      "spo2": 95.166664,
+      "sleepHours": 6.93,
+      "respiratoryRate": 17.167969
+    },
+    {
+      "date": "2026-09-04",
+      "restingHr": 49,
+      "hrv": 94.118835,
+      "skinTemp": 34.075,
+      "spo2": 95.55556,
+      "sleepHours": 7.71,
+      "respiratoryRate": 16.96875
+    },
+    {
+      "date": "2026-09-05",
+      "restingHr": 53,
+      "hrv": 71.217094,
+      "skinTemp": 33.368,
+      "spo2": 98,
+      "sleepHours": 4.93,
+      "respiratoryRate": 17.324219
+    },
+    {
+      "date": "2026-09-06",
+      "restingHr": 71,
+      "hrv": 27.924255,
+      "skinTemp": 35.170666,
+      "spo2": 95.75,
+      "sleepHours": 5.71,
+      "respiratoryRate": 17.853516
+    },
+    {
+      "date": "2026-09-07",
+      "restingHr": 66,
+      "hrv": 38.072353,
+      "skinTemp": 35.009,
+      "spo2": 96.55556,
+      "sleepHours": 9.17,
+      "respiratoryRate": 17.373047
+    },
+    {
+      "date": "2026-09-08",
+      "restingHr": 46,
+      "hrv": 111.20543,
+      "skinTemp": 33.955666,
+      "spo2": 96.20588,
+      "sleepHours": 8.7,
+      "respiratoryRate": 16.44043
+    },
+    {
+      "date": "2026-09-09",
+      "restingHr": 48,
+      "hrv": 112.36789,
+      "skinTemp": 34.386665,
+      "spo2": 92.6875,
+      "sleepHours": 8.54,
+      "respiratoryRate": 16.464844
+    },
+    {
+      "date": "2026-09-10",
+      "restingHr": 53,
+      "hrv": 72.447525,
+      "skinTemp": 33.77017,
+      "spo2": 93.63636,
+      "sleepHours": 8.89,
+      "respiratoryRate": 16.699219
+    },
+    {
+      "date": "2026-09-11",
+      "restingHr": 51,
+      "hrv": 77.65109,
+      "skinTemp": 33.464,
+      "spo2": 93.8,
+      "sleepHours": 6.81,
+      "respiratoryRate": 15.996094
+    },
+    {
+      "date": "2026-09-12",
+      "restingHr": 56,
+      "hrv": 66.12102,
+      "skinTemp": 33.39,
+      "spo2": 93.38461,
+      "sleepHours": 6.6,
+      "respiratoryRate": 16.123535
+    },
+    {
+      "date": "2026-09-13",
+      "restingHr": 60,
+      "hrv": 60.165104,
+      "skinTemp": 33.989834,
+      "spo2": 93.125,
+      "sleepHours": 6.58,
+      "respiratoryRate": 16.445312
+    },
+    {
+      "date": "2026-09-14",
+      "restingHr": 50,
+      "hrv": 97.43475,
+      "skinTemp": 33.086666,
+      "spo2": 91.583336,
+      "sleepHours": 6.85,
+      "respiratoryRate": 15.533203
+    },
+    {
+      "date": "2026-09-15",
+      "restingHr": 49,
+      "hrv": 96.94711,
+      "skinTemp": 33.977333,
+      "spo2": 95.888885,
+      "sleepHours": 6.8,
+      "respiratoryRate": 15.527344
+    },
+    {
+      "date": "2026-09-16",
+      "restingHr": 54,
+      "hrv": 63.55797,
+      "skinTemp": 34.198,
+      "spo2": 94.833336,
+      "sleepHours": 7.54,
+      "respiratoryRate": 16.201172
+    },
+    {
+      "date": "2026-09-17",
+      "restingHr": 55,
+      "hrv": 65.8188,
+      "skinTemp": 32.696835,
+      "spo2": 90.72222,
+      "sleepHours": 9.69,
+      "respiratoryRate": 15.996094
+    },
+    {
+      "date": "2026-09-18",
+      "restingHr": 54,
+      "hrv": 70.188835,
+      "skinTemp": 33.77,
+      "spo2": 93.2,
+      "sleepHours": 7.29,
+      "respiratoryRate": 17.104492
+    },
+    {
+      "date": "2026-09-19",
+      "restingHr": 74,
+      "hrv": 17.129463,
+      "skinTemp": 34.369003,
+      "spo2": 95.333336,
+      "sleepHours": 4.59,
+      "respiratoryRate": 17.988281
+    }
+  ]
+}
