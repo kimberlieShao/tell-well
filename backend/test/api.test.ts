@@ -276,6 +276,7 @@ test('Gemini adapter validates structured output and sends a JSON schema with se
   assert.equal(payload.response_format.mime_type, 'application/json');
   assert.equal(payload.store, false);
   assert.equal(payload.model, 'test-model');
+  assert.deepEqual(payload.generation_config, { max_output_tokens: 4096, thinking_level: 'low' });
   assert.ok(payload.response_format.schema.properties.symptoms);
   const sentSchema = JSON.stringify(payload.response_format.schema);
   for (const unsupported of ['"minLength"', '"maxLength"', '"pattern"', '"maxItems"', '"format":"uuid"', '"$schema"'])

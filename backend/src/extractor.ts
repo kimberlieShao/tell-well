@@ -111,7 +111,8 @@ export function createGeminiExtractor(config: { apiKey: string; model: string; f
             system_instruction: systemInstructions,
             input,
             response_format: { type: 'text', mime_type: 'application/json', schema: geminiExtractionSchema },
-            generation_config: { max_output_tokens: 4096 },
+            // Interactions has no thinking budget; "low" keeps this bounded extraction from thinking for many seconds.
+            generation_config: { max_output_tokens: 4096, thinking_level: 'low' },
             store: false,
           }),
         };
