@@ -7,6 +7,12 @@
 
 /* A bigger check-in button */
 #dailyCheckinButton { padding: 30px 22px 26px; } /* full width of the column, like the heading above it */
+.checkin-voice-card { position: relative; }
+.checkin-voice-card #dailyCheckinButton { padding-top: 68px; }
+.checkin-voice-picker { position: absolute; top: 14px; left: 14px; max-width: calc(100% - 28px); display: flex; align-items: center; gap: 7px; padding: 0 10px; min-height: 44px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--forest); font: 700 12px Arial, sans-serif; }
+.checkin-voice-picker select { min-width: 0; max-width: 100%; min-height: 42px; border: 0; background: transparent; color: var(--forest); font: inherit; cursor: pointer; }
+.checkin-voice-picker:focus-within { outline: 2px solid var(--forest); outline-offset: 2px; }
+.checkin-voice-picker select:focus { outline: none; }
 #dailyCheckinButton .daily-checkin-icon { width: 178px; height: 141px; margin-bottom: 14px; background: transparent; box-shadow: none; }
 /* The face blinks now and then, and the raised arm waves */
 .checkin-eyes { transform-box: fill-box; transform-origin: center; animation: checkin-blink 7s infinite; }
@@ -78,6 +84,32 @@
 .med-form #medWhen { flex: 1 1 120px; }
 .med-form input, .med-form select { min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 10px 11px; color: var(--ink); background: #fbfcfa; font: 12px Arial, sans-serif; }
 .med-form button { flex: none; border: 1px solid var(--forest); border-radius: 8px; padding: 10px 14px; color: #ffffff; background: var(--forest); font: 700 12px Arial, sans-serif; white-space: nowrap; cursor: pointer; }
+.med-form-error { flex-basis: 100%; margin: 0; color: #a33b2d; font: 12px/1.5 Arial, sans-serif; }
+.med-form-error[hidden] { display: none; }
+
+/* Today's medication doses, grouped by name; each table row supplies one daily dose. */
+.patient-metric.medication-metric { min-width: 0; }
+.med-reset { flex: none; margin-left: auto; min-height: 32px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--forest); font: 700 11px Arial, sans-serif; cursor: pointer; }
+.med-reset:hover:not(:disabled) { background: #f4eee8; }
+.med-reset:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+.med-reset:disabled { cursor: default; opacity: .5; }
+.medication-metric .med-progress-list { display: grid; gap: 5px; margin-top: 12px; font: 12px/1.35 Arial, sans-serif; }
+.med-progress-row { display: grid; grid-template-columns: minmax(0, 1fr) auto 12px; align-items: baseline; column-gap: 6px; }
+.med-progress-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.med-progress-count { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.med-progress-check { color: #46702a; font-size: 13px; font-weight: 700; }
+.med-progress-status { grid-column: 1 / -1; margin-top: 3px; color: #46702a; font: 11px/1.4 Arial, sans-serif; }
+.is-over-target .med-progress-status { color: #8a4d20; }
+.medication-metric .patient-metric-foot { font-size: 10px; line-height: 1.4; }
+@media (max-width: 640px) {
+  .patient-metrics:has(.medication-metric) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .patient-metric.medication-metric { grid-column: 1 / -1; }
+  .medication-metric .med-progress-list { gap: 8px; font-size: 14px; }
+  .med-progress-row { column-gap: 10px; }
+  .med-progress-status { font-size: 12px; }
+  .med-reset { min-height: 44px; min-width: 44px; font-size: 12px; }
+  .med-progress-name { overflow: visible; overflow-wrap: anywhere; white-space: normal; }
+}
 
 /* Prepare for your visit */
 .visit-card { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; background: var(--surface); }
@@ -147,6 +179,12 @@
 .mobile-nav-item svg { margin: 0 auto 2px; }
 .brand-mark { overflow: hidden; padding: 4px; }
 .brand-mark svg { display: block; width: 100%; height: 100%; }
+/* Mobile keeps the brand in the top bar and uses only the bottom navigation. */
+@media (max-width: 520px) {
+  .sidebar .nav { display: none; }
+  .sidebar .brand > span { display: block; }
+  .sidebar .brand > .brand-mark { display: grid; flex: none; }
+}
 
 /* Water drops in the same coral drawing style: pale until they are filled in */
 .water-drop { opacity: 1; }

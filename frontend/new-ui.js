@@ -3,8 +3,10 @@ import { createCheckinClient } from './checkin-api.js';
 import { createElevenLabsSpeechInput, createVoiceSpeechFactory } from './elevenlabs-speech.js';
 import { normalizeBackendResponse, toBackendRecord, mealsFromBackend, isWaterEntry } from './version-b-adapter.js';
 import { createElevenLabsSpeaker } from './elevenlabs-speaker.js';
+import { mountVoicePicker } from './voice-picker.js';
 import { createVoiceConversation } from './voice-conversation.js';
 import { chooseCheckinOpening } from './checkin-openings.js';
+import { loadMedications, saveMedications, recordMedicationCheckin, normalizeMedicationName, getMedicationProgress, medicationProgressMessage } from './medications.js';
 
 export function mountVersionB(document, {client = null, mealClient = createCheckinClient({flow:'brief'}), speechFactory = createElevenLabsSpeechInput, speakerFactory = createElevenLabsSpeaker, conversationEnabled = true, initialProfile = null, profileStore = null} = {}) {
   const window = document.defaultView;
@@ -205,7 +207,7 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
         dateOfBirth: initialProfile ? '' : '1958-03-04',
         emergencyContact: initialProfile ? '' : 'Daniel (Son)',
       },
-      medications: structuredClone(initialProfile?.medications || []),
+      medications: structuredClone(window.PulsewiseProfile ? loadMedications(window) : initialProfile?.medications || loadMedications(window)),
       trends: Object.fromEntries([['7d','Last 7 days'],['30d','Last 30 days'],['3m','Last 3 months']].map(([key,rangeLabel]) => [key, {
         rangeLabel, painAverage:'—', painTrendLabel:'No recorded data', painTrendClass:'stable',
         bloodPressure:'—', bpTrendLabel:'No recorded data', bpTrendClass:'stable', glucose:'—', glucoseTrendLabel:'No recorded data', glucoseTrendClass:'stable',
@@ -238,17 +240,19 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
 
     function updateMedicationCardSubtitle() {
       const el = document.querySelector('[data-more="medications"] .more-card-copy span');
-      const count = patientState.medications.length;
+      const count = new Set(patientState.medications.map(med => normalizeMedicationName(med.name))).size;
       if (el) el.textContent = `${count} active medication${count === 1 ? '' : 's'}`;
     }
 
-    if(profileStore){
-      window.addEventListener('pulsewise:profile',event=>{
-        patientState.medications=structuredClone(event.detail.medications||[]);
-        updateMedicationCardSubtitle();
-        if(!document.getElementById('moreDetail').hidden&&document.getElementById('moreDetail').dataset.subview==='medications')renderMoreSubview('medications');
-      });
-    }
+    const refreshMedicationList = event => {
+      const meds = loadMedications(window);
+      if (JSON.stringify(patientState.medications) === JSON.stringify(meds)) return;
+      patientState.medications = structuredClone(meds);
+      updateMedicationCardSubtitle();
+      if(!document.getElementById('moreDetail').hidden&&document.getElementById('moreDetail').dataset.subview==='medications')renderMoreSubview('medications');
+    };
+    window.addEventListener('pulsewise:profile', refreshMedicationList);
+    window.addEventListener('pulsewise:medications', refreshMedicationList);
 
     // ---------- Trends: renderTrends(range) drives every number/chart on the page ----------
     let currentTrendRange = '7d';
@@ -337,30 +341,35 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
       </article>`;
     }
     function medicationRowTemplate(med) {
-      return `<div class="more-detail-row"><span>${escapeHTML(med.name)}<br><span style="color: var(--muted); font: 12px Arial, sans-serif">${escapeHTML(med.dose)} · ${escapeHTML(med.schedule)}</span></span><button class="review-edit" data-action="edit-medication" data-id="${med.id}">Edit</button></div>`;
+      return `<div class="more-detail-row"><span>${escapeHTML(med.name)}<br><span style="color: var(--muted); font: 12px Arial, sans-serif">${escapeHTML(med.dose)} · ${escapeHTML(med.schedule || med.when)}</span></span><button class="review-edit" data-action="edit-medication" data-id="${escapeHTML(med.id)}">Edit</button></div>`;
     }
     function medicationsListTemplate() {
       const meds = patientState.medications;
+      const count = new Set(meds.map(med => normalizeMedicationName(med.name))).size;
       return `<article class="card more-detail-panel">
         <h2>Medications</h2>
-        <p class="more-detail-meta">${meds.length} active medication${meds.length === 1 ? '' : 's'}</p>
+        <p class="more-detail-meta">${count} active medication${count === 1 ? '' : 's'} · Add one row for each daily dose.</p>
         <div class="more-detail-list">${meds.map(medicationRowTemplate).join('') || '<p class="more-detail-meta">No medications added yet.</p>'}</div>
         <button class="more-detail-button" data-action="add-medication">+ Add a medication</button>
       </article>`;
     }
-    function medicationFormTemplate({ id, name, dose, schedule } = {}) {
-      const schedules = ['Morning', 'Afternoon', 'Evening', 'As needed'];
+    function medicationFormTemplate({ id, name, dose, schedule, when } = {}) {
+      schedule ||= when;
       const isEdit = Boolean(id);
+      const selectedSchedule = schedule ?? (isEdit ? '' : 'Morning');
+      const schedules = ['Morning', 'Afternoon', 'Evening', 'As needed'];
+      if (!schedules.includes(selectedSchedule)) schedules.unshift(selectedSchedule);
       return `<article class="card more-detail-panel">
         <h2>${isEdit ? 'Edit Medication' : 'Add a Medication'}</h2>
-        <div class="field" style="margin-bottom: 14px"><label>Medication name</label><input id="medFormName" type="text" placeholder="e.g. Metformin" value="${escapeHTML(name)}"></div>
-        <div class="field" style="margin-bottom: 14px"><label>Dose</label><input id="medFormDose" type="text" placeholder="e.g. 500 mg" value="${escapeHTML(dose)}"></div>
-        <div class="field" style="margin-bottom: 18px"><label>Schedule</label><select id="medFormSchedule">${schedules.map((s) => `<option ${s === schedule ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+        <div class="field" style="margin-bottom: 14px"><label for="medFormName">Medication name</label><input id="medFormName" type="text" placeholder="e.g. Metformin" maxlength="60" value="${escapeHTML(name)}"></div>
+        <div class="field" style="margin-bottom: 14px"><label for="medFormDose">Dose</label><input id="medFormDose" type="text" placeholder="e.g. 500 mg" maxlength="30" value="${escapeHTML(dose)}"></div>
+        <div class="field" style="margin-bottom: 18px"><label for="medFormSchedule">Schedule</label><select id="medFormSchedule">${schedules.map((s) => `<option value="${escapeHTML(s)}" ${s === selectedSchedule ? 'selected' : ''}>${escapeHTML(s) || 'Not specified'}</option>`).join('')}</select></div>
+        <p class="med-form-error" id="moreMedicationError" role="alert" hidden></p>
         <div style="display: flex; gap: 9px; margin-bottom: ${isEdit ? '9px' : '0'}">
           <button class="more-detail-button" style="flex: 1; text-align: center" data-action="cancel-medication-form">Cancel</button>
-          <button class="more-detail-button" style="flex: 1; text-align: center; border-color: var(--forest); background: var(--forest); color: white" data-action="${isEdit ? 'save-medication-edit' : 'save-new-medication'}" data-id="${id || ''}">${isEdit ? 'Save changes' : 'Add medication'}</button>
+          <button class="more-detail-button" style="flex: 1; text-align: center; border-color: var(--forest); background: var(--forest); color: white" data-action="${isEdit ? 'save-medication-edit' : 'save-new-medication'}" data-id="${escapeHTML(id || '')}">${isEdit ? 'Save changes' : 'Add medication'}</button>
         </div>
-        ${isEdit ? `<button class="more-detail-button" style="text-align: center; color: #c7604e; border-color: #f0c9c2" data-action="delete-medication" data-id="${id}">Delete medication</button>` : ''}
+        ${isEdit ? `<button class="more-detail-button" style="text-align: center; color: #c7604e; border-color: #f0c9c2" data-action="delete-medication" data-id="${escapeHTML(id)}">Delete medication</button>` : ''}
       </article>`;
     }
     function medicationsTemplate() {
@@ -452,6 +461,20 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
       card.addEventListener('click', () => showMoreSubview(card.dataset.more));
     });
     document.getElementById('moreDetailBack').addEventListener('click', showMoreMain);
+    function persistMedicationList(meds) {
+      try {
+        patientState.medications = structuredClone(saveMedications(meds, window));
+        medicationFormMode = { type: 'list' };
+        renderMoreSubview('medications');
+        updateMedicationCardSubtitle();
+        renderTrends(currentTrendRange);
+        return true;
+      } catch (error) {
+        const notice = document.getElementById('moreMedicationError');
+        if (notice) { notice.textContent = error.message; notice.hidden = false; }
+        return false;
+      }
+    }
     document.getElementById('moreDetailBody').addEventListener('click', (event) => {
       const toggle = event.target.closest('.more-switch');
       if (toggle) { toggle.classList.toggle('on'); return; }
@@ -484,37 +507,28 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
         const name = document.getElementById('medFormName').value.trim();
         const dose = document.getElementById('medFormDose').value.trim();
         const schedule = document.getElementById('medFormSchedule').value;
-        if (name && dose) {
-          patientState.medications.push({ id: `med-${Date.now()}`, name, dose, schedule });
-          medicationFormMode = { type: 'list' };
-          renderMoreSubview('medications');
-          updateMedicationCardSubtitle();
-          renderTrends(currentTrendRange);
-        }
+        if (!name) {
+          const notice = document.getElementById('moreMedicationError');
+          notice.textContent = 'Enter a medication name.'; notice.hidden = false;
+        } else persistMedicationList([...patientState.medications, { id: window.crypto.randomUUID(), name, dose, schedule }]);
       } else if (action === 'save-medication-edit') {
         const med = patientState.medications.find((m) => m.id === actionEl.dataset.id);
         if (med) {
-          med.name = document.getElementById('medFormName').value.trim() || med.name;
-          med.dose = document.getElementById('medFormDose').value.trim() || med.dose;
-          med.schedule = document.getElementById('medFormSchedule').value;
+          const updated = { ...med,
+            name: document.getElementById('medFormName').value.trim() || med.name,
+            dose: document.getElementById('medFormDose').value.trim(),
+            schedule: document.getElementById('medFormSchedule').value,
+          };
+          // Keep the two existing medication editors on the same schedule field.
+          updated.when = updated.schedule;
+          persistMedicationList(patientState.medications.map(item => item.id === med.id ? updated : item));
         }
-        medicationFormMode = { type: 'list' };
-        renderMoreSubview('medications');
-        renderTrends(currentTrendRange);
       } else if (action === 'delete-medication') {
-        patientState.medications = patientState.medications.filter((m) => m.id !== actionEl.dataset.id);
-        medicationFormMode = { type: 'list' };
-        renderMoreSubview('medications');
-        updateMedicationCardSubtitle();
-        renderTrends(currentTrendRange);
+        persistMedicationList(patientState.medications.filter((m) => m.id !== actionEl.dataset.id));
       } else if (action === 'set-text-size') {
         document.getElementById('textSizeLabel').textContent = actionEl.dataset.size;
         actionEl.parentElement.querySelectorAll('.trend-range-button').forEach((b) => b.classList.remove('active'));
         actionEl.classList.add('active');
-      }
-      if(profileStore&&['save-new-medication','save-medication-edit','delete-medication'].includes(action)){
-        try{profileStore.patch({medications:patientState.medications});}
-        catch{window.alert('Your medication change could not be saved to this tab. Please retry.');}
       }
     });
 
@@ -869,10 +883,11 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     integrationError.after(voiceControls);
     voiceControls.hidden=!conversationEnabled;
     const voiceReply=voiceControls.querySelector('#voiceReply');
+    const voicePicker=mountVoicePicker(document);
     let voiceSpeaker=null;
     const lazySpeaker={
-      prime(){voiceSpeaker??=speakerFactory();return voiceSpeaker.prime();},
-      speak(text){voiceSpeaker??=speakerFactory();return voiceSpeaker.speak(text);},
+      prime(){voiceSpeaker??=speakerFactory({getVoice:voicePicker.getVoice});return voiceSpeaker.prime();},
+      speak(text){voiceSpeaker??=speakerFactory({getVoice:voicePicker.getVoice});return voiceSpeaker.speak(text);},
       stop(){voiceSpeaker?.stop();}, destroy(){voiceSpeaker?.destroy();},
     };
     conversation=createVoiceConversation({
@@ -901,7 +916,7 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
         const locked=state.active||state.busy;
         setBusy(locked);
         checkinFlow.dataset.voiceActive=String(state.active);
-        integrationStatus.textContent=state.message;
+        integrationStatus.textContent=state.phase==='error'?'Voice paused.':state.message;
         if(state.phase==='error')showError(new Error(state.message));
         if(!state.active && ['error','paused'].includes(state.phase))copyVoiceDraftToManual();
         voiceReply.value=flowTranscript.value;
@@ -1004,6 +1019,15 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
       mergeAnalysisIntoState(response);
       checkinState.completed=true;
       addMealsFromCheckin();
+      let medicationNotice = '';
+      try {
+        recordMedicationCheckin(window, response);
+        const takenNames=new Set(response.medications.filter(med=>med.status==='taken').map(med=>normalizeMedicationName(med.name)));
+        medicationNotice=getMedicationProgress(window)
+          .filter(med=>takenNames.has(med.key) && medicationProgressMessage(med))
+          .map(med=>`${med.name}: ${medicationProgressMessage(med)}`).join(' ');
+      }
+      catch { medicationNotice = ' Your check-in was saved, but today’s medication count could not be stored in this browser.'; }
       if(!recordedSessions.has(response.sessionId)) {
         checkinHistory.push({timestamp:new Date().toISOString(),...structuredClone(checkinState)});
         recordedSessions.add(response.sessionId);
@@ -1014,6 +1038,7 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
       savedScreen.querySelector('p').textContent=briefFlow && foodOnly(response)
         ? response.diet.map(entry=>entry.description).join(' · ')
         : 'You can see how this check-in connects with your measurements and symptoms over time.';
+      if(medicationNotice) savedScreen.querySelector('p').textContent=medicationNotice.trim();
     }
     async function prepareReview(response) {
       if(!briefFlow || response.status!=='review' || !foodOnly(response))return response;
@@ -1146,9 +1171,17 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
         screen.querySelector(':scope > .severity-list').hidden=true;document.getElementById('severityVoice').hidden=true;document.getElementById('severityVoiceStatus').hidden=true;
         makeAnswerBox(screen,question);
         if(question.field==='details') {
-          const note=document.createElement('p');note.className='brief-details-note';
-          note.textContent='Symptom? Location? Pain score (1–10)? Activities? Since when?';
-          note.style.cssText='padding:12px;border-radius:10px;background:#f4eee8;font-size:13px;line-height:1.6';
+          const note=document.createElement('ul');note.className='brief-details-note';
+          note.setAttribute('role','list');note.setAttribute('aria-label','Optional symptom details');note.tabIndex=0;
+          for(const label of ['Symptom?','Location?','Pain score (1–10)?','Activities?','Since when?']) {
+            const item=document.createElement('li');
+            const text=document.createElement('span');text.textContent=label;
+            if(label==='Pain score (1–10)?') {
+              text.textContent='Pain score ';
+              const scale=document.createElement('span');scale.className='brief-details-scale';scale.textContent='(1–10)?';text.append(scale);
+            }
+            item.append(text);note.append(item);
+          }
           screen.querySelector('.integration-question-controls').prepend(note);
         }
       }
@@ -1317,5 +1350,5 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     document.getElementById('mealsNav').addEventListener('click',()=>{stopAllVoice();showPatientView('meals');});
     const keydown=event=>{if(event.key==='Escape')closeCheckinFlow();};document.addEventListener('keydown',keydown);
     resetCheckinState();
-    return {state:checkinState,client,mealState,conversation,open:openCheckinFlow,getCurrentScreen:()=>currentFlowScreen,destroy(){destroyed=true;conversation.destroy();stopAllVoice();for(const recognition of [...recognizers])recognition.destroy();document.removeEventListener('keydown',keydown);}};
+    return {state:checkinState,client,mealState,conversation,open:openCheckinFlow,getCurrentScreen:()=>currentFlowScreen,destroy(){destroyed=true;conversation.destroy();voicePicker.destroy();stopAllVoice();for(const recognition of [...recognizers])recognition.destroy();document.removeEventListener('keydown',keydown);window.removeEventListener('pulsewise:profile',refreshMedicationList);window.removeEventListener('pulsewise:medications',refreshMedicationList);}};
 }

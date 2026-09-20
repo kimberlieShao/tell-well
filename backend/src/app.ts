@@ -9,7 +9,7 @@ import { ApiError } from './errors.js';
 import type { Extractor } from './extractor.js';
 import { analyzeInputSchema, saveInputSchema } from './schema.js';
 import type { SpeechTokenProvider } from './speech.js';
-import type { SpeechAudioProvider } from './tts.js';
+import { MAX_SPOKEN_TEXT_LENGTH, SPEECH_VOICE_PRESETS, type SpeechAudioProvider } from './tts.js';
 
 export function createApp(extractor: Extractor, config: { origins?: string[]; store?: Checkins; speechTokenProvider?: SpeechTokenProvider; speechAudioProvider?: SpeechAudioProvider; wearable?: BiometricsSource; log?: CheckinLog } = {}) {
   const app = express();
@@ -73,9 +73,12 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
     res.json(await config.speechTokenProvider());
   });
   app.post('/api/speech/speak', async (req, res) => {
-    const { text } = z.strictObject({ text: z.string().trim().min(1).max(1200) }).parse(req.body);
+    const { text, voice } = z.strictObject({
+      text: z.string().trim().min(1).max(MAX_SPOKEN_TEXT_LENGTH),
+      voice: z.enum(SPEECH_VOICE_PRESETS).optional(),
+    }).parse(req.body);
     if (!config.speechAudioProvider) throw new ApiError(503, 'VOICE_NOT_CONFIGURED', 'Spoken questions need ElevenLabs configured on the server. You can continue using buttons or typing.');
-    const audio = await config.speechAudioProvider(text);
+    const audio = await config.speechAudioProvider(text, voice);
     res.type('audio/mpeg').send(Buffer.from(audio));
   });
   app.get('/api/biometrics', async (req, res) => {

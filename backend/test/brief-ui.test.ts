@@ -71,7 +71,7 @@ test('brief mixed check-in asks once, shows a compact symptom table, and waits f
     await page.start();assert.equal(page.app.getCurrentScreen(),'guided');
     const guided=page.document.querySelector('[data-screen="guided"]');
     assert.match(guided.querySelector('.guided-context').textContent,/Knee pain.*Nausea/);
-    assert.equal(guided.querySelector('.brief-details-note').textContent,'Symptom? Location? Pain score (1–10)? Activities? Since when?');
+    assert.deepEqual([...guided.querySelectorAll('.brief-details-note > li')].map(item=>item.textContent),['Symptom?','Location?','Pain score (1–10)?','Activities?','Since when?']);
     page.fill('#followupAnswer','It began yesterday.');page.click('#followupContinue');await until(()=>page.ready());
     assert.equal(page.app.getCurrentScreen(),'review');assert.equal(page.client.state.nextQuestion,null);
     assert.equal(page.requests.filter((r:any)=>r.path.endsWith('/save')).length,0);

@@ -1,5 +1,17 @@
 # Version B frontend integration
 
+## Daily medication counts
+
+At the daily target, the medication card and saved check-in confirmation say “All scheduled doses recorded for today.” Reports above the target remain visible and say “More doses recorded than scheduled for today.” These messages describe the saved schedule and reports.
+
+The medication card’s Reset button clears all of today’s recorded-dose counters in the current browser profile. It preserves the list, daily targets, saved check-in records, and deduplication receipts. New check-ins count from zero; replaying a previously saved check-in does not restore a cleared count.
+
+The Home medication card groups the medication list by name (ignoring case and repeated spaces). Each list row is one listed daily dose: adding morning and afternoon rows for the same medicine displays `0/2`. Home and More use the same list; removing a row lowers the target, and removing the last row hides that medicine. New entries are limited to five distinct medicine names, while repeated doses of an existing medicine remain allowed.
+
+After a check-in is confirmed and successfully saved, a named medication with structured status `taken` adds one to its matching counter. Review drafts, unsuccessful saves, unnamed or unmatched medicines, and `missed`, `stopped`, or `mentioned` entries do not count. The same saved check-in counts once per medicine even if its response is replayed. Separate check-ins can add additional doses. These are counts of confirmed reports, not verified ingestion or prescribed-dose advice. A green check appears only when recorded and listed counts match; over-target reports remain visible rather than being capped.
+
+Counts reset on the device's local calendar day, including while the app is open or resumes from the background. The medication schedule remains. Tracking shares the existing profile's tab-scoped browser storage and survives refresh; resetting that demo profile resets its tracking. The legacy profile-free page uses local browser storage. This does not add an authenticated account or cross-device medication history. Keep both provider keys on the backend; counting uses the saved structured response and adds no provider requests.
+
 The root `index.html` is the newer UI supplied as `index-2.html`. Its Home, Meals, Trends, More, check-in screens, and 1–10 pain controls remain the final interface. Its local mock health parser is not active.
 
 Shared integration baseline: [`codex/checkpoint-voice-checkin-2026-09-19`](https://github.com/aanya-k/HopHacks/tree/codex/checkpoint-voice-checkin-2026-09-19), commit `5a7fd55`. Authentication/profile contract proposal: `codex/gemini-profile-api` (documentation only). The connected Version B before the conversation update is preserved on `codex/backup-before-voice-2861fbf`. The earlier Version A backup remains `codex/backup-before-new-ui-c222f48`.
@@ -17,6 +29,10 @@ Open **http://127.0.0.1:3001/app** and keep the terminal running. Control+C stop
 To load this update, restart the backend yourself: in its running terminal press **Control+C**, run **`npm start`**, then refresh `/app`. Refreshing alone does not load the new spoken-question endpoint. Use the same restart procedure after changing `.env`; do not start another copy on port 3001 while the old process is running.
 
 ## Voice conversation
+
+The Voice selector in the Home check-in card offers five English voices: Original voice (the existing backend voice, currently George), Sarah (reassuring), River (calm), Callum (husky trickster), and Harry (fierce warrior). It stores only the chosen preset in browser localStorage and applies it to each spoken question. Changing the selector does not start recording or generate audio. The server validates the preset; API keys stay on the server. Restart `npm start` after pulling this change so the speech route accepts the optional `voice` field and the added character voices.
+
+Voice IDs and English labels were checked against the [ElevenLabs public voice catalog](https://api.elevenlabs.io/v1/voices). ElevenLabs currently lists these as premade voices; consult their [voice lifecycle guidance](https://help.elevenlabs.io/hc/en-us/articles/26942950589969-What-are-Default-voices) when maintaining the catalog beyond the hackathon.
 
 Click **Start Daily Check-in** once. ElevenLabs reads the opening question, then the microphone listens. A pause of about two seconds ends your turn automatically. Gemini extracts the reported details, the backend chooses the next missing-field question, and ElevenLabs reads it aloud. The app repeats this sequence until it reaches **Today's Check-in** for review. Microphone capture is off while the assistant speaks.
 

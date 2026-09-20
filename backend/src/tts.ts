@@ -1,8 +1,16 @@
 import { ApiError } from './errors.js';
 
-export type SpeechAudioProvider = (text: string) => Promise<Uint8Array>;
+export const SPEECH_VOICE_PRESETS = ['default', 'sarah', 'river', 'callum', 'harry'] as const;
+export type SpeechVoicePreset = typeof SPEECH_VOICE_PRESETS[number];
+export type SpeechAudioProvider = (text: string, voice?: SpeechVoicePreset) => Promise<Uint8Array>;
 export const MAX_SPOKEN_TEXT_LENGTH = 1200;
 const MAX_AUDIO_BYTES = 2 * 1024 * 1024;
+const PRESET_VOICE_IDS = {
+  sarah: 'EXAVITQu4vr4xnSDxMaL',
+  river: 'SAz9YHcvj6GT2YYXdXww',
+  callum: 'N2lVS1w4EtoT3dr4eOWO',
+  harry: 'SOYHLrjzK2X1ezoPC6cr',
+} as const;
 
 // Only the server contacts ElevenLabs with the long-lived API key.
 export function createSpeechAudioProvider({
@@ -12,17 +20,21 @@ export function createSpeechAudioProvider({
   fetcher = fetch,
   timeoutMs = 20_000,
 }: { apiKey: string; voiceId?: string; modelId?: string; fetcher?: typeof fetch; timeoutMs?: number }): SpeechAudioProvider {
-  return async (text) => {
+  return async (text, voice = 'default') => {
     if (typeof text !== 'string' || !text.trim() || text.length > MAX_SPOKEN_TEXT_LENGTH) {
       throw new ApiError(400, 'INVALID_SPEECH_TEXT', `Spoken questions must contain between 1 and ${MAX_SPOKEN_TEXT_LENGTH} characters.`);
     }
-    if (!apiKey.trim() || !/^[a-zA-Z0-9_-]{1,100}$/.test(voiceId) || !/^[a-zA-Z0-9_-]{1,100}$/.test(modelId)) {
+    if (!SPEECH_VOICE_PRESETS.includes(voice)) {
+      throw new ApiError(400, 'INVALID_SPEECH_VOICE', 'Choose one of the available spoken voices.');
+    }
+    const selectedVoiceId = voice === 'default' ? voiceId : PRESET_VOICE_IDS[voice];
+    if (!apiKey.trim() || !/^[a-zA-Z0-9_-]{1,100}$/.test(selectedVoiceId) || !/^[a-zA-Z0-9_-]{1,100}$/.test(modelId)) {
       throw new ApiError(503, 'SPEECH_NOT_CONFIGURED', 'Spoken questions are not configured. You can continue by typing.');
     }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const response = await fetcher(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`, {
+      const response = await fetcher(`https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}?output_format=mp3_44100_128`, {
         method: 'POST',
         headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
         body: JSON.stringify({ text: text.trim(), model_id: modelId }),

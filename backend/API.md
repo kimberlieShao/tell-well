@@ -26,10 +26,12 @@ After assistant playback ends, capture starts as soon as the microphone is avail
 POST `/api/speech/speak`:
 
 ```json
-{ "text": "How severe is your knee pain, from one to ten?" }
+{ "text": "How severe is your knee pain, from one to ten?", "voice": "sarah" }
 ```
 
-The request has only `text`, trimmed and limited to 1–1200 characters. A successful response is **`200` with `Content-Type: audio/mpeg`**, containing MP3 bytes, not health-record JSON. Play it as audio and wait for playback to end before opening the microphone. Error responses retain the JSON error envelope documented below. Neither speech endpoint creates a health session or changes a record.
+`voice` is optional: `default` (or omitted) uses the configured `ELEVENLABS_VOICE_ID`, with George as the code default. `sarah` selects Sarah (reassuring American female voice); `river` selects River (calm American neutral voice); `callum` selects Callum (husky trickster); `harry` selects Harry (fierce warrior). All five presets are English voices. Only these presets are accepted. Voice IDs and credentials are resolved on the backend.
+
+The request accepts `text`, trimmed and limited to 1–1200 characters, and the optional `voice` preset. A successful response is **`200` with `Content-Type: audio/mpeg`**, containing MP3 bytes, not health-record JSON. Play it as audio and wait for playback to end before opening the microphone. Error responses retain the JSON error envelope documented below. Neither speech endpoint creates a health session or changes a record.
 
 This route requires the same server-side `ELEVENLABS_API_KEY` with **Text to Speech** access. Optional settings are `ELEVENLABS_VOICE_ID` (default `JBFqnCBsd6RMkjVDRZzb`) and `ELEVENLABS_TTS_MODEL` (default `eleven_flash_v2_5`). The backend requests MP3 audio from ElevenLabs; private credentials never reach the frontend. Missing route configuration returns `503 VOICE_NOT_CONFIGURED`; unavailable provider audio returns `502` or `503 SPEECH_UNAVAILABLE`. Invalid JSON/request shape returns `400`. Restart the backend after adding this route or changing its environment settings.
 

@@ -33,6 +33,7 @@ type Page = {
   requests: { path: string; body: any }[];
   speech: any[]; failNext: boolean; gate: Promise<void> | null;
   spokenQuestions: string[];
+  spokenVoices: string[];
   speakerGate?: Promise<void>;
 };
 
@@ -97,9 +98,10 @@ async function withPage(run: (page: Page) => Promise<void>, extractor: Extractor
     page.speech.push(capture);
     return capture;
   };
-  const speakerFactory = () => ({
+  page.spokenVoices = [];
+  const speakerFactory = ({ getVoice = () => 'default' } = {}) => ({
     prime: async () => {},
-    speak: async (text: string) => { assert.ok(page.speech.every(input => !input.isActive), 'microphone must be off while speaking');page.spokenQuestions.push(text);if(page.speakerGate)await page.speakerGate; },
+    speak: async (text: string) => { assert.ok(page.speech.every(input => !input.isActive), 'microphone must be off while speaking');page.spokenQuestions.push(text);page.spokenVoices.push(getVoice());if(page.speakerGate)await page.speakerGate; },
     stop() {},destroy() {},
   });
   page.app = mountVersionB(page.document, { client: page.client, mealClient: page.mealClient, speechFactory, speakerFactory, conversationEnabled });
@@ -392,6 +394,19 @@ test('wellness is visible in review even when the same check-in has a symptom', 
   }, extractor);
 });
 
+test('the Home voice choice reaches spoken check-in questions and can change between check-ins', async () => {
+  await withPage(async page => {
+    for (const voice of ['sarah', 'river', 'callum', 'harry', 'default']) {
+      fill(page, '#checkinVoiceSelect', voice);
+      assert.equal(page.app.conversation.active, false);
+      click(page, '#dailyCheckinButton');
+      await until(() => page.app.conversation.state.phase === 'listening', 'selected voice listening');
+      assert.equal(page.spokenVoices.at(-1), voice);
+      click(page, '#flowClose');
+    }
+  }, demoExtractor, true);
+});
+
 test('one click starts a spoken conversation that reaches the existing review without Continue clicks', async () => {
   await withPage(async page => {
     click(page, '#dailyCheckinButton');
@@ -447,6 +462,49 @@ test('voice Pause returns to manual controls and Close prevents late audio from 
     assert.equal(page.app.state.noSymptoms, true);
   }, demoExtractor, true);
 });
+
+for (const retry of ['voice', 'typing']) {
+  test(`a voice provider error appears once and permits ${retry} retry with the transcript intact`, async () => {
+    await withPage(async page => {
+      click(page, '#dailyCheckinButton');
+      await until(() => page.app.conversation.state.phase === 'listening', 'initial listening');
+      page.failNext = true;
+      await page.speech.at(-1).turn('My arm hurts.');
+      assert.equal(page.app.conversation.state.phase, 'error');
+      assert.equal(page.app.conversation.active, false);
+      assert.equal(ready(page), true);
+      const error = page.document.getElementById('integrationError')!;
+      const status = page.document.getElementById('integrationStatus')!;
+      assert.equal(error.hidden, false);
+      assert.equal(error.getAttribute('role'), 'alert');
+      assert.equal(error.textContent, 'Test provider temporarily unavailable.');
+      assert.equal(status.textContent, 'Voice paused.');
+      const visibleCopies = [...page.document.querySelectorAll<HTMLElement>('#checkinFlow [role="alert"], #checkinFlow [role="status"]')]
+        .filter(element => !element.hidden && element.textContent === error.textContent);
+      assert.equal(visibleCopies.length, 1, 'The actionable error has one visible announcement');
+      assert.equal((page.document.getElementById('flowTranscript') as HTMLTextAreaElement).value, 'My arm hurts.');
+      assert.equal((page.document.getElementById('voiceResume') as HTMLButtonElement).disabled, false);
+      assert.equal((page.document.querySelector('.flow-done') as HTMLButtonElement).disabled, false);
+
+      if (retry === 'voice') {
+        click(page, '#voiceResume');
+        assert.equal(error.hidden, true);
+        await until(() => page.app.conversation.state.phase === 'listening', 'voice retry listening');
+        await page.speech.at(-1).turn('My arm hurts.');
+        assert.equal(screen(page), 'pain-score');
+      } else {
+        click(page, '.flow-done');
+        assert.equal(error.hidden, true);
+        await until(() => ready(page) && screen(page) === 'topics', 'typed retry topics');
+      }
+      assert.equal(error.hidden, true);
+      assert.notEqual(status.textContent, 'Voice paused.');
+      assert.equal(page.requests.length, 2);
+      assert.equal(page.requests[1].body.transcript, 'My arm hurts.');
+      assert.equal(page.client.state.symptoms.length, 1);
+    }, demoExtractor, true);
+  });
+}
 
 test('pausing during analysis reconciles the manual screen with the eventual next question', async () => {
   await withPage(async page => {
