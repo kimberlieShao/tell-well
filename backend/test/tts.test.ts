@@ -16,10 +16,26 @@ test('spoken question provider sends only bounded text and server credentials to
   assert.deepEqual(await provider(' How severe is your knee pain? '), new Uint8Array([73, 68, 51, 0, 0]));
 });
 
+test('spoken question presets select fixed voices and preserve the configured default between requests', async () => {
+  const urls: string[] = [];
+  const provider = createSpeechAudioProvider({ apiKey: 'server-secret', voiceId: 'configured-voice', fetcher: (async url => {
+    urls.push(String(url));
+    return mp3();
+  }) as typeof fetch });
+  for (const voice of [undefined, 'sarah', 'river', 'callum', 'harry', 'default', undefined] as const) {
+    assert.deepEqual(await provider('How are you?', voice), new Uint8Array([73, 68, 51, 0, 0]));
+  }
+  assert.deepEqual(urls, ['configured-voice', 'EXAVITQu4vr4xnSDxMaL', 'SAz9YHcvj6GT2YYXdXww', 'N2lVS1w4EtoT3dr4eOWO', 'SOYHLrjzK2X1ezoPC6cr', 'configured-voice', 'configured-voice']
+    .map(id => `https://api.elevenlabs.io/v1/text-to-speech/${id}?output_format=mp3_44100_128`));
+});
+
 test('spoken question provider rejects invalid input before making a paid request', async () => {
   let calls = 0;
   const provider = createSpeechAudioProvider({ apiKey: 'server-secret', fetcher: (async () => { calls++; return mp3(); }) as typeof fetch });
   for (const value of ['', '  ', 'a'.repeat(1201), null]) await assert.rejects(provider(value as any), { code: 'INVALID_SPEECH_TEXT' });
+  for (const voice of ['', 'Sarah', 'river ', 'unknown', 'EXAVITQu4vr4xnSDxMaL', '../secret', '__proto__', null, 3, {}, ['sarah']]) {
+    await assert.rejects(provider('How are you?', voice as any), { status: 400, code: 'INVALID_SPEECH_VOICE' });
+  }
   assert.equal(calls, 0);
   await assert.rejects(createSpeechAudioProvider({ apiKey: '' })('Hello'), { code: 'SPEECH_NOT_CONFIGURED' });
   await assert.rejects(createSpeechAudioProvider({ apiKey: 'secret', voiceId: '../secret' })('Hello'), { code: 'SPEECH_NOT_CONFIGURED' });
@@ -112,6 +128,23 @@ test('stopping a pending request settles it immediately and ignores a late audio
   assert.equal(page.audio.playCount, 0);
   assert.equal(page.urls.length, 0);
   page.speaker.destroy();
+});
+
+test('speaker sends the current selected preset for every question without recreating audio', async () => {
+  let voice = 'sarah';
+  const page = await fixture({ getVoice: () => voice });
+  try {
+    for (const selected of ['sarah', 'river', 'callum', 'harry', 'default']) {
+      voice = selected;
+      const speaking = page.speaker.speak('How do you feel?');
+      await tick();
+      const body = JSON.parse(String(page.requests.at(-1)!.init.body));
+      assert.deepEqual(body, selected === 'default' ? { text: 'How do you feel?' } : { text: 'How do you feel?', voice: selected });
+      page.audio.end();
+      await speaking;
+    }
+    assert.equal(page.factories(), 1);
+  } finally { page.speaker.destroy(); }
 });
 
 test('stopping or superseding playback revokes audio and never resolves the cancelled turn', async () => {

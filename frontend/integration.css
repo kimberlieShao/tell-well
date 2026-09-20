@@ -11,6 +11,10 @@ button:disabled { cursor: wait; opacity: .6; }
 /* One shared label column so the value column lines up across every symptom card. */
 .brief-symptom-table { table-layout: fixed; }
 .brief-symptom-table th { width: 130px; }
+.brief-details-note { display: grid; grid-template-columns: repeat(5, minmax(86px, 1fr)); gap: 8px; margin: 13px 0; padding: 0 0 4px; list-style: none; overflow-x: auto; font-size: 13px; line-height: 1.6; }
+.brief-details-note > li { display: flex; align-items: center; justify-content: center; min-height: 54px; padding: 10px 6px; border-radius: 10px; background: #f4eee8; text-align: center; }
+.brief-details-scale { white-space: nowrap; }
+.brief-details-note:focus-visible { outline: 2px solid var(--forest); outline-offset: 3px; }
 /* Missing value: 3.5:1 on the card background (WCAG 1.4.11 asks for 3:1 for meaningful graphics). */
 .review-empty { color: #7f8a82; }
 .voice-conversation-controls { margin: 0 20px 12px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }

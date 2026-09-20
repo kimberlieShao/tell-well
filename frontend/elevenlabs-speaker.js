@@ -5,6 +5,7 @@ export function createElevenLabsSpeaker({
   audioFactory = () => new Audio(),
   urlApi = globalThis.URL,
   endpoint = '/api/speech/speak',
+  getVoice = () => 'default',
   timeoutMs = 30_000,
   playbackTimeoutMs = 60_000,
 } = {}) {
@@ -82,9 +83,10 @@ export function createElevenLabsSpeaker({
     try { op = operation('speech', timeoutMs); } catch (error) { return Promise.reject(error); }
     (async () => {
       try {
+        const voice = getVoice();
         const response = await fetchImpl(endpoint, {
           method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
-          body: JSON.stringify({ text: text.trim() }), signal: op.controller.signal,
+          body: JSON.stringify({ text: text.trim(), ...(voice && voice !== 'default' ? { voice } : {}) }), signal: op.controller.signal,
         });
         if (!current(op)) return;
         if (!response.ok) {
