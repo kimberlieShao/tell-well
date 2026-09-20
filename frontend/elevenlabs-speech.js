@@ -1,3 +1,4 @@
+import { speechKeyterms } from './speech-terms.js';
 const speechError = (code, message) => Object.assign(new Error(message), { code });
 const join = (...parts) => parts.map(part => part.trim()).filter(Boolean).join(' ');
 
@@ -159,6 +160,7 @@ export function createElevenLabsSpeechInput({
   finishTimeoutMs = 12000,
   maxRecordingMs = 30000,
   commitStrategy = 'manual',
+  keyterms = null,
   vadSilenceThresholdSecs = 2,
   onTurn = () => {},
 } = {}) {
@@ -376,6 +378,7 @@ export function createElevenLabsSpeechInput({
           if (typeof result.token !== 'string' || !result.token.trim()) throw speechError('SPEECH_UNAVAILABLE', 'The speech service could not start. Type your check-in instead.');
           // Wait for the delayed language result before publishing any speech.
           const query = new URLSearchParams({ model_id: 'scribe_v2_realtime', token: result.token, audio_format: 'pcm_16000', language_code: 'en', include_language_detection: 'true', commit_strategy: commitStrategy });
+          for (const term of keyterms ?? speechKeyterms()) query.append('keyterms', term); // bias towards medication and symptom names
           if (commitStrategy === 'vad') query.set('vad_silence_threshold_secs', String(vadSilenceThresholdSecs));
           connecting('connection', 'Connecting to ElevenLabs…');
           const socket = new WebSocketImpl(`wss://api.elevenlabs.io/v1/speech-to-text/realtime?${query}`);

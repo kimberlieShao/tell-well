@@ -28,7 +28,9 @@ test('setup saves across page loads, binds Home/More, and isolates profile facts
  await click('[type=submit]');await click('[value="POTS"]');await click('[type=submit]');await click('#addMedication');
  w.document.getElementById('medName').value='Example medication';w.document.getElementById('medDose').value='5 mg';await click('#saveMed');
  await click('[type=submit]');await click('#skip');await click('[value="Symptoms"]');await click('[type=submit]');await click('[value="WHOOP"]');await click('[type=submit]');await click('[type=submit]');await click('[type=submit]');
- const profile=w.PulsewiseProfile.read();assert.equal(profile.onboardingCompleted,true);assert.equal(profile.displayName,'Kimberly');assert.deepEqual(Array.from(profile.conditions),['POTS']);assert.equal(w.document.querySelector('#actions a').getAttribute('href'),'/app');
+ const profile=w.PulsewiseProfile.read();assert.equal(profile.onboardingCompleted,true);assert.equal(profile.displayName,'Kimberly');assert.deepEqual(Array.from(profile.conditions),['POTS']);
+ // Saving now goes straight to the app, so there is no "profile ready" screen with a link to check.
+ assert.equal(w.document.querySelector('#steps li.current')?.textContent,'Review your profile');
  const home=new JSDOM(await read('index.html'),{url:'https://example.test/app',runScripts:'outside-only'});const hw=home.window as any;hw.structuredClone=structuredClone;hw.scrollTo=()=>{};
  hw.sessionStorage.setItem('pulsewise.demo-profile.v1',w.sessionStorage.getItem('pulsewise.demo-profile.v1'));hw.eval(await read('frontend/profile-store.js'));
  const {mountVersionB}=await import(new URL('../../frontend/new-ui.js',import.meta.url).href);

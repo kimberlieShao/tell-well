@@ -1,10 +1,23 @@
 /* Home page additions: check-in button, wearable section, tables, medications, doctor summary
    (wearable.js, medications.js, visit-summary.js). */
 
+/* The Meals page's own voice button is off: check-ins start from the home page.
+   Hidden rather than deleted, because new-ui.js and one of its tests still reference it. */
+#mealsVoiceCTA { display: none; }
+
 /* A bigger check-in button */
-#dailyCheckinButton { padding: 40px 20px 38px; }
-#dailyCheckinButton .daily-checkin-icon { width: 76px; height: 76px; margin-bottom: 18px; box-shadow: 0 0 0 10px #ffede8; font-size: 30px; }
-#dailyCheckinButton .daily-checkin-button { font-size: 26px; }
+#dailyCheckinButton { padding: 30px 22px 26px; } /* full width of the column, like the heading above it */
+#dailyCheckinButton .daily-checkin-icon { width: 178px; height: 141px; margin-bottom: 14px; background: transparent; box-shadow: none; }
+/* The face blinks now and then, and the raised arm waves */
+.checkin-eyes { transform-box: fill-box; transform-origin: center; animation: checkin-blink 7s infinite; }
+.checkin-arm-right { transform-box: fill-box; transform-origin: 0% 100%; animation: checkin-wave 7s infinite; }
+@keyframes checkin-blink { 0%, 90%, 100% { transform: scaleY(1); } 93% { transform: scaleY(.12); } 96% { transform: scaleY(1); } }
+/* The wave itself takes about 1.7s, so it reads as a friendly wave rather than a twitch */
+@keyframes checkin-wave { 0%, 76%, 100% { transform: rotate(0deg); } 82% { transform: rotate(-18deg); } 88% { transform: rotate(10deg); } 94% { transform: rotate(-12deg); } 98% { transform: rotate(0deg); } }
+#dailyCheckinButton:hover .checkin-arm-right { animation-duration: 3.4s; }
+#dailyCheckinButton .daily-checkin-icon { margin-inline: auto; }
+#dailyCheckinButton .daily-checkin-icon svg { display: block; width: 100%; height: 100%; }
+#dailyCheckinButton .daily-checkin-button { font: 400 30px/1.15 Georgia, "Times New Roman", serif; letter-spacing: -.8px; } /* same face as the greeting */
 
 /* Both tile rows ("Today's health" and "From your wearable") use the same three-column grid. */
 .patient-metrics { grid-template-columns: repeat(3, 1fr); }
@@ -33,8 +46,16 @@
 .wearable-live-value { display: flex; align-items: baseline; gap: 8px; margin-top: 12px; }
 .wearable-live-value strong { font: 400 42px/1 Georgia, serif; letter-spacing: -.5px; font-variant-numeric: tabular-nums; }
 .wearable-live-value span { color: #c4d9ca; font: 700 13px Arial, sans-serif; }
-.wearable-live-heart { flex: none; color: rgba(255, 255, 255, .16); font: 52px/1 Georgia, serif; transition: color .3s; }
-.wearable-live.is-live .wearable-live-heart { color: var(--coral); animation: wearable-beat var(--beat, 1s) ease-in-out infinite; }
+.wearable-live-heart { flex: none; width: 66px; height: 61px; }
+.wearable-live-heart svg { display: block; width: 100%; height: 100%; }
+.wearable-live-heart .heart-shape { fill: rgba(23, 33, 27, .18); transition: fill .3s; }
+.heart-sparks { display: none; transform-box: fill-box; transform-origin: center; }
+.wearable-live.is-live .heart-sparks { display: block; animation: heart-spark var(--beat, 1s) ease-out infinite; }
+@keyframes heart-spark { 0% { opacity: 0; transform: scale(.7); } 14% { opacity: 1; transform: scale(1); } 50% { opacity: 0; transform: scale(1.2); } 100% { opacity: 0; transform: scale(.7); } }
+.wearable-live-heart .heart-face { display: none; fill: #17211b; stroke: #17211b; }
+.wearable-live.is-live .wearable-live-heart .heart-shape { fill: var(--coral); }
+.wearable-live.is-live .wearable-live-heart .heart-face { display: block; }
+.wearable-live.is-live .wearable-live-heart { animation: wearable-beat var(--beat, 1s) ease-in-out infinite; transform-origin: center; }
 @keyframes wearable-beat { 0%, 45%, 100% { transform: scale(1); } 12% { transform: scale(1.16); } 28% { transform: scale(1.05); } }
 .wearable-live + .patient-metrics { margin-top: 10px; }
 
@@ -108,5 +129,89 @@
   .trend-arrow { margin-left: 4px; font-size: 15px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .wearable-live.is-live .wearable-live-heart { animation: none; }
+  .wearable-live.is-live .wearable-live-heart, .wearable-live.is-live .heart-sparks, .checkin-eyes, .checkin-arm-right { animation: none; }
 }
+
+/* The breadcrumb is gone; the greeting already says whose page this is,
+   and the profile circle stays over on the right */
+.topbar .crumb { display: none; }
+.topbar { justify-content: flex-end; }
+.greeting-name { color: #bd4a33; } /* a deeper coral, readable on the cream page */
+.patient-metric-icon svg { display: block; width: 17px; height: 17px; }
+/* These two actions take the same light green as the live heart rate panel */
+#visitSummaryButton, .med-form button, .wearable-connect .home-button { color: #17211b; background: #ddeb9d; border-color: #c9dc8a; }
+#visitSummaryButton:hover:not(:disabled), .med-form button:hover, .wearable-connect .home-button:hover:not(:disabled) { background: #d2e58a; }
+
+/* Coral icons in the side and mobile navigation, and the heart logo */
+.nav-icon svg, .mobile-nav-item svg { display: block; width: 21px; height: 21px; }
+.mobile-nav-item svg { margin: 0 auto 2px; }
+.brand-mark { overflow: hidden; padding: 4px; }
+.brand-mark svg { display: block; width: 100%; height: 100%; }
+
+/* Water drops in the same coral drawing style: pale until they are filled in */
+.water-drop { opacity: 1; }
+.water-drop svg { display: block; width: 19px; height: 19px; fill: #d6e6f4; }
+.water-drop svg .drop-shine { fill: #ffffff; opacity: .55; }
+.water-drop.filled svg { fill: #5fa8d3; }
+.water-drop.filled svg .drop-shine { fill: #d9ecfa; opacity: 1; }
+
+/* Hand-drawn coral icons on the More page */
+.more-card-icon { background: #fbe4de; }
+.more-card-icon svg { display: block; width: 30px; height: 30px; }
+
+/* Worth a look: safety alert and nudges */
+.signal-box { display: grid; gap: 10px; }
+.signal-calm { margin: 0; border: 1px solid var(--line); border-radius: 12px; padding: 15px 18px; color: var(--muted); background: var(--surface); font: 12.5px/1.55 Arial, sans-serif; }
+.signal-alert, .signal-nudge { display: grid; gap: 7px; border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; color: var(--ink); font: 13px/1.55 Arial, sans-serif; }
+.signal-alert { border: 2px solid #c4453a; background: #fbeeec; }
+.signal-alert.urgent { border-color: #c98a1b; background: #fff6e5; }
+.signal-nudge.note { border-color: #d4e7ba; background: #f3f9ea; }
+.signal-nudge.watch { border-color: #f0dca1; background: #fff9e8; }
+.signal-nudge.check_in { border-color: #f3c3b8; background: #fff3ef; }
+.signal-alert strong, .signal-nudge strong { font: 400 18px/1.3 Georgia, serif; }
+.signal-alert p, .signal-nudge p { margin: 0; }
+.signal-tier { justify-self: start; border-radius: 999px; padding: 3px 9px; color: var(--forest); background: rgba(23, 74, 59, .08); font: 700 10px Arial, sans-serif; letter-spacing: .6px; text-transform: uppercase; }
+.signal-nudge details { color: var(--muted); font-size: 12px; }
+.signal-nudge summary { color: var(--forest); font-weight: 700; cursor: pointer; }
+.signal-nudge ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 3px; }
+.signal-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 3px; }
+.signal-button { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; color: var(--forest); background: var(--surface); font: 700 12px Arial, sans-serif; cursor: pointer; }
+.signal-button:hover { background: var(--mint); }
+.signal-call { border-radius: 8px; padding: 9px 14px; color: #ffffff; background: #c4453a; font: 700 12px Arial, sans-serif; text-decoration: none; }
+.signal-thanks { margin: 0; color: var(--forest); font-size: 12px; }
+.signal-button:focus-visible, .signal-call:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+
+/* ---- Palette: cream page, white cards, the team's greens ----
+   The page's own <style> block is locked by a backend test, so the colours are set here.
+   --forest is the darker shade of the same green, used for text and buttons where #6d9e51
+   would be too pale to read (3.1:1 on white); #6d9e51 itself fills the sidebar and panels. */
+:root {
+  --paper: #faf6e9; --surface: #fffdf6; --line: #e7e3cb; --muted: #5d6a58;
+  --forest: #46702a; --mint: #ecf4cf; --lime: #ddeb9d; --gold: #edc45c;
+  --shadow: 0 1px 0 rgba(48, 66, 37, .04), 0 12px 30px rgba(48, 66, 37, .08);
+}
+body, .main { background: var(--paper); }
+/* Side panel in the deeper green, with white text on it */
+.sidebar { color: #17211b; background: #a0c878; }
+.sidebar .eyebrow { color: #33491f; }
+.brand { color: #17211b; }
+.brand-mark { color: #17211b; background: var(--lime); }
+.nav-button { color: #1f2d17; }
+.nav-button.active { color: #33491f; background: var(--surface); }
+.privacy-card { border-top-color: rgba(23, 33, 27, .2); }
+.privacy-card p { color: #33491f; }
+.avatar { color: #17211b; background: var(--coral); } /* profile button */
+.icon-button, .card, .patient-metric, .panel, .flow-transcript, .review-card, .guided { background: var(--surface); }
+.daily-checkin { border-color: #ddeb9d; background: #f6fae6; }
+.daily-checkin:hover { border-color: #c3d986; background: #f0f7d8; }
+/* The live panel uses the same green, with dark text so it stays readable */
+.wearable-live { color: #17211b; border-color: #c9dc8a; background: #ddeb9d; }
+.wearable-live-label, .wearable-live-value span { color: #2c4019; }
+.wearable-live-pill { color: #2c4019; background: rgba(255, 253, 246, .75); }
+.wearable-live.is-live .wearable-live-pill { color: #ffffff; background: #46702a; }
+.wearable-connect { border-color: #ddeb9d; background: #f6fae6; }
+.wearable-range-band { background: var(--lime); }
+.signal-nudge.note { border-color: #ddeb9d; background: #f6fae6; }
+.bar.highlight, .adherence-fill, .sev-strip span { background: #a0c878; }
+.flow-choice:has(input:checked), .impact-choice:has(input:checked), .med-card:has(input:checked) { border-color: #a0c878; background: #eef6d5; }
+.flow-topic-card, .severity-card:hover, .med-ambiguity-choice:hover, .more-card:hover, .more-detail-button:hover, .vital-action:hover { border-color: #ddeb9d; background: #f6fae6; }

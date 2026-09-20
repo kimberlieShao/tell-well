@@ -1,6 +1,7 @@
 import './profile-store.js';
 import { mountVersionB } from './new-ui.js';
 import { mountMedications } from './medications.js';
+import { mountNudges } from './nudges.js';
 import { mountVisitSummary } from './visit-summary.js';
 import { mountWearable } from './wearable.js';
 
@@ -10,6 +11,7 @@ try {
   else {
     mountVersionB(document,{initialProfile:profile,profileStore:window.PulsewiseProfile});
     mountWearable(document);
+    mountNudges(document);
     mountMedications(document);
     mountVisitSummary(document);
     document.documentElement.dataset.textSize=profile.accessibility?.textSize||'normal';
