@@ -210,6 +210,10 @@ body.demo-on .demo-toggle { color: var(--forest); border-color: #c9dc8a; backgro
 .demo-patterns ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
 .demo-patterns li:last-child { color: var(--muted); }
 
+/* The example person's profile page (More > Profile while the demo is on): read-only */
+.example-profile-tag { display: inline-block; margin: 0 0 10px; border-radius: 999px; padding: 5px 12px; color: var(--forest); background: var(--mint); font: 700 11px Arial, sans-serif; letter-spacing: .6px; text-transform: uppercase; }
+.example-profile-heading { margin: 22px 0 4px; color: var(--muted); font: 700 10px Arial, sans-serif; letter-spacing: 1.1px; text-transform: uppercase; }
+
 /* Demo charts in the Trends tab */
 .demo-chart-host { display: block; height: auto; border: 0; padding: 0; }
 .demo-chart { position: relative; }
@@ -269,7 +273,10 @@ body, .main { background: var(--paper); }
 .privacy-card { border-top-color: rgba(23, 33, 27, .2); }
 .privacy-card p { color: #33491f; }
 .avatar { color: #17211b; background: var(--coral); } /* profile button */
-.icon-button, .card, .patient-metric, .panel, .flow-transcript, .review-card, .guided { background: var(--surface); }
+button.avatar { border: 0; padding: 0; cursor: pointer; }
+button.avatar:hover { background: #e26d58; }
+button.avatar:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+.card, .patient-metric, .panel, .flow-transcript, .review-card, .guided { background: var(--surface); }
 .daily-checkin { border-color: #ddeb9d; background: #f6fae6; }
 .daily-checkin:hover { border-color: #c3d986; background: #f0f7d8; }
 /* The live panel uses the same green, with dark text so it stays readable */

@@ -26,8 +26,12 @@
 .records-day.is-today:hover { background: #f7d3c9; }
 .records-day.is-future { color: #8b9586; cursor: default; }
 .records-day.is-future:hover { background: transparent; }
+/* Red: a symptom was recorded that day. Green: there is data, but no pain. The words are in each day's aria-label and the legend. */
 .records-dot { position: absolute; bottom: 11px; left: 50%; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: var(--coral); }
-.records-legend { display: flex; align-items: center; gap: 8px; margin: 12px 0 0; color: var(--muted); font: 12px Arial, sans-serif; }
+.records-dot.is-pain { background: var(--coral); }
+.records-dot.is-calm { background: var(--forest); }
+.records-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; margin: 12px 0 0; color: var(--muted); font: 12px Arial, sans-serif; }
+.records-legend-item { display: inline-flex; align-items: center; gap: 8px; }
 .records-legend .records-dot { position: static; flex: none; margin: 0; }
 
 /* ---- Day dialog: the Daily Check-in card, with a centred title and a × on the right ---- */

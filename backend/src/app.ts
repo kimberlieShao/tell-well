@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { ZodError, z } from 'zod';
 import { BiometricsUnavailable, metricKeys, reading, type BiometricsSource } from './biometrics.js';
 import { CheckinLog } from './checkin-log.js';
-import { arthritisCheckins, arthritisRecords, arthritisSource, arthritisToday, DEMO_NAME } from './demo-story.js';
+import { arthritisCheckins, arthritisQuietDays, arthritisRecords, arthritisSource, arthritisToday, DEMO_NAME } from './demo-story.js';
 import { evaluateNudges, feedbackFor, type Nudge } from './nudges.js';
 import { Checkins } from './checkins.js';
 import { ApiError } from './errors.js';
@@ -137,11 +137,12 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
     res.json({ on: demo, name: DEMO_NAME, story: demo ? arthritisToday(log.today(), await nightsInUse()) : null });
   });
   // What the Records calendar shows: the example person's check-ins while the demo is on, otherwise the
-  // confirmed check-ins this server has kept. Both are in the record format (see RECORDS-DATA-FORMAT.md).
+  // confirmed check-ins this server has kept. Check-ins are in the record format (see RECORDS-DATA-FORMAT.md).
+  // `quietDays` are days with a short daily reading but no check-in; only the example person has them.
   app.get('/api/records', (_req, res) => {
     res.json(demo
-      ? { source: 'demo', name: DEMO_NAME, checkins: arthritisRecords(log.today()) }
-      : { source: 'real', name: null, checkins: log.savedRecords() });
+      ? { source: 'demo', name: DEMO_NAME, checkins: arthritisRecords(log.today()), quietDays: arthritisQuietDays(log.today()) }
+      : { source: 'real', name: null, checkins: log.savedRecords(), quietDays: [] });
   });
   app.use((_req, _res, next) => next(new ApiError(404, 'NOT_FOUND', 'Use POST /api/analyze or POST /api/checkin/save.')));
   const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {

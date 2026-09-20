@@ -9,10 +9,12 @@ plus the record itself. The full rules are in
 
 ## Where it comes from
 
-The page reads `GET /api/records`, which returns `{ "source": "demo" | "real", "name": ..., "checkins": [...] }`.
+The page reads `GET /api/records`, which returns
+`{ "source": "demo" | "real", "name": ..., "checkins": [...], "quietDays": [...] }`.
 While the demo switch (top bar) is on, that is the example person from
 [backend/demo-data/arthur-itis.json](backend/demo-data/arthur-itis.json); otherwise it is the person's own
 confirmed check-ins, which the server keeps in memory until it restarts. The `checkins` list has the shape below.
+`quietDays` is described under "Quiet days" below; it is `[]` for real data.
 The page reads it again each time the Records tab is opened. Turning the demo switch on or off reloads the page
 and comes back to Records.
 
@@ -107,6 +109,10 @@ One check-in is one time the person finished a check-in; a day can have several.
 
 A day gets a dot on the calendar when it has at least one check-in with something to show
 (a symptom, medication, diet item, a vital with a value, wellness statement or reported answer).
+The dot is **red** ("pain recorded") when any symptom that day has a score other than 0, or no score at all,
+and **green** ("no pain reported") when the day has data but no such symptom, for example a "good day"
+wellness check-in, or only medications and blood pressure. Days with nothing have no dot. Each day's
+accessible label says the same in words, e.g. `September 18, 2026, pain recorded`.
 
 **Symptom** (`symptoms[]`)
 
@@ -162,6 +168,29 @@ A day gets a dot on the calendar when it has at least one check-in with somethin
 | `question` | The question they were answering, shown above the quote. `null` if there was none. |
 | `interpretation` | `recorded` or `unconfirmed`. An unconfirmed answer gets a small "not confirmed" note. |
 | `questionId`, `field` | Not shown. Keep them as in the schema (`null` when not needed). |
+
+## Quiet days (optional)
+
+`quietDays` lists days that have a short daily reading but no check-in. Only the example person has them
+(they are what the Trends charts draw for the days between check-ins). Each one:
+
+```json
+{ "date": "2026-08-26", "pain": 2, "systolic": 121, "diastolic": 77, "taken": 1, "due": 1, "note": "Mild stiffness" }
+```
+
+| Field | Meaning |
+|---|---|
+| `date` | The local day, `YYYY-MM-DD`. |
+| `pain` | Pain that day, 0–10, or `null`. Above 0 gives a red dot; 0 or `null` gives a green dot. |
+| `systolic`, `diastolic` | Blood pressure, or `null`. Shown as `Blood pressure: 121/77 mmHg`. |
+| `taken`, `due` | Doses taken and doses due that day. Shown as `Doses taken: 1 of 1` when `due` is above 0. |
+| `note` | A few words, such as `Mild stiffness`. `No symptoms reported` is not repeated in the dialog. |
+
+The day dialog for a quiet day opens with `Quiet day · no pain reported` (or `Quiet day · pain 2/10`),
+followed by the same groups as any other day: Symptoms (only when pain is above 0), Medications and Vitals.
+If a day has both a check-in and a quiet-day reading, the check-in is what is shown.
+
+Wearable nights (`nights` in the demo file: heart rate, sleep and so on) are not records and get no dot.
 
 ## Missing values
 

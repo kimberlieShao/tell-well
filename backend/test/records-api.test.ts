@@ -4,7 +4,7 @@ import type { AddressInfo } from 'node:net';
 import { test } from 'node:test';
 import { createApp } from '../src/app.js';
 import { CheckinLog, localDate } from '../src/checkin-log.js';
-import { arthritisRecords } from '../src/demo-story.js';
+import { arthritisProfile, arthritisQuietDays, arthritisRecords } from '../src/demo-story.js';
 import { demoExtractor } from '../src/extractor.js';
 import { recordSchema, responseSchema, type CheckinResponse } from '../src/schema.js';
 
@@ -40,7 +40,7 @@ test('with no check-ins saved, the real records are an empty list', async () => 
     const res = await get('/api/records');
     assert.equal(res.status, 200);
     assert.equal(res.cache, 'no-store');
-    assert.deepEqual(res.body, { source: 'real', name: null, checkins: [] });
+    assert.deepEqual(res.body, { source: 'real', name: null, checkins: [], quietDays: [] });
   });
 });
 
@@ -100,4 +100,42 @@ test('the log keeps only confirmed check-ins, sorts them, and hands out copies',
   log.savedRecords()[0]!.symptoms.push({} as never);
   assert.equal(log.savedRecords()[0]!.symptoms.length, 0);
   assert.equal(log.days().length, 2); // the reminders' view of the same check-ins is unchanged
+});
+
+test('the example person also brings his quiet days, in the shape the calendar and Trends read, and real data brings none', async () => {
+  await withApi(async ({ get, post }) => {
+    assert.deepEqual((await get('/api/records')).body.quietDays, []);
+    await post('/api/demo', { on: true });
+    const today = localDate(new Date());
+    const { source, quietDays, checkins } = (await get('/api/records')).body;
+    assert.equal(source, 'demo');
+    assert.equal(quietDays.length, 21);
+    assert.deepEqual(quietDays, JSON.parse(JSON.stringify(arthritisQuietDays(today))));
+    for (const day of quietDays) {
+      assert.deepEqual(Object.keys(day).sort(), ['date', 'diastolic', 'note', 'pain', 'systolic', 'taken', 'due'].sort());
+      assert.match(day.date, /^\d{4}-\d{2}-\d{2}$/);
+      assert.ok(day.date < today, 'quiet days are earlier than the newest check-in day');
+    }
+    assert.deepEqual(quietDays.map((day: any) => day.date), [...quietDays.map((day: any) => day.date)].sort());
+    // A day is either a quiet day or a check-in day, never both, so together they cover the 30 days Trends draws.
+    const checkinDays = new Set(checkins.map((c: any) => localDate(new Date(c.savedAt))));
+    assert.ok(quietDays.every((day: any) => !checkinDays.has(day.date)));
+    assert.equal(new Set([...checkinDays, ...quietDays.map((day: any) => day.date)]).size, 30);
+    await post('/api/demo', { on: false });
+    assert.deepEqual((await get('/api/records')).body.quietDays, []);
+  });
+});
+
+test('the example profile holds only what the demo file has: a name, a condition and his medications', async () => {
+  const profile = arthritisProfile();
+  assert.deepEqual(Object.keys(profile), ['name', 'condition', 'medications']);
+  assert.equal(profile.name, 'Arthur Itis');
+  assert.equal(profile.condition, 'Rheumatoid arthritis');
+  assert.deepEqual(profile.medications.map(m => [m.name, m.dose]), [['Methotrexate', '15 mg'], ['Folic acid', '1 mg'], ['Ibuprofen', '400 mg']]);
+  assert.ok(profile.medications.every(m => m.description));
+  await withApi(async ({ get, post }) => {
+    assert.equal((await get('/api/demo')).body.story, null); // nothing about the example person while the demo is off
+    const on = (await post('/api/demo', { on: true })).body;
+    assert.deepEqual(on.story.profile, profile);
+  });
 });

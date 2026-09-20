@@ -4,6 +4,7 @@ import { createElevenLabsSpeechInput, createVoiceSpeechFactory } from './elevenl
 import { normalizeBackendResponse, toBackendRecord, mealsFromBackend, isWaterEntry } from './version-b-adapter.js';
 import { createElevenLabsSpeaker } from './elevenlabs-speaker.js';
 import { mountVoicePicker } from './voice-picker.js';
+import { getDemoProfile } from './demo-profile.js';
 import { createVoiceConversation } from './voice-conversation.js';
 import { chooseCheckinOpening } from './checkin-openings.js';
 import { loadMedications, saveMedications, recordMedicationCheckin, normalizeMedicationName, getMedicationProgress, medicationProgressMessage } from './medications.js';
@@ -309,6 +310,20 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     let moreEditingProfile = false;
     let medicationFormMode = { type: 'list' };
 
+    // While the demo is on, Profile shows the example person: read-only, with only what the demo file holds.
+    const demoProfileShown = () => document.body.classList.contains('demo-on') && Boolean(getDemoProfile());
+    function demoProfileTemplate() {
+      const demo = getDemoProfile();
+      const row = (label, value) => `<div class="more-detail-row"><span>${escapeHTML(label)}</span><strong>${escapeHTML(value)}</strong></div>`;
+      const meds = (demo.medications || []).map(med => `<div class="more-detail-row"><span>${escapeHTML(med.name)}${med.description ? `<br><span style="color: var(--muted); font: 12px Arial, sans-serif">${escapeHTML(med.description)}</span>` : ''}</span><strong>${escapeHTML(med.dose || '')}</strong></div>`).join('');
+      return `<article class="card more-detail-panel" data-example-profile>
+        <p class="example-profile-tag">Example profile</p>
+        <h2>Profile</h2>
+        <p class="more-detail-meta">This is an example profile. Turn off Demo person to see and edit your own.</p>
+        <div class="more-detail-list">${row('Name', demo.name)}${demo.condition ? row('Condition', demo.condition) : ''}</div>
+        ${meds ? `<h3 class="example-profile-heading">Medications</h3><div class="more-detail-list">${meds}</div>` : ''}
+      </article>`;
+    }
     function profileViewTemplate() {
       if(initialProfile){
         const p=profileStore.read();
@@ -439,7 +454,7 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
       </article>`;
     }
     const moreTemplates = {
-      profile: () => (moreEditingProfile ? profileEditTemplate() : profileViewTemplate()),
+      profile: () => (demoProfileShown() ? demoProfileTemplate() : moreEditingProfile ? profileEditTemplate() : profileViewTemplate()),
       medications: medicationsTemplate,
       connected: connectedTemplate,
       accessibility: accessibilityTemplate,
@@ -1350,6 +1365,8 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     document.getElementById('trendsNav').addEventListener('click',()=>{stopAllVoice();showPatientView('trends');});
     document.getElementById('homeNav').addEventListener('click',()=>{stopAllVoice();showPatientView('home');});
     document.getElementById('recordsNav').addEventListener('click',()=>{stopAllVoice();showPatientView('records');});
+    // The avatar in the top bar opens the Profile page (More > Profile).
+    document.getElementById('profileButton').addEventListener('click',()=>{stopAllVoice();showPatientView('more');showMoreSubview('profile');});
     document.getElementById('moreNav').addEventListener('click',()=>{stopAllVoice();showPatientView('more');});
     document.getElementById('mealsNav').addEventListener('click',()=>{stopAllVoice();showPatientView('meals');});
     const keydown=event=>{if(event.key==='Escape')closeCheckinFlow();};document.addEventListener('keydown',keydown);

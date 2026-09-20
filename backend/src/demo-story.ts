@@ -78,6 +78,35 @@ export function arthritisRecords(today: string): DemoRecord[] {
   return moved.slice().sort((a, b) => a.savedAt.localeCompare(b.savedAt));
 }
 
+/** A day with no check-in but a short daily reading, as the Trends tab draws it. Dates are moved onto the demo week. */
+export type QuietDay = DemoFile['quietDays'][number];
+
+export function arthritisQuietDays(today: string): QuietDay[] {
+  const shift = shiftFor(today);
+  return file.quietDays.map(day => ({ ...day, date: addDays(day.date, shift) }));
+}
+
+/** What the Profile page shows for the example person: only what the demo file actually holds. */
+export interface DemoProfile {
+  name: string;
+  condition: string;
+  medications: { name: string; dose: string | null; description: string | null }[];
+}
+
+export function arthritisProfile(): DemoProfile {
+  // The medication list is what he reports across his check-ins, in the order he first mentions each one.
+  const medications = new Map<string, DemoProfile['medications'][number]>();
+  for (const checkin of file.checkins.slice().sort((a, b) => a.savedAt.localeCompare(b.savedAt))) {
+    for (const med of checkin.medications) {
+      if (!med.name) continue;
+      const key = med.name.trim().toLowerCase();
+      const known = medications.get(key);
+      medications.set(key, { name: known?.name ?? med.name, dose: med.dose ?? known?.dose ?? null, description: med.description ?? known?.description ?? null });
+    }
+  }
+  return { name: DEMO_NAME, condition: DEMO_CONDITION, medications: [...medications.values()] };
+}
+
 // ── What the home page and Trends tab read ──────────────────────────────────
 
 export interface DemoCheckin {
@@ -216,6 +245,7 @@ export function arthritisToday(today: string, nights?: WearableDay[]) {
     medications: latestToday.flatMap(c => c.medications),
     checkins: checkins.slice().reverse(),
     patterns: arthritisPatterns(today, nights),
+    profile: arthritisProfile(),
     series: arthritisSeries(today, 30),
     metrics: metricKeys,
   };

@@ -2,6 +2,7 @@
 // real check-ins. The wearable panel and live heart rate are untouched, so real WHOOP nights and
 // the Bluetooth band still work while the example week of symptoms is on screen.
 
+import { setDemoProfile } from './demo-profile.js';
 import { rememberRecordsTab } from './records.js';
 
 export function mountDemoToggle(doc, { apiBase = '' } = {}) {
@@ -38,6 +39,7 @@ export function mountDemoToggle(doc, { apiBase = '' } = {}) {
 
 function apply(doc, story) {
   doc.body.classList.add('demo-on');
+  setDemoProfile(story.profile); // the Profile page shows the example person while the demo is on
   const heading = doc.querySelector('.patient-greeting h1');
   if (heading) {
     const greeting = heading.textContent.split(',')[0];

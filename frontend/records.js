@@ -3,7 +3,8 @@
 // The data is a list of saved check-ins in the backend's own field names (see RECORDS-DATA-FORMAT.md):
 // each has `savedAt` plus the record's symptoms, medications, diet, vitals and reportedAnswers.
 // It comes from GET /api/records, which returns the example person while the demo switch is on and the
-// person's own confirmed check-ins otherwise.
+// person's own confirmed check-ins otherwise. It may also carry `quietDays`: days with a short daily
+// reading (pain, blood pressure, doses) but no check-in.
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const TREND = { better: 'Better', same: 'About the same', worse: 'Worse' };
@@ -47,6 +48,30 @@ export function groupByDay(input) {
     days.set(key, [...(days.get(key) ?? []), checkin]);
   }
   return days;
+}
+
+const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
+
+/** `quietDays` by date. */
+export function groupQuietDays(input) {
+  const days = new Map();
+  for (const day of list(input?.quietDays)) if (day && DATE_KEY.test(day.date ?? '')) days.set(day.date, day);
+  return days;
+}
+
+const quietHasData = day => typeof day.pain === 'number' || (day.systolic != null && day.diastolic != null)
+  || day.due > 0 || present(day.note);
+
+/**
+ * The colour of a day's dot: 'pain' when a symptom was recorded (any symptom whose score is not an
+ * explicit 0, so a symptom with no score counts), 'calm' when there is data but no pain (a "good day",
+ * only medications or blood pressure, a quiet day with no pain), and null when there is nothing.
+ * Check-ins win over a quiet-day reading for the same day.
+ */
+export function dayKind(checkins, quietDay) {
+  if (checkins?.length) return checkins.some(checkin => list(checkin.symptoms).some(symptom => symptom.severityScore !== 0)) ? 'pain' : 'calm';
+  if (quietDay && quietHasData(quietDay)) return quietDay.pain > 0 ? 'pain' : 'calm';
+  return null;
 }
 
 const painLevel = symptom => {
@@ -130,6 +155,23 @@ export function buildDay(checkins) {
   };
 }
 
+/** The day dialog for a quiet day: the same groups as a check-in day, built from its daily reading. */
+export function buildQuietDay(day) {
+  const pain = typeof day.pain === 'number' && day.pain > 0 ? day.pain : null;
+  const plain = title => ({ title, summary: null, fields: [], quotes: [], time: null });
+  const groups = { symptoms: [], medications: [], vitals: [] };
+  const note = present(day.note) && !/^no symptoms reported\.?$/i.test(day.note.trim()) ? day.note.trim() : null;
+  if (pain !== null) groups.symptoms.push({ ...plain(note ?? 'Pain'), summary: `${pain}/10` });
+  if (day.due > 0) groups.medications.push(plain(`Doses taken: ${day.taken ?? 0} of ${day.due}`));
+  if (day.systolic != null && day.diastolic != null) groups.vitals.push(plain(`Blood pressure: ${day.systolic}/${day.diastolic} mmHg`));
+  return {
+    multiple: false,
+    notes: [{ time: null, text: `Quiet day · ${pain !== null ? `pain ${pain}/10` : 'no pain reported'}` }],
+    groups: [['symptoms', 'Symptoms'], ['medications', 'Medications'], ['vitals', 'Vitals']]
+      .map(([key, title]) => ({ key, title, rows: groups[key] })).filter(group => group.rows.length),
+  };
+}
+
 const storageOf = doc => { try { return doc.defaultView.sessionStorage; } catch { return null; } };
 
 /** Called by the demo switch just before it reloads the page: if Records is open, the reload comes back to it. */
@@ -173,6 +215,7 @@ export function mountRecords(doc, { apiBase = '', load, now = new Date() } = {})
   const today = new Date(now);
   const todayKey = dateKey(today);
   let days = new Map();
+  let quiet = new Map();
   let requests = 0;
   let latest = null;
   let view = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -193,17 +236,17 @@ export function mountRecords(doc, { apiBase = '', load, now = new Date() } = {})
   function dayButton(date) {
     const key = dateKey(date);
     const future = isFuture(date);
-    const has = !future && days.has(key);
-    const button = el('button', `records-day${key === todayKey ? ' is-today' : ''}${has ? ' has-records' : ''}${future ? ' is-future' : ''}`);
+    const kind = future ? null : dayKind(days.get(key), quiet.get(key));
+    const button = el('button', `records-day${key === todayKey ? ' is-today' : ''}${kind ? ` has-records ${kind === 'pain' ? 'has-pain' : 'no-pain'}` : ''}${future ? ' is-future' : ''}`);
     button.type = 'button';
     button.dataset.date = key;
     button.tabIndex = key === focusKey ? 0 : -1;
-    button.setAttribute('aria-label', [longDate(date), future ? 'upcoming' : has ? 'has records' : 'no records', key === todayKey ? 'today' : null].filter(Boolean).join(', '));
+    button.setAttribute('aria-label', [longDate(date), future ? 'upcoming' : kind === 'pain' ? 'pain recorded' : kind === 'calm' ? 'no pain reported' : 'no records', key === todayKey ? 'today' : null].filter(Boolean).join(', '));
     if (future) button.setAttribute('aria-disabled', 'true');
     if (key === todayKey) button.setAttribute('aria-current', 'date');
     button.append(el('span', 'records-day-number', String(date.getDate())));
-    if (has) {
-      const dot = el('span', 'records-dot');
+    if (kind) {
+      const dot = el('span', `records-dot ${kind === 'pain' ? 'is-pain' : 'is-calm'}`);
       dot.setAttribute('aria-hidden', 'true');
       button.append(dot);
     }
@@ -306,8 +349,9 @@ export function mountRecords(doc, { apiBase = '', load, now = new Date() } = {})
 
   function renderDay(key) {
     const checkinsOfDay = days.get(key);
-    if (!checkinsOfDay) { dayBody.replaceChildren(el('p', 'records-empty', 'No check-ins recorded on this day.')); return; }
-    const day = buildDay(checkinsOfDay);
+    const quietDay = quiet.get(key);
+    if (!checkinsOfDay && !(quietDay && quietHasData(quietDay))) { dayBody.replaceChildren(el('p', 'records-empty', 'No check-ins recorded on this day.')); return; }
+    const day = checkinsOfDay ? buildDay(checkinsOfDay) : buildQuietDay(quietDay);
     const nodes = day.notes.map(note => el('p', 'records-note', [note.time, note.text].filter(Boolean).join(' · ')));
     for (const group of day.groups) {
       const section = el('section', 'records-group');
@@ -346,6 +390,7 @@ export function mountRecords(doc, { apiBase = '', load, now = new Date() } = {})
         const data = await fetchRecords();
         if (mine !== requests) return;
         days = groupByDay(data);
+        quiet = groupQuietDays(data);
         showStatus(data?.source === 'demo' ? `Example data · ${data.name ?? 'demo person'}` : '', false);
         closeDay();
         renderCalendar();

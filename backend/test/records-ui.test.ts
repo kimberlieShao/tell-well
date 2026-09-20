@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { JSDOM, VirtualConsole } from 'jsdom';
-import { arthritisRecords } from '../src/demo-story.js';
+import { arthritisQuietDays, arthritisRecords, arthritisSeries } from '../src/demo-story.js';
 import { recordSchema } from '../src/schema.js';
 
 // The Records page (calendar + day dialog) in jsdom. Times are built in local time so the tests do not
@@ -107,6 +107,8 @@ test('the stylesheet uses the existing light coral for today and makes room for 
   assert.match(css, /--blush:\s*#fbe4de/i);
   assert.match(css, /\.records-day\.is-today\s*\{[^}]*background:\s*var\(--blush\)/);
   assert.match(css, /\.mobile-nav\s*\{[^}]*repeat\(5, 1fr\)/);
+  assert.match(css, /\.records-dot\.is-pain\s*\{\s*background:\s*var\(--coral\)/); // the existing variables, not new colours
+  assert.match(css, /\.records-dot\.is-calm\s*\{\s*background:\s*var\(--forest\)/);
   assert.match(await readText('frontend/home.css'), /\.more-card-icon \{ background: #fbe4de/i); // the colour is not new
 });
 
@@ -126,9 +128,11 @@ test('the calendar shows September 2026 with Sunday-first weeks and a dot on day
   });
 });
 
-test('each day has an aria-label that says whether it has records', async () => {
+test('each day has an aria-label that says in words whether pain was recorded', async () => {
   await withRecords(page => {
-    assert.equal(page.day(19).getAttribute('aria-label'), 'September 19, 2026, has records');
+    assert.equal(page.day(19).getAttribute('aria-label'), 'September 19, 2026, pain recorded');
+    assert.equal(page.day(4).getAttribute('aria-label'), 'September 4, 2026, pain recorded');
+    assert.equal(page.day(11).getAttribute('aria-label'), 'September 11, 2026, no pain reported'); // a symptom scored 0, and a medicine
     assert.equal(page.day(18).getAttribute('aria-label'), 'September 18, 2026, no records');
     assert.equal(page.day(20).getAttribute('aria-label'), 'September 20, 2026, no records, today');
     assert.equal(page.day(21).getAttribute('aria-label'), 'September 21, 2026, upcoming');
@@ -664,4 +668,186 @@ test('the example in RECORDS-DATA-FORMAT.md is a valid list of check-ins', async
     page.rows()[0].querySelector('.records-row-head').click();
     assert.equal(page.rows()[0].querySelectorAll('.records-quote').length, 1);
   }, parsed.checkins.map((item: any) => ({ ...item, savedAt: at(19, 8, 30) })));
+});
+
+// ---- Red and green dots: pain recorded, or data with no pain ----
+const dotOf = (page: any, n: number, month = 9) => {
+  const cell = page.day(n, month);
+  const dot = cell.querySelector('.records-dot');
+  return { kind: dot ? (dot.classList.contains('is-pain') ? 'pain' : dot.classList.contains('is-calm') ? 'calm' : '?') : null, label: cell.getAttribute('aria-label'), cls: cell.className };
+};
+const quiet = (date: string, extra: any = {}) => ({ date, pain: 0, systolic: null, diastolic: null, taken: 0, due: 0, note: '', ...extra });
+
+test('a day is red when a symptom was recorded, green when there is data without pain, and has no dot when there is nothing', async () => {
+  await withRecords(page => {
+    const expected: Record<number, [string | null, string]> = {
+      2: ['pain', 'pain recorded'], // a symptom with a score
+      3: ['pain', 'pain recorded'], // a symptom with no score at all still counts
+      4: ['calm', 'no pain reported'], // a symptom scored 0
+      5: ['calm', 'no pain reported'], // a "good day" wellness check-in
+      6: ['calm', 'no pain reported'], // only a medicine and blood pressure
+      7: ['calm', 'no pain reported'], // only a meal
+      8: ['calm', 'no pain reported'], // only what the person said
+      9: ['pain', 'pain recorded'], // two check-ins, one calm and one with pain
+      10: [null, 'no records'], // a check-in with nothing in it
+      12: ['pain', 'pain recorded'], // a symptom described by a word only
+    };
+    for (const [n, [kind, words]] of Object.entries(expected)) {
+      const dot = dotOf(page, Number(n));
+      assert.equal(dot.kind, kind, `September ${n}`);
+      assert.match(dot.label, new RegExp(`, ${words}$`), `September ${n}`);
+      assert.equal(dot.cls.includes('has-pain'), kind === 'pain');
+      assert.equal(dot.cls.includes('no-pain'), kind === 'calm');
+      assert.equal(dot.cls.includes('has-records'), kind !== null);
+    }
+    assert.equal(page.day(9).querySelectorAll('.records-dot').length, 1); // one dot per day
+  }, [
+    checkin(at(2, 9), { symptoms: [symptom('a', 'Stiffness', { severityScore: 3 })] }),
+    checkin(at(3, 9), { symptoms: [symptom('b', 'Joint pain')] }),
+    checkin(at(4, 9), { symptoms: [symptom('c', 'Headache', { severityScore: 0 })] }),
+    checkin(at(5, 9), { wellness: { status: 'well', statement: 'A good day.' } }),
+    checkin(at(6, 9), { medications: [medication('m', 'Ibuprofen', { status: 'taken' })], vitals: [vitalOf('v', 'Blood pressure', '120/80', { unit: 'mmHg' })] }),
+    checkin(at(7, 9), { diet: [diet('d', 'Toast')] }),
+    checkin(at(8, 9), { reportedAnswers: [answer('Nothing much to report.')] }),
+    checkin(at(9, 8), { medications: [medication('m2', 'Vitamin D', { status: 'taken' })] }),
+    checkin(at(9, 18), { symptoms: [symptom('e', 'Fatigue', { severity: 'mild' })] }),
+    checkin(at(10, 9)),
+    checkin(at(12, 9), { symptoms: [symptom('f', 'Aching', { severity: 'moderate' })] }),
+  ]);
+});
+
+test('quiet days get dots too: red with pain above 0, green at 0, and none when the day holds nothing', async () => {
+  await withRecords(page => {
+    assert.deepEqual([2, 3, 4, 5].map(n => dotOf(page, n).kind), ['pain', 'calm', 'calm', null]);
+    assert.equal(dotOf(page, 2).label, 'September 2, 2026, pain recorded');
+    assert.equal(dotOf(page, 3).label, 'September 3, 2026, no pain reported');
+    assert.equal(dotOf(page, 5).label, 'September 5, 2026, no records');
+    assert.equal(dotOf(page, 6).kind, 'calm'); // the check-in wins over a quiet-day reading of pain 3 for the same day
+    assert.equal(dotOf(page, 20).kind, null); // today has nothing
+  }, [checkin(at(6, 9), { wellness: { status: 'well', statement: 'A good day.' } })], async () => ({
+    source: 'demo', name: 'Arthur Itis',
+    checkins: [checkin(at(6, 9), { wellness: { status: 'well', statement: 'A good day.' } })],
+    quietDays: [quiet('2026-09-02', { pain: 2, note: 'Mild stiffness' }), quiet('2026-09-03', { pain: 0, systolic: 118, diastolic: 76 }), quiet('2026-09-04', { pain: null, note: 'Resting' }), quiet('2026-09-05', { pain: null }), quiet('2026-09-06', { pain: 3 })],
+  }));
+});
+
+test('the legend says what the two dots mean, in words', async () => {
+  await withRecords(page => {
+    const items = page.$$('.records-legend-item');
+    assert.deepEqual(items.map((item: Element) => item.textContent), ['Pain recorded', 'No pain reported']);
+    assert.deepEqual(items.map((item: Element) => item.querySelector('.records-dot')!.className.replace('records-dot ', '')), ['is-pain', 'is-calm']);
+    assert.ok(items.every((item: Element) => item.querySelector('.records-dot')!.getAttribute('aria-hidden') === 'true')); // the words carry the meaning
+  });
+});
+
+const quietPayload = (quietDays: any[], checkins: any[] = []) => async () => ({ source: 'demo', name: 'Arthur Itis', checkins, quietDays });
+
+test('a quiet day with no pain opens to "Quiet day · no pain reported" and the readings that day has', async () => {
+  await withRecords(page => {
+    page.open(3);
+    assert.equal(page.$('#recordsDayTitle').textContent, 'Thursday, September 3');
+    assert.equal(page.$('.records-note').textContent, 'Quiet day · no pain reported');
+    assert.deepEqual(page.$$('.records-group-title').map((node: Element) => node.textContent), ['Medications', 'Vitals']); // "No symptoms reported" is not repeated
+    assert.deepEqual(page.$$('.records-row-title').map((node: Element) => node.textContent), ['Doses taken: 1 of 1', 'Blood pressure: 117/75 mmHg']);
+    assert.equal(page.$$('.records-row-head').filter((node: Element) => node.tagName === 'BUTTON').length, 0); // nothing more to open
+    assert.equal(page.$$('.records-time').length, 0);
+  }, [], quietPayload([quiet('2026-09-03', { pain: 0, systolic: 117, diastolic: 75, taken: 1, due: 1, note: 'No symptoms reported' })]));
+});
+
+test('a quiet day with pain shows the pain and the note, then the other readings in the usual groups', async () => {
+  await withRecords(page => {
+    page.open(2);
+    assert.equal(page.$('.records-note').textContent, 'Quiet day · pain 2/10');
+    assert.deepEqual(page.$$('.records-group-title').map((node: Element) => node.textContent), ['Symptoms', 'Medications', 'Vitals']);
+    const [symptomRow] = page.rows();
+    assert.equal(symptomRow.querySelector('.records-row-title').textContent, 'Mild stiffness');
+    assert.equal(symptomRow.querySelector('.records-row-summary').textContent, '2/10');
+    assert.equal(page.rows().at(1).querySelector('.records-row-title').textContent, 'Doses taken: 0 of 1'); // a missed dose is shown as it is
+  }, [], quietPayload([quiet('2026-09-02', { pain: 2, systolic: 121, diastolic: 77, taken: 0, due: 1, note: 'Mild stiffness' })]));
+});
+
+test('a quiet day shows only the readings it has, and a day with nothing still says so', async () => {
+  await withRecords(page => {
+    page.open(4);
+    assert.equal(page.$('.records-note').textContent, 'Quiet day · no pain reported');
+    assert.deepEqual(page.$$('.records-row-title').map((node: Element) => node.textContent), ['Blood pressure: 120/78 mmHg']);
+    page.$('#recordsDayClose').click();
+    page.open(5); // an empty quiet-day row has no dot, and opens to the usual message
+    assert.equal(page.$('#recordsDayBody').textContent, 'No check-ins recorded on this day.');
+    page.$('#recordsDayClose').click();
+    page.open(6); // pain with no note: a plain "Pain" row
+    assert.deepEqual(page.$$('.records-row-title').map((node: Element) => node.textContent), ['Pain']);
+    assert.equal(page.$('.records-row-summary').textContent, '4/10');
+  }, [], quietPayload([quiet('2026-09-04', { systolic: 120, diastolic: 78 }), quiet('2026-09-05', { pain: null }), quiet('2026-09-06', { pain: 4 })]));
+});
+
+test('when a day has a check-in and a quiet-day reading, the dialog shows the check-in', async () => {
+  await withRecords(page => {
+    page.open(6);
+    assert.doesNotMatch(page.$('#recordsDayBody').textContent, /Quiet day/);
+    assert.deepEqual(page.$$('.records-group-title').map((node: Element) => node.textContent), ['Symptoms']);
+    assert.equal(page.$('.records-row-title').textContent, 'Headache');
+  }, [], quietPayload([quiet('2026-09-06', { pain: 3, note: 'Something else' })], [checkin(at(6, 9), { symptoms: [symptom('h', 'Headache', { severityScore: 5 })] })]));
+});
+
+test('the calendar follows the demo switch: quiet days appear with the example person and go with the real records', async () => {
+  let payload: any = { source: 'demo', name: 'Arthur Itis', checkins: [], quietDays: [quiet('2026-09-02', { pain: 1, note: 'Mild stiffness' }), quiet('2026-09-03')] };
+  await withRecords(async page => {
+    assert.equal(page.$$('.records-dot').length - page.$$('.records-legend .records-dot').length, 2);
+    payload = { source: 'real', name: null, checkins: [fixtures[0]], quietDays: [] };
+    page.$('#desktopRecordsNav').click();
+    await page.mounted.ready;
+    assert.deepEqual(page.$$('.records-day.has-records').map((node: HTMLElement) => node.dataset.date), ['2026-09-04']);
+    payload = { source: 'real', name: null, checkins: [fixtures[0]] }; // a server that does not send quietDays at all
+    page.$('#desktopRecordsNav').click();
+    await page.mounted.ready;
+    assert.equal(page.$$('.records-day.has-records').length, 1);
+  }, [], async () => payload);
+});
+
+test('the pure helpers: dayKind decides the colour, buildQuietDay builds the dialog', async () => {
+  const { dayKind, buildQuietDay, groupQuietDays } = await import(recordsUrl);
+  const withScore = (severityScore: number | null) => checkin(at(2, 9), { symptoms: [symptom('s', 'x', { severityScore })] });
+  assert.equal(dayKind([withScore(5)], undefined), 'pain');
+  assert.equal(dayKind([withScore(null)], undefined), 'pain');
+  assert.equal(dayKind([withScore(0)], undefined), 'calm');
+  assert.equal(dayKind([checkin(at(2, 9), { diet: [diet('d', 'Toast')] })], quiet('2026-09-02', { pain: 9 })), 'calm');
+  assert.equal(dayKind(undefined, quiet('2026-09-02', { pain: 1 })), 'pain');
+  assert.equal(dayKind(undefined, quiet('2026-09-02', { pain: 0 })), 'calm');
+  assert.equal(dayKind(undefined, quiet('2026-09-02', { pain: null })), null);
+  assert.equal(dayKind(undefined, undefined), null);
+  assert.deepEqual([...groupQuietDays({ quietDays: [{ date: '2026-09-02' }, { date: 'soon' }, null, { pain: 1 }] }).keys()], ['2026-09-02']);
+  assert.equal(groupQuietDays(undefined).size, 0);
+  const built = buildQuietDay(quiet('2026-09-02', { pain: 0, taken: 2, due: 2, note: 'No symptoms reported.' }));
+  assert.deepEqual(built.groups.map((group: any) => group.title), ['Medications']);
+  assert.equal(built.notes[0].text, 'Quiet day · no pain reported');
+});
+
+test('the example person from the backend fills the whole month: every one of his 30 days has a dot that matches Trends', async () => {
+  const today = new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate()).toLocaleDateString('en-CA');
+  const payload = JSON.parse(JSON.stringify({ source: 'demo', name: 'Arthur Itis', checkins: arthritisRecords(today), quietDays: arthritisQuietDays(today) }));
+  const series = arthritisSeries(today, 30);
+  assert.equal(series.length, 30);
+  await withRecords(page => {
+    const inMonth = series.filter(day => day.date.startsWith('2026-09'));
+    const inAugust = series.filter(day => day.date.startsWith('2026-08'));
+    const check = (days: typeof series, month: number) => {
+      for (const day of days) {
+        const cell = page.day(Number(day.date.slice(-2)), month);
+        const kind = cell.querySelector('.records-dot')?.classList.contains('is-pain') ? 'pain' : cell.querySelector('.records-dot')?.classList.contains('is-calm') ? 'calm' : null;
+        // Trends draws pain above 0 as pain, and 0 as none. A reported symptom with no score (September 10) is pain too.
+        const expected = day.pain === null ? 'pain' : day.pain > 0 ? 'pain' : 'calm';
+        assert.equal(kind, expected, `${day.date} (Trends pain ${day.pain})`);
+      }
+    };
+    check(inMonth, 9);
+    page.$('#recordsPrev').click();
+    check(inAugust, 8);
+    assert.equal(inMonth.length + inAugust.length, 30);
+    assert.equal(page.$$('.records-day.has-records').length, inAugust.length); // Aug 22 to 31; the earlier days have nothing
+    assert.equal(dotOf(page, 21, 8).kind, null);
+    // A quiet day and a check-in day both open.
+    page.open(23, 8);
+    assert.equal(page.$('.records-note').textContent, 'Quiet day · no pain reported');
+  }, [], async () => payload);
 });

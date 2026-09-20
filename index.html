@@ -449,7 +449,7 @@
     </aside>
 
     <main class="main">
-      <header class="topbar"><div class="crumb">Mary / Home</div><div class="top-actions"><span class="demo-toggle" id="demoToggle"></span><button class="icon-button" aria-label="Notifications">♢</button><div class="avatar">M</div></div></header>
+      <header class="topbar"><div class="crumb">Mary / Home</div><div class="top-actions"><span class="demo-toggle" id="demoToggle"></span><button type="button" class="avatar" id="profileButton" aria-label="Open your profile">M</button></div></header>
       <section class="patient-home" aria-label="Patient home">
         <div class="patient-greeting"><div class="eyebrow" style="color: var(--forest)">Your health today</div><h1>Good morning, Mary</h1><div class="patient-date" id="patientDate">Friday, September 18</div></div>
         <p class="patient-prompt">Tell me how you’re feeling</p>
@@ -517,7 +517,7 @@
             <button type="button" class="records-month-button" id="recordsNext" aria-label="Next month">›</button>
           </div>
           <div class="records-grid" id="recordsGrid" role="grid" aria-labelledby="recordsMonthTitle"></div>
-          <p class="records-legend"><span class="records-dot" aria-hidden="true"></span>Days with check-ins</p>
+          <p class="records-legend"><span class="records-legend-item"><span class="records-dot is-pain" aria-hidden="true"></span>Pain recorded</span><span class="records-legend-item"><span class="records-dot is-calm" aria-hidden="true"></span>No pain reported</span></p>
         </article>
 
         <div class="today-heading">Prepare for your visit</div>
