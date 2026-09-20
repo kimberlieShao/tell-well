@@ -60,6 +60,10 @@ function apply(doc, story) {
   }
   const missed = story.medications.filter(m => m.status === 'missed');
   if (tiles[2]) {
+    // The card shows a plain value here, not the browser's own dose counts, so it takes the same big type as the other tiles.
+    const value = tiles[2].querySelector('.patient-metric-value');
+    value.classList.remove('med-progress-list');
+    value.removeAttribute('aria-label');
     tiles[2].querySelector('.patient-metric-value').textContent = missed.length ? `${missed.length} missed` : 'On track';
     tiles[2].querySelector('.patient-metric-foot').textContent = missed.length
       ? `${missed.map(m => m.name).join(', ')} ${missed[0].time}`
