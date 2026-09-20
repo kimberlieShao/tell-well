@@ -52,7 +52,7 @@
 .wearable-live-value { display: flex; align-items: baseline; gap: 8px; margin-top: 12px; }
 .wearable-live-value strong { font: 400 42px/1 Georgia, serif; letter-spacing: -.5px; font-variant-numeric: tabular-nums; }
 .wearable-live-value span { color: #c4d9ca; font: 700 13px Arial, sans-serif; }
-.wearable-live-note { display: none; margin: 12px 0 0; color: #ffffff; font: 400 15px/1.35 Georgia, serif; }
+.wearable-live-note { display: none; margin: 12px 0 0; font: 400 15px/1.35 Georgia, serif; }
 .wearable-live.no-live-source:not(.is-live) .wearable-live-value { display: none; }
 .wearable-live.no-live-source:not(.is-live) .wearable-live-note { display: block; }
 .wearable-live-heart { flex: none; width: 66px; height: 61px; }
@@ -287,6 +287,7 @@ button.avatar:focus-visible { outline: 2px solid var(--forest); outline-offset: 
 /* The live panel uses the same green, with dark text so it stays readable */
 .wearable-live { color: #17211b; border-color: #c9dc8a; background: #ddeb9d; }
 .wearable-live-label, .wearable-live-value span { color: #2c4019; }
+.wearable-live-note { color: #17211b; }
 .wearable-live-pill { color: #2c4019; background: rgba(255, 253, 246, .75); }
 .wearable-live.is-live .wearable-live-pill { color: #ffffff; background: #46702a; }
 .wearable-connect { border-color: #ddeb9d; background: #f6fae6; }
