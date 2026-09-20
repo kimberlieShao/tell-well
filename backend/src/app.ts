@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { ZodError, z } from 'zod';
 import { BiometricsUnavailable, metricKeys, reading, type BiometricsSource } from './biometrics.js';
 import { CheckinLog } from './checkin-log.js';
+import { arthritisCheckins, arthritisSource, arthritisToday, DEMO_NAME } from './demo-story.js';
 import { evaluateNudges, feedbackFor, type Nudge } from './nudges.js';
 import { Checkins } from './checkins.js';
 import { ApiError } from './errors.js';
@@ -15,6 +16,10 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
   const app = express();
   const store = config.store ?? new Checkins(extractor);
   const log = config.log ?? new CheckinLog();
+  // The Arthur Itis demo: an example person with rheumatoid arthritis. Off by default, so the
+  // app shows the real wearable and the real check-ins.
+  let demo = false;
+  const demoNights = arthritisSource(() => log.today());
   const origins = new Set(config.origins ?? ['http://localhost:8081', 'http://localhost:5500', 'http://127.0.0.1:5500']);
   app.disable('x-powered-by');
   app.use((req, res, next) => {
@@ -83,7 +88,9 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
     const { days } = z.object({ days: z.coerce.number().int().min(1).max(90).default(7) }).parse(req.query);
     try {
       if (!config.wearable) throw new BiometricsUnavailable('not_configured', 'No wearable is set up on the server.');
-      const rows = (await config.wearable.fetchDays(Math.max(38, days))).sort((a, b) => a.date.localeCompare(b.date));
+      // The demo keeps the real wearable when the connector answers, and falls back to example nights.
+      const source = demo ? await config.wearable.fetchDays(Math.max(38, days)).catch(() => demoNights.fetchDays(Math.max(38, days))) : await config.wearable.fetchDays(Math.max(38, days));
+      const rows = source.sort((a, b) => a.date.localeCompare(b.date));
       const last = rows.findLast(r => metricKeys.some(k => r[k] !== null));
       const readings = last ? Object.fromEntries(metricKeys.map(k => [k, reading(rows, k, last, new Set())])) : {};
       res.json({ connected: true, source: config.wearable.name, date: last?.date ?? null, readings, days: rows.slice(-days) });
@@ -99,7 +106,8 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
     let wearable = config.wearable ? 'connected' : 'not_configured';
     if (config.wearable) {
       try {
-        nudges = evaluateNudges(await config.wearable.fetchDays(45), log.days(), log.feedback, log.today());
+        const rows = demo ? await config.wearable.fetchDays(45).catch(() => demoNights.fetchDays(45)) : await config.wearable.fetchDays(45);
+        nudges = evaluateNudges(rows, log.days(), log.feedback, log.today());
       } catch (error) {
         if (!(error instanceof BiometricsUnavailable)) throw error;
         wearable = error.reason;
@@ -113,6 +121,18 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
     res.json({ ok: true });
   });
   app.post('/api/nudges/read-alert', (_req, res) => { log.dismissAlert(); res.json({ ok: true }); });
+  // Demo toggle: the example person's week of check-ins, medications, blood pressure and patterns.
+  // The patterns quote whichever nights the card is showing, real or example.
+  // Enough nights to cover every day the example person checked in on, so the sleep pattern counts them all.
+  const nightsInUse = async () => config.wearable ? await config.wearable.fetchDays(40).catch(() => undefined) : undefined;
+  app.get('/api/demo', async (_req, res) => { res.json({ on: demo, name: DEMO_NAME, story: demo ? arthritisToday(log.today(), await nightsInUse()) : null }); });
+  app.post('/api/demo', async (req, res) => {
+    const { on } = z.strictObject({ on: z.boolean() }).parse(req.body);
+    demo = on;
+    if (on) log.seed(arthritisCheckins(log.today()).map(c => ({ date: c.date, symptoms: c.symptoms.map(s => ({ name: s.name, score: s.score })) })));
+    else log.clearSeed();
+    res.json({ on: demo, name: DEMO_NAME, story: demo ? arthritisToday(log.today(), await nightsInUse()) : null });
+  });
   app.use((_req, _res, next) => next(new ApiError(404, 'NOT_FOUND', 'Use POST /api/analyze or POST /api/checkin/save.')));
   const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
     if (error instanceof ZodError) {

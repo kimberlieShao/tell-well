@@ -159,6 +159,34 @@
 .more-card-icon { background: #fbe4de; }
 .more-card-icon svg { display: block; width: 30px; height: 30px; }
 
+/* Demo switch in the top bar, and the patterns card it turns on */
+.demo-toggle { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px 6px 10px; background: var(--surface); color: var(--muted); font: 700 11px Arial, sans-serif; }
+.demo-toggle input { accent-color: var(--forest); width: 15px; height: 15px; }
+.demo-toggle label { cursor: pointer; }
+body.demo-on .demo-toggle { color: var(--forest); border-color: #c9dc8a; background: #f6fae6; }
+.demo-patterns { display: grid; gap: 7px; border: 1px solid #ddeb9d; border-radius: 12px; padding: 16px 18px; margin-top: 22px; background: #f6fae6; color: var(--ink); font: 13px/1.55 Arial, sans-serif; }
+.demo-patterns[hidden] { display: none; }
+.demo-patterns strong { font: 400 18px/1.3 Georgia, serif; }
+.demo-patterns ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.demo-patterns li:last-child { color: var(--muted); }
+
+/* Demo charts in the Trends tab */
+.demo-chart-host { display: block; height: auto; border: 0; padding: 0; }
+.demo-chart { position: relative; }
+.demo-chart-svg { display: block; width: 100%; height: auto; }
+.demo-dot { cursor: pointer; transition: r .1s; }
+.demo-dot:hover, .demo-dot:focus-visible { r: 6; outline: none; }
+.demo-tip { position: absolute; top: -6px; width: max-content; max-width: 260px; transform: translateX(-50%); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; color: var(--ink); background: var(--surface); box-shadow: 0 6px 18px rgba(48, 66, 37, .12); font: 12px Arial, sans-serif; pointer-events: none; z-index: 2; }
+.demo-tip[hidden] { display: none; }
+.demo-axis { display: flex; justify-content: space-between; margin-top: 4px; color: var(--muted); font: 11px Arial, sans-serif; }
+.demo-legend { display: flex; gap: 14px; margin-top: 8px; color: var(--muted); font: 11px Arial, sans-serif; }
+.demo-legend-item::before { content: ''; display: inline-block; width: 9px; height: 9px; margin-right: 5px; border-radius: 50%; background: var(--dot); }
+.demo-strong { color: var(--forest); }
+.demo-med-strip { display: flex; flex-wrap: wrap; gap: 5px; }
+.demo-med-day { width: 15px; height: 15px; border-radius: 5px; background: #a0c878; cursor: default; }
+.demo-med-day.missed { background: #e8837f; }
+.demo-med-day.none { background: transparent; border: 1px dashed #cfc9a6; }
+
 /* Worth a look: safety alert and nudges */
 .signal-box { display: grid; gap: 10px; }
 .signal-calm { margin: 0; border: 1px solid var(--line); border-radius: 12px; padding: 15px 18px; color: var(--muted); background: var(--surface); font: 12.5px/1.55 Arial, sans-serif; }

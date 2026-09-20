@@ -1,6 +1,7 @@
 import './profile-store.js';
 import { mountVersionB } from './new-ui.js';
 import { mountMedications } from './medications.js';
+import { mountDemoToggle } from './demo-toggle.js';
 import { mountNudges } from './nudges.js';
 import { mountVisitSummary } from './visit-summary.js';
 import { mountWearable } from './wearable.js';
@@ -14,6 +15,7 @@ try {
     mountNudges(document);
     mountMedications(document);
     mountVisitSummary(document);
+    mountDemoToggle(document);
     document.documentElement.dataset.textSize=profile.accessibility?.textSize||'normal';
     document.documentElement.classList.toggle('reduce-motion',!!profile.accessibility?.reduceMotion);
   }

@@ -1,0 +1,1163 @@
+{
+  "about": "Example person for the demo toggle. Not a real patient. Check-ins use the same fields as a real saved record (backend/contracts/record.schema.json), so real data drops straight in. Dates are anchored on the newest check-in: the loader shifts the whole story forward so it always lands on the day of the demo.",
+  "name": "Arthur Itis",
+  "condition": "Rheumatoid arthritis",
+  "anchorDate": "2026-09-20",
+  "checkins": [
+    {
+      "sessionId": "5ff296fe-e5e3-464e-aafd-ab8f30deeb6d",
+      "savedAt": "2026-09-01T12:20:00Z",
+      "wellness": null,
+      "symptoms": [
+        {
+          "id": "e5cbd3b2-f1d1-4bee-bb91-fc5eb849d491",
+          "name": "Morning stiffness",
+          "location": "both hands",
+          "severity": "mild",
+          "severityScore": 3,
+          "trend": "same",
+          "functionalImpact": "Slow with buttons and the kettle",
+          "duration": "about 20 minutes"
+        }
+      ],
+      "medications": [
+        {
+          "id": "bd288904-1fdd-465e-b811-792c8ac74024",
+          "name": "Methotrexate",
+          "description": "Weekly tablet for rheumatoid arthritis",
+          "dose": "15 mg",
+          "status": "taken",
+          "time": "8:10 am"
+        },
+        {
+          "id": "d5952014-2ee8-4d89-985a-cd8eaab1de51",
+          "name": "Folic acid",
+          "description": "Taken alongside methotrexate",
+          "dose": "1 mg",
+          "status": "taken",
+          "time": "8:10 am"
+        }
+      ],
+      "diet": [
+        {
+          "id": "2a2ed7a1-abc7-46f5-bf2e-f2dde6a310f8",
+          "description": "Porridge and a banana",
+          "time": "breakfast",
+          "waterGlasses": 5,
+          "waterMode": "total"
+        }
+      ],
+      "vitals": [
+        {
+          "id": "36fb1913-e6d0-48d5-a9d2-dfcd17ccc9cf",
+          "name": "Blood pressure",
+          "value": "122/78",
+          "unit": "mmHg",
+          "time": "8:20 am"
+        }
+      ],
+      "reportedAnswers": [
+        {
+          "questionId": null,
+          "entityId": null,
+          "field": null,
+          "question": null,
+          "transcript": "Hands a bit stiff first thing, maybe twenty minutes, then fine. Took my methotrexate with breakfast.",
+          "interpretation": "recorded"
+        },
+        {
+          "questionId": "duration_1",
+          "entityId": "e5cbd3b2-f1d1-4bee-bb91-fc5eb849d491",
+          "field": "duration",
+          "question": "How long did the stiffness last?",
+          "transcript": "Twenty minutes or so, gone by the time I finished my tea.",
+          "interpretation": "recorded"
+        }
+      ]
+    },
+    {
+      "sessionId": "dafbb621-c0b4-4888-818d-13d5f554adbe",
+      "savedAt": "2026-09-07T12:05:00Z",
+      "wellness": {
+        "status": "well",
+        "statement": "Good day, no stiffness worth mentioning."
+      },
+      "symptoms": [],
+      "medications": [
+        {
+          "id": "d89a1b56-65af-4b34-9d4b-3ba084f37b20",
+          "name": "Folic acid",
+          "description": "Taken alongside methotrexate",
+          "dose": "1 mg",
+          "status": "taken",
+          "time": "8:05 am"
+        }
+      ],
+      "diet": [
+        {
+          "id": "626945cc-3809-4800-81f7-ff48483031dd",
+          "description": "Eggs on toast",
+          "time": "breakfast",
+          "waterGlasses": 6,
+          "waterMode": "total"
+        }
+      ],
+      "vitals": [
+        {
+          "id": "01825eda-d058-48f7-ae66-d6ed4b631ba3",
+          "name": "Blood pressure",
+          "value": "120/76",
+          "unit": "mmHg",
+          "time": "8:15 am"
+        }
+      ],
+      "reportedAnswers": [
+        {
+          "questionId": null,
+          "entityId": null,
+          "field": null,
+          "question": null,
+          "transcript": "Good day. No stiffness worth mentioning. Walked to the shop and back.",
+          "interpretation": "recorded"
+        }
+      ]
+    },
+    {
+      "sessionId": "16a1c195-935f-44bf-9c18-94312e429512",
+      "savedAt": "2026-09-10T13:40:00Z",
+      "wellness": null,
+      "symptoms": [
+        {
+          "id": "ffa6827e-afd9-483b-9206-10ed1ce7c4f2",
+          "name": "Joint pain",
+          "location": null,
+          "severity": null,
+          "severityScore": null,
+          "trend": null,
+          "functionalImpact": null,
+          "duration": null
+        }
+      ],
+      "medications": [],
+      "diet": [],
+      "vitals": [],
+      "reportedAnswers": [
+        {
+          "questionId": null,
+          "entityId": null,
+          "field": null,
+          "question": null,
+          "transcript": "Hands ache. Tired today.",
+          "interpretation": "recorded"
+        }
+      ]
+    },
+    {
+      "sessionId": "a8008b4c-643b-47d4-b5a3-b1c7f303546e",
+      "savedAt": "2026-09-14T14:30:00Z",
+      "wellness": null,
+      "symptoms": [
+        {
+          "id": "1a3e2d90-add5-460a-b254-7148a6aaf73a",
+          "name": "Joint pain",
+          "location": "right knee",
+          "severity": "moderate",
+          "severityScore": 4,
+          "trend": "worse",
+          "functionalImpact": "Took the stairs one at a time",
+          "duration": "about 2 hours",
+          "firstOccurrence": false
+        }
+      ],
+      "medications": [
+        {
+          "id": "daeef02b-219b-48ca-a8c3-516ace327f61",
+          "name": "Folic acid",
+          "description": "Taken alongside methotrexate",
+          "dose": "1 mg",
+          "status": "taken",
+          "time": "8:15 am"
+        }
+      ],
+      "diet": [
+        {
+          "id": "740db15a-84be-40dd-87a1-52f6e5cd5331",
+          "description": "Soup and bread",
+          "time": "lunch",
+          "waterGlasses": 4,
+          "waterMode": "total"
+        }
+      ],
+      "vitals": [
+        {
+          "id": "d19dc9ec-5f11-46a9-b9ae-fdad4e1e4411",
+          "name": "Blood pressure",
+          "value": "124/80",
+          "unit": "mmHg",
+          "time": "8:30 am"
+        }
+      ],
+      "reportedAnswers": [
+        {
+          "questionId": null,
+          "entityId": null,
+          "field": null,
+          "question": null,
+          "transcript": "Right knee sore after the stairs, eased off by lunchtime.",
+          "interpretation": "recorded"
+        },
+        {
+          "questionId": "impact_1",
+          "entityId": "1a3e2d90-add5-460a-b254-7148a6aaf73a",
+          "field": "functionalImpact",
+          "question": "Did it change what you could do?",
+          "transcript": "I had to take the stairs one at a time going up to the flat.",
+          "interpretation": "recorded"
+        }
+      ]
+    },
+    {
+      "sessionId": "9b0a999c-e857-4642-96a9-a17c806a6220",
+      "savedAt": "2026-09-16T12:50:00Z",
+      "wellness": null,
+      "symptoms": [
+        {
+          "id": "87e8b6f7-0ddc-4fb0-8c51-f9b386cfdd92",
+          "name": "Morning stiffness",
+          "location": "both hands",
+          "severity": "moderate",
+          "severityScore": 5,
+          "trend": "worse",
+          "functionalImpact": "Could not grip the kettle until mid-morning",
+          "duration": "about 1 hour"
+        }
+      ],
+      "medications": [
+        {
+          "id": "94186ed0-4e97-433f-a459-47d73eff9105",
+          "name": "Folic acid",
+          "description": "Taken alongside methotrexate",
+          "dose": "1 mg",
+          "status": "missed",
+          "time": "not taken"
+        }
+      ],
+      "diet": [
+        {
+          "id": "c582fc0a-bc29-4f26-9edf-9e46917aeba0",
+          "description": "Skipped breakfast, tea only",
+          "time": "morning",
+          "waterGlasses": 3,
+          "waterMode": "total"
+        }
+      ],
+      "vitals": [
+        {
+          "id": "224a32ed-3c42-44f4-b45a-a8bbba1125d0",
+          "name": "Blood pressure",
+          "value": "126/82",
+          "unit": "mmHg",
+          "time": "8:40 am"
+        }
+      ],
+      "reportedAnswers": [
+        {
+          "questionId": null,
+          "entityId": null,
+          "field": null,
+          "question": null,
+          "transcript": "Stiff for an hour this morning, both hands, and I slept badly. Forgot my folic acid.",
+          "interpretation": "recorded"
+        },
+        {
+          "questionId": "duration_1",
+          "entityId": "87e8b6f7-0ddc-4fb0-8c51-f9b386cfdd92",
+          "field": "duration",
+          "question": "How long did the stiffness last?",
+          "transcript": "An hour, maybe a bit more.",
+          "interpretation": "recorded"
+        }
+      ]
+    },
+    {
+      "sessionId": "39880dfb-6b87-4e86-92d2-feed174e0ea1",
+      "savedAt": "2026-09-17T12:15:00Z",
+      "wellness": null,
+      "symptoms": [
+        {
+          "id": "644139ce-f8db-4a02-a621-2034e8c77d02",
+          "name": "Morning stiffness",
+          "location": "both hands",
+          "severity": "moderate",
+          "severityScore": 5,
+          "trend": "same",
+          "functionalImpact": "Slow getting dressed",
+          "duration": "since waking"
+        }
+      ],
+      "medications": [
+        {
+          "id": "f0200079-59bf-4b03-b181-ca9bfea3b6d1",
+          "name": "Folic acid",
+          "description": "Taken alongside methotrexate",
+          "dose": "1 mg",
+          "status": "taken",
+          "time": "8:05 am"
+        }
+      ],
+      "diet": [
+        {
+          "id": "29c56173-9617-43be-bab5-89ef5b06e381",
+          "description": "Toast and coffee",
+          "time": "breakfast",
+          "waterGlasses": 2,
+          "waterMode": "total"
+        }
+      ],
+      "vitals": [
+        {
+          "id": "4e5a19ef-c1be-4026-b728-67f69b80fce3",
+          "name": "Blood pressure",
+          "value": "127/83",
+          "unit": "mmHg",
+          "time": "8:20 am"
+        }
+      ],
+      "reportedAnswers": [
+        {
+          "questionId": null,
+          "entityId": null,
+          "field": null,
+          "question": null,
+          "transcript": "Stiff again this morning, about the same as yesterday. Hands mostly.",
+          "interpretation": "recorded"
+        }
+      ]
+    },
+    {
+      "sessionId": "d2e0483e-9c8c-4cf2-980e-24c265ba5e0f",
+      "savedAt": "2026-09-17T21:30:00Z",
+      "wellness": null,
+      "symptoms": [
+        {
+          "id": "a7006c48-4274-48aa-a378-0e45d1cf0c78",
+          "name": "Joint pain",
+          "location": "hands and wrists",
+          "severity": "moderate",
+          "severityScore": 6,
+          "trend": "worse",
+          "functionalImpact": "Gave up on cooking, had a sandwich instead",
+          "duration": "most of the afternoon"
+        }
+      ],
+      "medications": [
+        {
+          "id": "702fe90a-89f5-4331-9a29-d6d75f5329aa",
+          "name": "Ibuprofen",
+          "description": "For pain, as needed",
+          "dose": "400 mg",
+          "status": "taken",
+          "time": "5:00 pm"
+        }
+      ],
+      "diet": [
+        {
+          "id": "2e76c344-0b62-45da-a353-75d6a573f2e3",
+          "description": "Sandwich, did not feel up to cooking",
+          "time": "dinner",
+          "waterGlasses": 5,
+          "waterMode": "total"
+        }
+      ],
+      "vitals": [],
+      "reportedAnswers": [
+        {
+          "questionId": null,
+          "entityId": null,
+          "field": null,
+          "question": null,
+          "transcript": "It got worse through the day. Hands and wrists ache now, worse than this morning.",
+          "interpretation": "recorded"
+        },
+        {
+          "questionId": "trend_1",
+          "entityId": "a7006c48-4274-48aa-a378-0e45d1cf0c78",
+          "field": "trend",
+          "question": "Is it better, the same, or worse than earlier?",
+          "transcript": "Worse. This morning it was just stiff, now it actually hurts.",
+          "interpretation": "recorded"
+        }
+      ]
+    },
+    {
+      "sessionId": "b495984d-222a-4933-b6cf-dcb85044dd5c",
+      "savedAt": "2026-09-18T12:10:00Z",
+      "wellness": null,
+      "symptoms": [
+        {
+          "id": "879ad0e8-639e-427f-88b9-4859ba0b88ac",
+          "name": "Joint pain",
+          "location": "wrists and knees",
+          "severity": "severe",
+          "severityScore": 7,
+          "trend": "worse",
+          "functionalImpact": "Could not open a jar",
+          "duration": "all day"
+        },
+        {
+          "id": "ce13073b-fb3e-470b-8324-ee1e362605bb",
+          "name": "Fatigue",
+          "location": "general",
+          "severity": "moderate",
+          "severityScore": 6,
+          "trend": "worse",
+          "functionalImpact": "Slept in the afternoon",
+          "duration": "all day"
+        }
+      ],
+      "medications": [
+        {
+          "id": "bf07c135-6b03-4639-90f3-0b385efbc288",
+          "name": "Folic acid",
+          "description": "Taken alongside methotrexate",
+          "dose": "1 mg",
+          "status": "taken",
+          "time": "8:00 am"
+        }
+      ],
+      "diet": [
+        {
+          "id": "904bae30-2958-4dea-a672-00af22fb8dec",
+          "description": "Cereal",
+          "time": "breakfast",
+          "waterGlasses": 4,
+          "waterMode": "total"
+        }
+      ],
+      "vitals": [
+        {
+          "id": "ad6a7ec7-b07b-4077-a636-c38d5f4d3dc0",
+          "name": "Blood pressure",
+          "value": "130/86",
+          "unit": "mmHg",
+          "time": "8:10 am"
+        }
+      ],
+      "reportedAnswers": [
+        {
+          "questionId": null,
+          "entityId": null,
+          "field": null,
+          "question": null,
+          "transcript": "Rough night. Wrists and knees hurt, hard to open a jar this morning.",
+          "interpretation": "recorded"
+        },
+        {
+          "questionId": "impact_1",
+          "entityId": "879ad0e8-639e-427f-88b9-4859ba0b88ac",
+          "field": "functionalImpact",
+          "question": "Did it change what you could do?",
+          "transcript": "I could not get the lid off the jam. Had to ask my daughter.",
+          "interpretation": "recorded"
+        },
+        {
+          "questionId": "score_1",
+          "entityId": "ce13073b-fb3e-470b-8324-ee1e362605bb",
+          "field": "severityScore",
+          "question": "How bad was the tiredness, nought to ten?",
+          "transcript": "Six I suppose. I had to lie down after lunch.",
+          "interpretation": "recorded"
+        }
+      ]
+    },
+    {
+      "sessionId": "4d45f354-f390-4cc2-a669-15941da09cf2",
+      "savedAt": "2026-09-19T13:00:00Z",
+      "wellness": null,
+      "symptoms": [
+        {
+          "id": "5dd54aa0-a9a5-4040-9802-9b76994089f4",
+          "name": "Joint pain",
+          "location": "wrists and knees",
+          "severity": "severe",
+          "severityScore": 7,
+          "trend": "same",
+          "functionalImpact": "Stayed in, did not manage the shopping",
+          "duration": "all day"
+        },
+        {
+          "id": "6a2dd021-def9-49d0-b7f7-0bda13cfcccc",
+          "name": "Fatigue",
+          "location": "general",
+          "severity": "moderate",
+          "severityScore": 6,
+          "trend": "same",
+          "functionalImpact": null,
+          "duration": "all day"
+        }
+      ],
+      "medications": [
+        {
+          "id": "209273ec-8ea7-4d4b-83a3-beb629cbf287",
+          "name": "Folic acid",
+          "description": "Taken alongside methotrexate",
+          "dose": "1 mg",
+          "status": "taken",
+          "time": "8:10 am"
+        }
+      ],
+      "diet": [
+        {
+          "id": "a0c26eed-6843-4dd4-b728-1c7481d5f094",
+          "description": "Not much of an appetite, toast",
+          "time": "lunch",
+          "waterGlasses": 3,
+          "waterMode": "total"
+        }
+      ],
+      "vitals": [
+        {
+          "id": "a7b90a5d-7114-4dfd-a4c4-c2cf1312498a",
+          "name": "Blood pressure",
+          "value": "131/85",
+          "unit": "mmHg",
+          "time": "8:25 am"
+        }
+      ],
+      "reportedAnswers": [
+        {
+          "questionId": null,
+          "entityId": null,
+          "field": null,
+          "question": null,
+          "transcript": "Much the same as yesterday. Stayed in, did not manage the shopping.",
+          "interpretation": "recorded"
+        }
+      ]
+    },
+    {
+      "sessionId": "58a8ff4f-27a5-4060-bbc9-f90d5e01a8b2",
+      "savedAt": "2026-09-20T12:15:00Z",
+      "wellness": null,
+      "symptoms": [
+        {
+          "id": "83a5b2ae-f8cd-4a1d-9cb3-4d6d338d37f4",
+          "name": "Morning stiffness",
+          "location": "both hands",
+          "severity": "severe",
+          "severityScore": 7,
+          "trend": "worse",
+          "functionalImpact": "Could not do buttons this morning",
+          "duration": "since waking, still going"
+        },
+        {
+          "id": "1ecb49c7-fa20-42b9-9256-9df0cb653ff3",
+          "name": "Joint pain",
+          "location": "both wrists",
+          "severity": "moderate",
+          "severityScore": 6,
+          "trend": "worse",
+          "functionalImpact": "Hard to push up out of a chair",
+          "duration": "since waking"
+        }
+      ],
+      "medications": [
+        {
+          "id": "e71d00db-39be-4178-8bff-d5871ca1ae76",
+          "name": "Methotrexate",
+          "description": "Weekly tablet for rheumatoid arthritis",
+          "dose": "15 mg",
+          "status": "missed",
+          "time": "due this morning"
+        },
+        {
+          "id": "c8dcb1bf-e96c-461e-9f51-05376698a125",
+          "name": "Folic acid",
+          "description": "Taken alongside methotrexate",
+          "dose": "1 mg",
+          "status": "taken",
+          "time": "8:05 am"
+        }
+      ],
+      "diet": [
+        {
+          "id": "627af84c-86f9-421b-8b50-65f1fb630a48",
+          "description": "Tea and toast",
+          "time": "breakfast",
+          "waterGlasses": 2,
+          "waterMode": "total"
+        }
+      ],
+      "vitals": [
+        {
+          "id": "90c237da-a20c-41e7-a4f1-10bd5d73cb73",
+          "name": "Blood pressure",
+          "value": "132/86",
+          "unit": "mmHg",
+          "time": "8:15 am"
+        }
+      ],
+      "reportedAnswers": [
+        {
+          "questionId": null,
+          "entityId": null,
+          "field": null,
+          "question": null,
+          "transcript": "Stiff since I woke up, hands worse than yesterday, and I have not taken my methotrexate.",
+          "interpretation": "recorded"
+        },
+        {
+          "questionId": "status_1",
+          "entityId": "e71d00db-39be-4178-8bff-d5871ca1ae76",
+          "field": "status",
+          "question": "Did you take the methotrexate?",
+          "transcript": "No, it is still in the packet. I meant to take it with breakfast.",
+          "interpretation": "recorded"
+        },
+        {
+          "questionId": "duration_1",
+          "entityId": "83a5b2ae-f8cd-4a1d-9cb3-4d6d338d37f4",
+          "field": "duration",
+          "question": "How long has the stiffness lasted?",
+          "transcript": "It has not gone off at all yet, and it is gone midday.",
+          "interpretation": "recorded"
+        }
+      ]
+    }
+  ],
+  "quietDays": [
+    {
+      "date": "2026-08-22",
+      "pain": 1,
+      "systolic": 118,
+      "diastolic": 76,
+      "taken": 1,
+      "due": 1,
+      "note": "Mild stiffness"
+    },
+    {
+      "date": "2026-08-23",
+      "pain": 0,
+      "systolic": 117,
+      "diastolic": 75,
+      "taken": 1,
+      "due": 1,
+      "note": "No symptoms reported"
+    },
+    {
+      "date": "2026-08-24",
+      "pain": 0,
+      "systolic": 117,
+      "diastolic": 75,
+      "taken": 1,
+      "due": 1,
+      "note": "No symptoms reported"
+    },
+    {
+      "date": "2026-08-25",
+      "pain": 1,
+      "systolic": 119,
+      "diastolic": 76,
+      "taken": 1,
+      "due": 1,
+      "note": "Mild stiffness"
+    },
+    {
+      "date": "2026-08-26",
+      "pain": 2,
+      "systolic": 121,
+      "diastolic": 77,
+      "taken": 1,
+      "due": 1,
+      "note": "Mild stiffness"
+    },
+    {
+      "date": "2026-08-27",
+      "pain": 3,
+      "systolic": 122,
+      "diastolic": 78,
+      "taken": 1,
+      "due": 1,
+      "note": "Morning stiffness, hands"
+    },
+    {
+      "date": "2026-08-28",
+      "pain": 2,
+      "systolic": 121,
+      "diastolic": 77,
+      "taken": 1,
+      "due": 1,
+      "note": "Mild stiffness"
+    },
+    {
+      "date": "2026-08-29",
+      "pain": 2,
+      "systolic": 120,
+      "diastolic": 77,
+      "taken": 0,
+      "due": 1,
+      "note": "Mild stiffness"
+    },
+    {
+      "date": "2026-08-30",
+      "pain": 2,
+      "systolic": 120,
+      "diastolic": 77,
+      "taken": 1,
+      "due": 1,
+      "note": "Mild stiffness"
+    },
+    {
+      "date": "2026-08-31",
+      "pain": 2,
+      "systolic": 122,
+      "diastolic": 78,
+      "taken": 1,
+      "due": 1,
+      "note": "Mild stiffness"
+    },
+    {
+      "date": "2026-09-02",
+      "pain": 3,
+      "systolic": 122,
+      "diastolic": 78,
+      "taken": 1,
+      "due": 1,
+      "note": "Morning stiffness, hands"
+    },
+    {
+      "date": "2026-09-03",
+      "pain": 1,
+      "systolic": 120,
+      "diastolic": 77,
+      "taken": 1,
+      "due": 1,
+      "note": "Mild stiffness"
+    },
+    {
+      "date": "2026-09-04",
+      "pain": 0,
+      "systolic": 119,
+      "diastolic": 76,
+      "taken": 1,
+      "due": 1,
+      "note": "No symptoms reported"
+    },
+    {
+      "date": "2026-09-05",
+      "pain": 0,
+      "systolic": 119,
+      "diastolic": 76,
+      "taken": 1,
+      "due": 1,
+      "note": "No symptoms reported"
+    },
+    {
+      "date": "2026-09-06",
+      "pain": 1,
+      "systolic": 120,
+      "diastolic": 77,
+      "taken": 1,
+      "due": 1,
+      "note": "Mild stiffness"
+    },
+    {
+      "date": "2026-09-08",
+      "pain": 1,
+      "systolic": 121,
+      "diastolic": 77,
+      "taken": 1,
+      "due": 1,
+      "note": "Mild stiffness"
+    },
+    {
+      "date": "2026-09-09",
+      "pain": 1,
+      "systolic": 119,
+      "diastolic": 76,
+      "taken": 1,
+      "due": 1,
+      "note": "Mild stiffness"
+    },
+    {
+      "date": "2026-09-11",
+      "pain": 1,
+      "systolic": 121,
+      "diastolic": 77,
+      "taken": 1,
+      "due": 1,
+      "note": "Mild stiffness"
+    },
+    {
+      "date": "2026-09-12",
+      "pain": 2,
+      "systolic": 123,
+      "diastolic": 78,
+      "taken": 1,
+      "due": 1,
+      "note": "Mild stiffness"
+    },
+    {
+      "date": "2026-09-13",
+      "pain": 3,
+      "systolic": 124,
+      "diastolic": 79,
+      "taken": 1,
+      "due": 1,
+      "note": "Morning stiffness, hands"
+    },
+    {
+      "date": "2026-09-15",
+      "pain": 2,
+      "systolic": 122,
+      "diastolic": 78,
+      "taken": 1,
+      "due": 1,
+      "note": "Mild stiffness"
+    }
+  ],
+  "nights": [
+    {
+      "date": "2026-08-14",
+      "restingHr": 59,
+      "hrv": 50,
+      "sleepHours": 7.43,
+      "skinTemp": 33.6,
+      "spo2": 97,
+      "respiratoryRate": 14.7
+    },
+    {
+      "date": "2026-08-15",
+      "restingHr": 58,
+      "hrv": 55,
+      "sleepHours": 7.49,
+      "skinTemp": 33.6,
+      "spo2": 97,
+      "respiratoryRate": 14.7
+    },
+    {
+      "date": "2026-08-16",
+      "restingHr": 60,
+      "hrv": 50,
+      "sleepHours": 7.1,
+      "skinTemp": 33.61,
+      "spo2": 96.9,
+      "respiratoryRate": 14.4
+    },
+    {
+      "date": "2026-08-17",
+      "restingHr": 59,
+      "hrv": 52,
+      "sleepHours": 7.1,
+      "skinTemp": 33.62,
+      "spo2": 97.1,
+      "respiratoryRate": 14.4
+    },
+    {
+      "date": "2026-08-18",
+      "restingHr": 59,
+      "hrv": 52,
+      "sleepHours": 7.3,
+      "skinTemp": 33.6,
+      "spo2": 96.8,
+      "respiratoryRate": 14.7
+    },
+    {
+      "date": "2026-08-19",
+      "restingHr": 60,
+      "hrv": 52,
+      "sleepHours": 7.07,
+      "skinTemp": 33.57,
+      "spo2": 97.1,
+      "respiratoryRate": 14.8
+    },
+    {
+      "date": "2026-08-20",
+      "restingHr": 59,
+      "hrv": 50,
+      "sleepHours": 7.13,
+      "skinTemp": 33.56,
+      "spo2": 96.8,
+      "respiratoryRate": 14.6
+    },
+    {
+      "date": "2026-08-21",
+      "restingHr": 59,
+      "hrv": 55,
+      "sleepHours": 7.5,
+      "skinTemp": 33.59,
+      "spo2": 97.1,
+      "respiratoryRate": 14.6
+    },
+    {
+      "date": "2026-08-22",
+      "restingHr": 60,
+      "hrv": 48,
+      "sleepHours": 7.39,
+      "skinTemp": 33.64,
+      "spo2": 96.9,
+      "respiratoryRate": 14.6
+    },
+    {
+      "date": "2026-08-23",
+      "restingHr": 58,
+      "hrv": 55,
+      "sleepHours": 7.33,
+      "skinTemp": 33.66,
+      "spo2": 97,
+      "respiratoryRate": 14.4
+    },
+    {
+      "date": "2026-08-24",
+      "restingHr": 59,
+      "hrv": 51,
+      "sleepHours": 7.61,
+      "skinTemp": 33.61,
+      "spo2": 97,
+      "respiratoryRate": 14.5
+    },
+    {
+      "date": "2026-08-25",
+      "restingHr": 59,
+      "hrv": 52,
+      "sleepHours": 7.43,
+      "skinTemp": 33.54,
+      "spo2": 96.9,
+      "respiratoryRate": 14.8
+    },
+    {
+      "date": "2026-08-26",
+      "restingHr": 58,
+      "hrv": 52,
+      "sleepHours": 7.14,
+      "skinTemp": 33.53,
+      "spo2": 97.1,
+      "respiratoryRate": 14.8
+    },
+    {
+      "date": "2026-08-27",
+      "restingHr": 60,
+      "hrv": 53,
+      "sleepHours": 7.32,
+      "skinTemp": 33.59,
+      "spo2": 96.8,
+      "respiratoryRate": 14.5
+    },
+    {
+      "date": "2026-08-28",
+      "restingHr": 59,
+      "hrv": 50,
+      "sleepHours": 7.22,
+      "skinTemp": 33.67,
+      "spo2": 97.1,
+      "respiratoryRate": 14.5
+    },
+    {
+      "date": "2026-08-29",
+      "restingHr": 59,
+      "hrv": 55,
+      "sleepHours": 6.95,
+      "skinTemp": 33.68,
+      "spo2": 96.8,
+      "respiratoryRate": 14.6
+    },
+    {
+      "date": "2026-08-30",
+      "restingHr": 60,
+      "hrv": 50,
+      "sleepHours": 7.23,
+      "skinTemp": 33.61,
+      "spo2": 97.1,
+      "respiratoryRate": 14.5
+    },
+    {
+      "date": "2026-08-31",
+      "restingHr": 59,
+      "hrv": 52,
+      "sleepHours": 7.38,
+      "skinTemp": 33.52,
+      "spo2": 96.8,
+      "respiratoryRate": 14.6
+    },
+    {
+      "date": "2026-09-01",
+      "restingHr": 59,
+      "hrv": 53,
+      "sleepHours": 7.19,
+      "skinTemp": 33.51,
+      "spo2": 97,
+      "respiratoryRate": 14.8
+    },
+    {
+      "date": "2026-09-02",
+      "restingHr": 59,
+      "hrv": 50,
+      "sleepHours": 7.44,
+      "skinTemp": 33.59,
+      "spo2": 96.9,
+      "respiratoryRate": 14.7
+    },
+    {
+      "date": "2026-09-03",
+      "restingHr": 58,
+      "hrv": 54,
+      "sleepHours": 7.63,
+      "skinTemp": 33.68,
+      "spo2": 96.9,
+      "respiratoryRate": 14.4
+    },
+    {
+      "date": "2026-09-04",
+      "restingHr": 59,
+      "hrv": 52,
+      "sleepHours": 7.32,
+      "skinTemp": 33.69,
+      "spo2": 97,
+      "respiratoryRate": 14.4
+    },
+    {
+      "date": "2026-09-05",
+      "restingHr": 59,
+      "hrv": 51,
+      "sleepHours": 7.33,
+      "skinTemp": 33.61,
+      "spo2": 96.8,
+      "respiratoryRate": 14.7
+    },
+    {
+      "date": "2026-09-06",
+      "restingHr": 58,
+      "hrv": 52,
+      "sleepHours": 7.46,
+      "skinTemp": 33.52,
+      "spo2": 97.1,
+      "respiratoryRate": 14.7
+    },
+    {
+      "date": "2026-09-07",
+      "restingHr": 60,
+      "hrv": 53,
+      "sleepHours": 7.1,
+      "skinTemp": 33.51,
+      "spo2": 96.8,
+      "respiratoryRate": 14.6
+    },
+    {
+      "date": "2026-09-08",
+      "restingHr": 59,
+      "hrv": 49,
+      "sleepHours": 7.03,
+      "skinTemp": 33.59,
+      "spo2": 97.1,
+      "respiratoryRate": 14.7
+    },
+    {
+      "date": "2026-09-09",
+      "restingHr": 59,
+      "hrv": 56,
+      "sleepHours": 7.3,
+      "skinTemp": 33.68,
+      "spo2": 96.8,
+      "respiratoryRate": 14.7
+    },
+    {
+      "date": "2026-09-10",
+      "restingHr": 60,
+      "hrv": 48,
+      "sleepHours": 7.15,
+      "skinTemp": 33.69,
+      "spo2": 97,
+      "respiratoryRate": 14.4
+    },
+    {
+      "date": "2026-09-11",
+      "restingHr": 58,
+      "hrv": 54,
+      "sleepHours": 7.13,
+      "skinTemp": 33.61,
+      "spo2": 96.9,
+      "respiratoryRate": 14.4
+    },
+    {
+      "date": "2026-09-12",
+      "restingHr": 59,
+      "hrv": 52,
+      "sleepHours": 7.52,
+      "skinTemp": 33.52,
+      "spo2": 96.9,
+      "respiratoryRate": 14.7
+    },
+    {
+      "date": "2026-09-13",
+      "restingHr": 59,
+      "hrv": 52,
+      "sleepHours": 7.48,
+      "skinTemp": 33.52,
+      "spo2": 97,
+      "respiratoryRate": 14.7
+    },
+    {
+      "date": "2026-09-14",
+      "restingHr": 58,
+      "hrv": 51,
+      "sleepHours": 7.31,
+      "skinTemp": 33.6,
+      "spo2": 96.8,
+      "respiratoryRate": 14.6
+    },
+    {
+      "date": "2026-09-15",
+      "restingHr": 59,
+      "hrv": 54,
+      "sleepHours": 7.55,
+      "skinTemp": 33.67,
+      "spo2": 97,
+      "respiratoryRate": 14.6
+    },
+    {
+      "date": "2026-09-16",
+      "restingHr": 59,
+      "hrv": 49,
+      "sleepHours": 7.44,
+      "skinTemp": 33.67,
+      "spo2": 96.8,
+      "respiratoryRate": 14.6
+    },
+    {
+      "date": "2026-09-17",
+      "restingHr": 58,
+      "hrv": 55,
+      "sleepHours": 7.09,
+      "skinTemp": 33.6,
+      "spo2": 97.1,
+      "respiratoryRate": 14.4
+    },
+    {
+      "date": "2026-09-18",
+      "restingHr": 63,
+      "hrv": 45,
+      "sleepHours": 6.68,
+      "skinTemp": 33.71,
+      "spo2": 96.5,
+      "respiratoryRate": 15
+    },
+    {
+      "date": "2026-09-19",
+      "restingHr": 65,
+      "hrv": 41,
+      "sleepHours": 6.16,
+      "skinTemp": 33.88,
+      "spo2": 96.5,
+      "respiratoryRate": 15.7
+    },
+    {
+      "date": "2026-09-20",
+      "restingHr": 68,
+      "hrv": 37,
+      "sleepHours": 5.33,
+      "skinTemp": 34.11,
+      "spo2": 96.1,
+      "respiratoryRate": 16.1
+    }
+  ]
+}
