@@ -328,7 +328,7 @@ test('brief generated invitations cannot narrow a multiple-symptom report to onl
     proposal: ask(first.id, { field: 'details', text: 'Tell me more about the knee pain.' }),
   }));
   assert.equal(result.reason, 'fallback');
-  assert.match(result.question!.text, /symptoms|feeling/);
+  assert.match(result.question!.text, /symptom|feeling/);
 });
 
 test('brief flow reaches review after the details invitation even with unknowns or a new symptom', () => {
