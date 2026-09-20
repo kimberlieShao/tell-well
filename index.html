@@ -431,6 +431,7 @@
   </style>
   <link rel="stylesheet" href="/frontend/integration.css">
   <link rel="stylesheet" href="/frontend/home.css">
+  <link rel="stylesheet" href="/frontend/records.css">
 </head>
 <body>
   <div class="app-shell">
@@ -438,6 +439,7 @@
       <div class="brand"><span class="brand-mark"><svg viewBox="-4 -4 108 100" aria-hidden="true" focusable="false"><path d="M50 88 C18 66 6 48 6 32 C6 17 17 7 30 7 C39 7 46 12 50 19 C54 12 61 7 70 7 C83 7 94 17 94 32 C94 48 82 66 50 88 Z" fill="#ec7d68"/><circle cx="37" cy="37" r="4" fill="#17211b"/><circle cx="63" cy="37" r="4" fill="#17211b"/><path d="M36 50 C42 61 58 61 64 49" fill="none" stroke="#17211b" stroke-width="4.4" stroke-linecap="round"/></svg></span><span>Tell-Well</span></div>
       <nav class="nav" aria-label="Primary navigation">
         <button class="nav-button active" id="desktopHomeNav"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="#ec7d68"><path d="M12 2.6 C13 2.6 21.4 9.4 21.6 10.6 C21.8 12 20.4 12.6 19.4 12 L19.4 19.4 C19.4 20.8 18.4 21.6 17 21.6 L7 21.6 C5.6 21.6 4.6 20.8 4.6 19.4 L4.6 12 C3.6 12.6 2.2 12 2.4 10.6 C2.6 9.4 11 2.6 12 2.6 Z"/></svg></span><span>Home</span></button>
+        <button class="nav-button" id="desktopRecordsNav"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="#ec7d68"><path fill-rule="evenodd" d="M5.6 5 C9 4.6 15 4.6 18.4 5 C19.8 5.2 20.8 6.2 20.8 7.6 L20.8 18.6 C20.8 20.2 19.6 21.2 18.2 21.2 L5.8 21.2 C4.4 21.2 3.2 20.2 3.2 18.6 L3.2 7.6 C3.2 6.2 4.2 5.2 5.6 5 Z M5.6 9 L18.4 9 L18.4 10.4 L5.6 10.4 Z M8 12.3 A1.2 1.2 0 1 0 8 14.7 A1.2 1.2 0 1 0 8 12.3 Z M12 12.3 A1.2 1.2 0 1 0 12 14.7 A1.2 1.2 0 1 0 12 12.3 Z M16 12.3 A1.2 1.2 0 1 0 16 14.7 A1.2 1.2 0 1 0 16 12.3 Z M8 16.6 A1.2 1.2 0 1 0 8 19 A1.2 1.2 0 1 0 8 16.6 Z M12 16.6 A1.2 1.2 0 1 0 12 19 A1.2 1.2 0 1 0 12 16.6 Z"/><path d="M8 2.8 L8 6.4 M16 2.8 L16 6.4" fill="none" stroke="#ec7d68" stroke-width="2.4" stroke-linecap="round"/></svg></span><span>Records</span></button>
         <button class="nav-button" id="desktopTrendsNav"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="#ec7d68"><path d="M3 17.6 C5.6 15 8 11.4 10.6 9.4 C12 10.2 12.4 12.6 13.8 13 C16 13.4 18.6 8.2 21 5.8" fill="none" stroke="#ec7d68" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="21" cy="5.8" r="2.4"/><circle cx="10.6" cy="9.4" r="2.2"/></svg></span><span>Trends</span></button>
         <button class="nav-button" id="desktopMealsNav"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="#ec7d68"><path d="M3.4 9.6 C8.6 8.8 15.4 8.8 20.6 9.6 C21.6 10 21.4 12.4 20.4 14.6 C19 17.8 15.8 20 12 20 C8.2 20 5 17.8 3.6 14.6 C2.6 12.4 2.4 10 3.4 9.6 Z"/><path d="M6.4 3 C7.2 4.2 7.2 5.8 6.4 7.2"  fill="none" stroke="#ec7d68" stroke-width="2" stroke-linecap="round"/><path d="M12 2.6 C12.8 4 12.8 5.8 12 7.2" fill="none" stroke="#ec7d68" stroke-width="2" stroke-linecap="round"/><path d="M17.6 3 C18.4 4.2 18.4 5.8 17.6 7.2" fill="none" stroke="#ec7d68" stroke-width="2" stroke-linecap="round"/></svg></span><span>Meals</span></button>
         <button class="nav-button" id="desktopMoreNav"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="#ec7d68"><circle cx="5.4" cy="12" r="2.6"/><circle cx="12" cy="12" r="2.6"/><circle cx="18.6" cy="12" r="2.6"/></svg></span><span>More</span></button>
@@ -495,6 +497,27 @@
           <select id="medWhen" aria-label="When you take it"><option>Morning</option><option>Afternoon</option><option>Evening</option><option>As needed</option></select>
           <button type="submit">Add medication</button>
         </form>
+        <div class="today-heading">Connect a device</div>
+        <article class="wearable-connect">
+          <button class="home-button" id="connectHr" type="button">Connect device</button>
+          <p class="wearable-connect-status" id="liveStatus" role="status">Not connected</p>
+        </article>
+      </section>
+      <section id="recordsView" class="patient-secondary-view" hidden>
+        <div class="eyebrow" style="color: var(--forest)">Your health</div>
+        <h1>Records</h1>
+        <p class="patient-prompt" style="font-size: 16px">Look back at what you shared in past check-ins.</p>
+
+        <article class="card records-calendar" aria-label="Check-in calendar">
+          <div class="records-month">
+            <button type="button" class="records-month-button" id="recordsPrev" aria-label="Previous month">‹</button>
+            <h2 class="records-month-title" id="recordsMonthTitle" aria-live="polite">September 2026</h2>
+            <button type="button" class="records-month-button" id="recordsNext" aria-label="Next month">›</button>
+          </div>
+          <div class="records-grid" id="recordsGrid" role="grid" aria-labelledby="recordsMonthTitle"></div>
+          <p class="records-legend"><span class="records-dot" aria-hidden="true"></span>Days with check-ins</p>
+        </article>
+
         <div class="today-heading">Prepare for your visit</div>
         <article class="visit-card">
           <div>
@@ -503,15 +526,16 @@
           </div>
           <div class="visit-actions">
             <select id="visitDays" aria-label="How much history to include"><option value="30" selected>Last 30 days</option><option value="60">Last 60 days</option><option value="90">Last 90 days</option></select>
-            <button class="home-button" id="visitSummaryButton" type="button">Download PDF summary</button>
+            <button class="home-button" id="visitSummaryButton" type="button">Download doctor summary</button>
           </div>
         </article>
-        <div class="today-heading">Connect a device</div>
-        <article class="wearable-connect">
-          <button class="home-button" id="connectHr" type="button">Connect device</button>
-          <p class="wearable-connect-status" id="liveStatus" role="status">Not connected</p>
-        </article>
       </section>
+      <div class="flow-overlay records-dialog" id="recordsDay" role="dialog" aria-modal="true" aria-labelledby="recordsDayTitle">
+        <div class="flow-panel">
+          <div class="flow-top"><span class="records-dialog-spacer" aria-hidden="true"></span><h2 class="flow-title" id="recordsDayTitle"></h2><button type="button" class="flow-close" id="recordsDayClose" aria-label="Close day details">×</button></div>
+          <div class="records-dialog-body" id="recordsDayBody"></div>
+        </div>
+      </div>
       <section id="trendsView" class="patient-secondary-view" hidden>
         <div class="eyebrow" style="color: var(--forest)">Your health</div>
         <h1>Health Trends</h1>
@@ -627,7 +651,7 @@
         <div><div class="eyebrow" style="color: var(--forest)">Patient overview · demo record</div><h1>Good morning, Alex.</h1><p class="subtitle">A calm view of the signals that matter today.</p></div>
         <div class="patient-picker"><label for="patient">Viewing patient</label><select id="patient"><option>Alex Morgan · PT-2048</option><option>Jamie Lee · PT-1981</option><option>Riley Chen · PT-2160</option></select></div>
       </section>
-      <nav class="mobile-nav" aria-label="Patient navigation"><button class="mobile-nav-item active" id="homeNav"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="#ec7d68"><path d="M12 2.6 C13 2.6 21.4 9.4 21.6 10.6 C21.8 12 20.4 12.6 19.4 12 L19.4 19.4 C19.4 20.8 18.4 21.6 17 21.6 L7 21.6 C5.6 21.6 4.6 20.8 4.6 19.4 L4.6 12 C3.6 12.6 2.2 12 2.4 10.6 C2.6 9.4 11 2.6 12 2.6 Z"/></svg><span>Home</span></button><button class="mobile-nav-item" id="trendsNav"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="#ec7d68"><path d="M3 17.6 C5.6 15 8 11.4 10.6 9.4 C12 10.2 12.4 12.6 13.8 13 C16 13.4 18.6 8.2 21 5.8" fill="none" stroke="#ec7d68" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="21" cy="5.8" r="2.4"/><circle cx="10.6" cy="9.4" r="2.2"/></svg><span>Trends</span></button><button class="mobile-nav-item" id="mealsNav"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="#ec7d68"><path d="M3.4 9.6 C8.6 8.8 15.4 8.8 20.6 9.6 C21.6 10 21.4 12.4 20.4 14.6 C19 17.8 15.8 20 12 20 C8.2 20 5 17.8 3.6 14.6 C2.6 12.4 2.4 10 3.4 9.6 Z"/><path d="M6.4 3 C7.2 4.2 7.2 5.8 6.4 7.2"  fill="none" stroke="#ec7d68" stroke-width="2" stroke-linecap="round"/><path d="M12 2.6 C12.8 4 12.8 5.8 12 7.2" fill="none" stroke="#ec7d68" stroke-width="2" stroke-linecap="round"/><path d="M17.6 3 C18.4 4.2 18.4 5.8 17.6 7.2" fill="none" stroke="#ec7d68" stroke-width="2" stroke-linecap="round"/></svg><span>Meals</span></button><button class="mobile-nav-item" id="moreNav"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="#ec7d68"><circle cx="5.4" cy="12" r="2.6"/><circle cx="12" cy="12" r="2.6"/><circle cx="18.6" cy="12" r="2.6"/></svg><span>More</span></button></nav>
+      <nav class="mobile-nav" aria-label="Patient navigation"><button class="mobile-nav-item active" id="homeNav"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="#ec7d68"><path d="M12 2.6 C13 2.6 21.4 9.4 21.6 10.6 C21.8 12 20.4 12.6 19.4 12 L19.4 19.4 C19.4 20.8 18.4 21.6 17 21.6 L7 21.6 C5.6 21.6 4.6 20.8 4.6 19.4 L4.6 12 C3.6 12.6 2.2 12 2.4 10.6 C2.6 9.4 11 2.6 12 2.6 Z"/></svg><span>Home</span></button><button class="mobile-nav-item" id="recordsNav"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="#ec7d68"><path fill-rule="evenodd" d="M5.6 5 C9 4.6 15 4.6 18.4 5 C19.8 5.2 20.8 6.2 20.8 7.6 L20.8 18.6 C20.8 20.2 19.6 21.2 18.2 21.2 L5.8 21.2 C4.4 21.2 3.2 20.2 3.2 18.6 L3.2 7.6 C3.2 6.2 4.2 5.2 5.6 5 Z M5.6 9 L18.4 9 L18.4 10.4 L5.6 10.4 Z M8 12.3 A1.2 1.2 0 1 0 8 14.7 A1.2 1.2 0 1 0 8 12.3 Z M12 12.3 A1.2 1.2 0 1 0 12 14.7 A1.2 1.2 0 1 0 12 12.3 Z M16 12.3 A1.2 1.2 0 1 0 16 14.7 A1.2 1.2 0 1 0 16 12.3 Z M8 16.6 A1.2 1.2 0 1 0 8 19 A1.2 1.2 0 1 0 8 16.6 Z M12 16.6 A1.2 1.2 0 1 0 12 19 A1.2 1.2 0 1 0 12 16.6 Z"/><path d="M8 2.8 L8 6.4 M16 2.8 L16 6.4" fill="none" stroke="#ec7d68" stroke-width="2.4" stroke-linecap="round"/></svg><span>Records</span></button><button class="mobile-nav-item" id="trendsNav"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="#ec7d68"><path d="M3 17.6 C5.6 15 8 11.4 10.6 9.4 C12 10.2 12.4 12.6 13.8 13 C16 13.4 18.6 8.2 21 5.8" fill="none" stroke="#ec7d68" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="21" cy="5.8" r="2.4"/><circle cx="10.6" cy="9.4" r="2.2"/></svg><span>Trends</span></button><button class="mobile-nav-item" id="mealsNav"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="#ec7d68"><path d="M3.4 9.6 C8.6 8.8 15.4 8.8 20.6 9.6 C21.6 10 21.4 12.4 20.4 14.6 C19 17.8 15.8 20 12 20 C8.2 20 5 17.8 3.6 14.6 C2.6 12.4 2.4 10 3.4 9.6 Z"/><path d="M6.4 3 C7.2 4.2 7.2 5.8 6.4 7.2"  fill="none" stroke="#ec7d68" stroke-width="2" stroke-linecap="round"/><path d="M12 2.6 C12.8 4 12.8 5.8 12 7.2" fill="none" stroke="#ec7d68" stroke-width="2" stroke-linecap="round"/><path d="M17.6 3 C18.4 4.2 18.4 5.8 17.6 7.2" fill="none" stroke="#ec7d68" stroke-width="2" stroke-linecap="round"/></svg><span>Meals</span></button><button class="mobile-nav-item" id="moreNav"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="#ec7d68"><circle cx="5.4" cy="12" r="2.6"/><circle cx="12" cy="12" r="2.6"/><circle cx="18.6" cy="12" r="2.6"/></svg><span>More</span></button></nav>
       <div class="status-strip legacy-dashboard"><span class="status-dot"></span><strong>No health source connected</strong><span>Only reported data is included</span></div>
 
       <section class="card voice-checkin legacy-dashboard" aria-labelledby="voiceTitle">

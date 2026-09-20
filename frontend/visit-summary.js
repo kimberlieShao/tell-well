@@ -17,7 +17,7 @@ export function mountVisitSummary(doc, { apiBase = '' } = {}) {
       printSummary(doc, buildSummary(doc, wearable));
     } finally {
       button.disabled = false;
-      button.textContent = 'Download PDF summary';
+      button.textContent = 'Download doctor summary';
     }
   });
 }

@@ -169,8 +169,8 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     function setPatientNavActive(view) {
       document.querySelectorAll('.nav-button').forEach((btn) => btn.classList.remove('active'));
       document.querySelectorAll('.mobile-nav-item').forEach((btn) => btn.classList.remove('active'));
-      const desktopIds = { home: 'desktopHomeNav', meals: 'desktopMealsNav', trends: 'desktopTrendsNav', more: 'desktopMoreNav' };
-      const mobileIds = { home: 'homeNav', meals: 'mealsNav', trends: 'trendsNav', more: 'moreNav' };
+      const desktopIds = { home: 'desktopHomeNav', records: 'desktopRecordsNav', meals: 'desktopMealsNav', trends: 'desktopTrendsNav', more: 'desktopMoreNav' };
+      const mobileIds = { home: 'homeNav', records: 'recordsNav', meals: 'mealsNav', trends: 'trendsNav', more: 'moreNav' };
       const desktopBtn = document.getElementById(desktopIds[view]);
       const mobileBtn = document.getElementById(mobileIds[view]);
       if (desktopBtn) desktopBtn.classList.add('active');
@@ -180,10 +180,12 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
       if (conversation?.active) conversation.stop();
       stopAllVoice();
       const home = document.querySelector('.patient-home');
+      const records = document.getElementById('recordsView');
       const meals = document.getElementById('mealsView');
       const trends = document.getElementById('trendsView');
       const more = document.getElementById('moreView');
       home.hidden = view !== 'home';
+      records.hidden = view !== 'records';
       meals.hidden = view !== 'meals';
       trends.hidden = view !== 'trends';
       more.hidden = view !== 'more';
@@ -193,6 +195,7 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
       setPatientNavActive(view);
     }
     document.getElementById('desktopHomeNav').addEventListener('click', () => showPatientView('home'));
+    document.getElementById('desktopRecordsNav').addEventListener('click', () => showPatientView('records'));
     document.getElementById('desktopMealsNav').addEventListener('click', () => showPatientView('meals'));
     document.getElementById('desktopTrendsNav').addEventListener('click', () => showPatientView('trends'));
     document.getElementById('desktopMoreNav').addEventListener('click', () => showPatientView('more'));
@@ -1313,6 +1316,7 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     checkinFlow.querySelectorAll('[data-back]').forEach(button=>button.addEventListener('click',()=>{if(!uiBusy)showFlowScreen(button.dataset.back);}));
     document.getElementById('trendsNav').addEventListener('click',()=>{stopAllVoice();showPatientView('trends');});
     document.getElementById('homeNav').addEventListener('click',()=>{stopAllVoice();showPatientView('home');});
+    document.getElementById('recordsNav').addEventListener('click',()=>{stopAllVoice();showPatientView('records');});
     document.getElementById('moreNav').addEventListener('click',()=>{stopAllVoice();showPatientView('more');});
     document.getElementById('mealsNav').addEventListener('click',()=>{stopAllVoice();showPatientView('meals');});
     const keydown=event=>{if(event.key==='Escape')closeCheckinFlow();};document.addEventListener('keydown',keydown);

@@ -1,0 +1,152 @@
+# Records page: data format
+
+The Records page (a month calendar, with a dialog for each day) shows a list of **saved check-ins**.
+It uses the backend's own field names, so fake data in this format can be replaced by real data later
+without changing the screen. Nothing new is invented here: a check-in is `sessionId` + `savedAt` from the
+saved check-in response, plus the record itself. The full rules are in
+[backend/contracts/record.schema.json](backend/contracts/record.schema.json) and
+[backend/src/schema.ts](backend/src/schema.ts).
+
+## Shape
+
+One JSON file with a `checkins` array. The order does not matter (the page sorts by `savedAt`).
+One check-in is one time the person finished a check-in; a day can have several.
+
+```json
+{
+  "checkins": [
+    {
+      "sessionId": "b7d3c1a2-4e5f-4a6b-8c7d-0e1f2a3b4c5d",
+      "savedAt": "2026-09-19T12:30:00Z",
+      "symptoms": [
+        {
+          "id": "c1000000-0000-4000-8000-000000000001",
+          "name": "Headache",
+          "location": "Behind the eyes",
+          "severity": "moderate",
+          "severityScore": 6,
+          "trend": "worse",
+          "functionalImpact": "Bright light bothers me",
+          "duration": "Since yesterday afternoon",
+          "firstOccurrence": false
+        }
+      ],
+      "medications": [
+        {
+          "id": "c2000000-0000-4000-8000-000000000001",
+          "name": "Ibuprofen",
+          "description": "For the headache",
+          "dose": "200 mg",
+          "status": "taken",
+          "time": "Morning"
+        }
+      ],
+      "diet": [
+        {
+          "id": "c3000000-0000-4000-8000-000000000001",
+          "description": "Toast and tea",
+          "time": "Breakfast",
+          "waterGlasses": 2,
+          "waterMode": "total"
+        }
+      ],
+      "vitals": [],
+      "wellness": null,
+      "reportedAnswers": [
+        {
+          "questionId": null,
+          "entityId": null,
+          "field": null,
+          "question": null,
+          "transcript": "My headache is back and it is worse than yesterday.",
+          "interpretation": "recorded"
+        },
+        {
+          "questionId": "c1000000-0000-4000-8000-000000000001:duration",
+          "entityId": "c1000000-0000-4000-8000-000000000001",
+          "field": "duration",
+          "question": "When did the headache start?",
+          "transcript": "Yesterday afternoon, after lunch.",
+          "interpretation": "recorded"
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Fields
+
+**Check-in**
+
+| Field | Meaning |
+|---|---|
+| `sessionId` | A UUID, unique per check-in. |
+| `savedAt` | When it was saved, as UTC with a trailing `Z` (as the backend writes it). It decides which day the check-in appears on, using the viewer's local time zone, so avoid times near midnight. |
+| `symptoms`, `medications`, `diet` | The lists shown in the day dialog. Use `[]` when there are none. |
+| `vitals` | Same shape as in the schema. The Records page does not show vitals yet. Use `[]`. |
+| `wellness` | For a "felt well" day: `{ "status": "well", "statement": "I feel fine today." }`, else `null`. The statement is shown as one line at the top of the day. |
+| `reportedAnswers` | What the person said, in their own words. See below. |
+
+A day gets a dot on the calendar when it has at least one check-in with something to show
+(a symptom, medication, diet item, wellness statement or reported answer).
+
+**Symptom** (`symptoms[]`)
+
+| Field | Shown as | Values |
+|---|---|---|
+| `id` | not shown; links `reportedAnswers` to this row | UUID |
+| `name` | the row title | text |
+| `severityScore` | Pain level, as `6/10` | number 0–10 |
+| `severity` | Pain level, as a word (added to the score if both exist) | `mild`, `moderate`, `severe` |
+| `location` | Location | text |
+| `duration` | Since when | text, e.g. `"3 days"` |
+| `functionalImpact` | Activities affected | text |
+| `trend` | Trend | `better`, `same`, `worse` |
+| `firstOccurrence` | First time (`Yes` / `No`) | `true`, `false` |
+
+**Medication** (`medications[]`)
+
+| Field | Shown as | Values |
+|---|---|---|
+| `id` | not shown | UUID |
+| `name` | the row title | text |
+| `status` | Status | `taken`, `missed`, `stopped`, `mentioned` |
+| `description` | Purpose, what it is for | text |
+| `dose` | Dose | text, e.g. `"200 mg"` |
+| `time` | Time | text, e.g. `"Morning"` |
+
+**Diet** (`diet[]`, shown under "Meals")
+
+| Field | Shown as | Values |
+|---|---|---|
+| `id` | not shown | UUID |
+| `description` | the row title | text |
+| `time` | Time | text, e.g. `"Lunch"` |
+| `waterGlasses` | Water | number |
+| `waterMode` | `total` adds "in total today" to the water line | `add`, `total` |
+
+**Reported answer** (`reportedAnswers[]`, shown as "In your own words")
+
+| Field | Meaning |
+|---|---|
+| `transcript` | The person's own words. This is what is shown. |
+| `entityId` | The `id` of the symptom, medication or diet item they were talking about. The quote appears inside that row. `null` means it is not about one item, such as the opening description. It is then listed under "In your own words" at the bottom of the day. |
+| `question` | The question they were answering, shown above the quote. `null` if there was none. |
+| `interpretation` | `recorded` or `unconfirmed`. An unconfirmed answer gets a small "not confirmed" note. |
+| `questionId`, `field` | Not shown. Keep them as in the schema (`null` when not needed). |
+
+## Missing values
+
+Only fields that have a value are shown. `null` or an absent field is simply left out of the row, and a row
+with nothing to expand cannot be opened. Fields the page does not know are ignored. Even so, keep the data
+valid against the schema; the checks below rely on it.
+
+## Checking the file
+
+`backend/test/records-ui.test.ts` checks that the placeholder data and the example in this file both pass the
+backend's `recordSchema`. To check your own file the same way, run from `backend/`:
+
+```sh
+node --import tsx -e "import('./src/schema.ts').then(async ({recordSchema})=>{const {checkins}=JSON.parse(await (await import('node:fs/promises')).readFile(process.argv[1],'utf8'));for(const c of checkins){const {sessionId,savedAt,...record}=c;recordSchema.parse(record)}console.log(checkins.length,'check-ins OK')})" path/to/records.json
+```

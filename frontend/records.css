@@ -1,0 +1,73 @@
+/* Records page: month calendar, the day dialog, and the fifth navigation tab.
+   New rules live here because the page's own <style> block is locked by a test. */
+
+:root { --blush: #fbe4de; } /* the light coral tint already used behind the More page icons */
+
+/* ---- Calendar ---- */
+.records-calendar { padding: 18px 20px 16px; }
+.records-month { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.records-month-title { margin: 0; font: 400 24px/1.1 Georgia, serif; letter-spacing: -.4px; text-align: center; }
+.records-month-button { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 50%; padding: 0 0 3px; color: var(--forest); background: var(--surface); font: 400 24px/1 Arial, sans-serif; cursor: pointer; }
+.records-month-button:hover:not([aria-disabled="true"]) { border-color: #c3d986; background: var(--mint); }
+.records-month-button[aria-disabled="true"] { opacity: .35; cursor: default; }
+.records-month-button:focus-visible, .records-day:focus-visible, .records-row-head:focus-visible, .records-dialog .flow-close:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+
+.records-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-top: 4px; }
+.records-weekdays { margin-top: 0; }
+.records-weekday { padding: 8px 0; color: var(--muted); font: 700 11px Arial, sans-serif; letter-spacing: .6px; text-align: center; text-transform: uppercase; }
+.records-cell { min-width: 0; }
+.records-day { position: relative; display: grid; place-items: center; width: 100%; min-height: 58px; border: 0; border-radius: 12px; padding: 0 0 8px; color: var(--ink); background: transparent; font: 600 15px Arial, sans-serif; cursor: pointer; }
+.records-day:hover { background: var(--mint); }
+.records-day.is-today { background: var(--blush); font-weight: 700; }
+.records-day.is-today:hover { background: #f7d3c9; }
+.records-day.is-future { color: #8b9586; cursor: default; }
+.records-day.is-future:hover { background: transparent; }
+.records-dot { position: absolute; bottom: 11px; left: 50%; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: var(--coral); }
+.records-legend { display: flex; align-items: center; gap: 8px; margin: 12px 0 0; color: var(--muted); font: 12px Arial, sans-serif; }
+.records-legend .records-dot { position: static; flex: none; margin: 0; }
+
+/* ---- Day dialog: the Daily Check-in card, with a centred title and a × on the right ---- */
+.records-dialog .flow-top { position: sticky; top: 0; z-index: 1; padding: 14px 16px; background: var(--surface); }
+.records-dialog .flow-title { font: 400 19px/1.2 Georgia, serif; letter-spacing: -.2px; }
+.records-dialog-spacer, .records-dialog .flow-close { flex: none; width: 34px; height: 34px; }
+.records-dialog .flow-close { border-radius: 50%; cursor: pointer; }
+.records-dialog .flow-close:hover { background: var(--mint); }
+.records-dialog-body { padding: 4px 22px 26px; }
+.records-empty { margin: 0; padding: 36px 10px 30px; color: var(--muted); font: 14px/1.5 Arial, sans-serif; text-align: center; }
+.records-note { margin: 18px 0 0; border-radius: 10px; padding: 12px 14px; color: var(--ink); background: var(--mint); font: 13px/1.5 Arial, sans-serif; }
+.records-group { margin-top: 20px; }
+.records-group-title, .records-quotes-title { margin: 0 0 9px; color: var(--muted); font: 700 10px Arial, sans-serif; letter-spacing: 1.1px; text-transform: uppercase; }
+
+.records-row { margin-bottom: 8px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); }
+.records-row.open { border-color: #ddeb9d; }
+.records-row-head { display: flex; align-items: center; gap: 10px; width: 100%; border: 0; padding: 13px 14px; color: var(--ink); background: transparent; text-align: left; font: 14px Arial, sans-serif; }
+button.records-row-head { cursor: pointer; }
+button.records-row-head:hover { background: #f6fae6; }
+.records-row-text { display: grid; flex: 1; gap: 3px; min-width: 0; }
+.records-row-title { font: 700 14px/1.35 Arial, sans-serif; overflow-wrap: anywhere; }
+.records-row-summary { color: var(--muted); font: 12px/1.4 Arial, sans-serif; overflow-wrap: anywhere; }
+.records-time { flex: none; border-radius: 999px; padding: 3px 9px; color: var(--forest); background: var(--mint); font: 700 11px Arial, sans-serif; white-space: nowrap; }
+.records-chevron { flex: none; width: 14px; text-align: center; color: var(--muted); }
+.records-chevron::before { content: '›'; display: block; font: 400 22px/1 Arial, sans-serif; transition: transform .15s ease; }
+.records-row.open .records-chevron::before { transform: rotate(90deg); }
+.records-row-body { padding: 2px 14px 14px; border-top: 1px solid #edf0ec; }
+.records-fields { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 9px 12px; margin: 0; padding-top: 12px; }
+.records-fields dt { color: var(--muted); font: 12px/1.45 Arial, sans-serif; }
+.records-fields dd { margin: 0; color: var(--ink); font: 13px/1.45 Arial, sans-serif; overflow-wrap: anywhere; }
+.records-quotes { margin-top: 14px; }
+.records-row-head + .records-row-body > .records-quotes:first-child { margin-top: 12px; }
+.records-quote { display: grid; gap: 4px; margin: 0 0 8px; border-left: 3px solid var(--coral); border-radius: 0 8px 8px 0; padding: 10px 12px; background: #fff5f1; }
+.records-quote-question { color: var(--muted); font: 11px/1.4 Arial, sans-serif; }
+.records-quote-text { color: var(--ink); font: 14px/1.5 Georgia, serif; overflow-wrap: anywhere; }
+.records-quote-note { color: var(--muted); font: italic 11px/1.4 Arial, sans-serif; }
+
+/* ---- Navigation: five tabs on a phone ---- */
+@media (max-width: 520px) {
+  .mobile-nav { grid-template-columns: repeat(5, 1fr); gap: 2px; padding-right: 8px; padding-left: 8px; }
+  .records-calendar { padding: 14px 12px 14px; }
+  .records-week { gap: 2px; }
+  .records-day { min-height: 48px; border-radius: 10px; font-size: 14px; }
+  .records-dot { bottom: 8px; }
+  .records-dialog-body { padding: 2px 16px 22px; }
+  .records-fields { grid-template-columns: 104px minmax(0, 1fr); }
+}
