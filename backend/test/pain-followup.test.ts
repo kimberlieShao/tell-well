@@ -11,7 +11,6 @@ test('spoken score survives subsequent pain answers, review, and save without a 
  assert.equal(state.nextQuestion!.field,'severity');
  await answer('My pain level is seven out of ten.');
  assert.equal(state.symptoms[0].severityScore,7);
- assert.equal(state.nextQuestion!.field,'functionalImpact');await answer('Not affecting activities');
  assert.equal(state.nextQuestion!.field,'firstOccurrence');await answer('No, I have had it before');
  assert.equal(state.symptoms[0].firstOccurrence,false);
  assert.equal(state.nextQuestion!.field,'trend');await answer("It's better");
@@ -24,7 +23,7 @@ test('new pain asks location and duration, skips comparison, and accepts spoken 
  const store=new Checkins(demoExtractor);let state=await store.analyze({transcript:'I have pain.',painScale:'1-10'});
  const answer=async(text:string)=>{state=await store.analyze({sessionId:state.sessionId,version:state.version,questionId:state.nextQuestion!.id,transcript:text});};
  assert.equal(state.nextQuestion!.field,'location');await answer('My left shoulder');
- await answer('six');await answer('Making activities harder');await answer('Yes, first time');
+ await answer('six');await answer('Yes, first time');
  assert.equal(state.nextQuestion!.field,'duration');await answer('Since yesterday');
  assert.equal(state.status,'review');assert.equal(state.symptoms[0].trend,null);
  for(const text of ['four or five','not seven','eleven','severe'])assert.equal(parsePainScore(text),null);

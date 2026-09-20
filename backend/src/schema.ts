@@ -17,7 +17,10 @@ export const medicationSchema = z.strictObject({
   status: z.enum(['taken', 'missed', 'stopped', 'mentioned']).nullable(),
   time: nullableText,
 });
-export const dietSchema = z.strictObject({ id, description: text, time: nullableText });
+export const dietSchema = z.strictObject({ id, description: text, time: nullableText,
+  waterGlasses: z.number().min(0).max(100).nullable().optional(),
+  waterMode: z.enum(['add', 'total']).nullable().optional(),
+});
 export const vitalSchema = z.strictObject({
   id, name: text, value: nullableText, unit: nullableText, time: nullableText,
 });
@@ -43,7 +46,7 @@ export type HealthRecord = z.infer<typeof recordSchema>;
 export type Category = typeof categories[number];
 export const emptyRecord = (): HealthRecord => ({ symptoms: [], medications: [], diet: [], vitals: [], wellness: null });
 
-// Models propose field updates; the server owns entity IDs and question wording.
+// Models propose field updates; the server owns entity IDs and validates question proposals.
 export const extractionSchema = z.strictObject({
   symptoms: z.array(symptomSchema.extend({ id: id.nullable() })).max(20),
   medications: z.array(medicationSchema.extend({ id: id.nullable() })).max(20),
@@ -64,9 +67,11 @@ export const analyzeInputSchema = z.strictObject({
   sessionId: id.optional(), version: z.number().int().positive().optional(),
   transcript: z.string().trim().min(1).max(8000).optional(),
   painScale: z.literal('1-10').optional(),
+  flow: z.literal('brief').optional(),
   questionId: text.optional(),
   answer: z.strictObject({ questionId: text, value: text }).optional(),
   action: z.enum(['skip', 'review', 'resume']).optional(),
+  skipScope: z.literal('entity').optional(),
 }).superRefine((data, ctx) => {
   if ([data.transcript, data.answer, data.action].filter(x => x !== undefined).length !== 1)
     ctx.addIssue({ code: 'custom', message: 'Send exactly one of transcript, answer, or action.' });
@@ -76,10 +81,14 @@ export const analyzeInputSchema = z.strictObject({
     ctx.addIssue({ code: 'custom', message: 'Include the version from the latest response.' });
   if (data.sessionId && data.painScale !== undefined)
     ctx.addIssue({ code: 'custom', path: ['painScale'], message: 'Choose a pain scale only when starting a check-in.' });
+  if (data.sessionId && data.flow !== undefined)
+    ctx.addIssue({ code: 'custom', path: ['flow'], message: 'Choose a flow only when starting a check-in.' });
   if (data.questionId && !(data.transcript || data.action === 'skip'))
     ctx.addIssue({ code: 'custom', message: 'questionId accompanies a spoken transcript answer or skip.' });
   if (data.action === 'skip' && !data.questionId)
     ctx.addIssue({ code: 'custom', message: 'Skipping needs questionId.' });
+  if (data.skipScope !== undefined && data.action !== 'skip')
+    ctx.addIssue({ code: 'custom', path: ['skipScope'], message: 'Entity scope applies only when skipping a question.' });
 });
 export type AnalyzeInput = z.infer<typeof analyzeInputSchema>;
 

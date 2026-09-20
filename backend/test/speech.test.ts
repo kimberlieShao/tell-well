@@ -118,7 +118,12 @@ async function fixture(options: any = {}) {
     messages: any[] = [];
     closed = false;
     constructor(url: string) { this.url = url; sockets.push(this); queueMicrotask(() => this.emit({ message_type: 'session_started' })); }
-    emit(message: any) { this.onmessage?.({ data: JSON.stringify(message) }); }
+    emit(message: any) {
+      this.onmessage?.({ data: JSON.stringify(message) });
+      if (message.message_type === 'committed_transcript') {
+        this.onmessage?.({ data: JSON.stringify({ ...message, message_type: 'committed_transcript_with_timestamps', language_code: 'en' }) });
+      }
+    }
     send(data: string) { this.messages.push(JSON.parse(data)); }
     close() { this.closed = true; this.readyState = 3; this.onclose?.(); }
   }
@@ -148,10 +153,13 @@ test('ElevenLabs adapter waits for committed text, flushes audio, sends one comm
     assert.equal(url.hostname, 'api.elevenlabs.io');
     assert.equal(url.searchParams.get('model_id'), 'scribe_v2_realtime');
     assert.equal(url.searchParams.get('audio_format'), 'pcm_16000');
+    assert.equal(url.searchParams.get('language_code'), 'en');
+    assert.equal(url.searchParams.get('include_language_detection'), 'true');
+    assert.equal(url.searchParams.has('secondary_languages'), false);
     assert.deepEqual(JSON.parse(String(f.requests[0].init.body)), {});
     assert.equal(f.requests[0].url, '/api/speech/token');
     socket.emit({ message_type: 'partial_transcript', text: 'wrong interim' });
-    assert.equal(f.textarea.value, 'Earlier note. wrong interim');
+    assert.equal(f.textarea.value, 'Earlier note.');
     let settled = false;
     const done = f.speech.finish();
     assert.equal(f.speech.finish(), done);

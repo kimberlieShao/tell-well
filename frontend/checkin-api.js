@@ -26,7 +26,7 @@ const looksLikeState = (value) => value && value.schemaVersion === '1.0'
   && (value.nextQuestion === null || (typeof value.nextQuestion?.id === 'string'
     && typeof value.nextQuestion?.text === 'string' && Array.isArray(value.nextQuestion?.options)));
 
-export function createCheckinClient({ baseUrl = '', fetchImpl = globalThis.fetch, timeoutMs = 30000, painScale, getMedications = () => [] } = {}) {
+export function createCheckinClient({ baseUrl = '', fetchImpl = globalThis.fetch, timeoutMs = 30000, painScale, flow, getMedications = () => [] } = {}) {
   if (typeof fetchImpl !== 'function') throw new TypeError('A fetch implementation is required.');
   const base = baseUrl.replace(/\/$/, '');
   let state = null;
@@ -114,12 +114,13 @@ export function createCheckinClient({ baseUrl = '', fetchImpl = globalThis.fetch
 
   return {
     get state() { return state; },
+    get flow() { return flow; },
     get busy() { return busy; },
     get blocked() { return blocked; },
     async start(transcript) {
       assertReady();
       if (state) throw new CheckinError('Reset before starting a new check-in.', { code: 'SESSION_EXISTS' });
-      return request('/api/analyze', { transcript: text(transcript), ...(painScale ? { painScale } : {}) });
+      return request('/api/analyze', { transcript: text(transcript), ...(painScale ? { painScale } : {}), ...(flow ? { flow } : {}) });
     },
     async answer(value, { spoken = false } = {}) {
       const body = sessionBody();
@@ -143,9 +144,10 @@ export function createCheckinClient({ baseUrl = '', fetchImpl = globalThis.fetch
         ? { ...body, questionId, transcript: answer }
         : { ...body, answer: { questionId, value: answer } });
     },
-    async skip() {
+    async skip({ scope = 'question' } = {}) {
       const body = sessionBody();
-      return request('/api/analyze', { ...body, action: 'skip', questionId: currentQuestion() });
+      return request('/api/analyze', { ...body, action: 'skip', questionId: currentQuestion(),
+        ...(scope === 'entity' ? { skipScope: 'entity' } : {}) });
     },
     async review() {
       const body = sessionBody();

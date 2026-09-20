@@ -1,4 +1,4 @@
-const initialPrompt = 'How are you feeling today? Tell me about any symptoms, medicines, meals, or measurements you want to record. Pause when you are finished.';
+import { chooseCheckinOpening } from './checkin-openings.js';
 const messageOf = error => error?.message || 'Voice check-in could not continue. Your transcript is still available. Try again or use the buttons.';
 
 // The API remains the only interpreter and question selector. This controller
@@ -12,7 +12,10 @@ export function createVoiceConversation({
   onState = () => {},
   onQuestion = () => {},
   onReview = () => {},
+  onReadyForReview,
+  savedMessage = () => 'Recorded.',
   questionText = question => question.text,
+  getInitialPrompt,
   maxTurns = 24,
   maxRepeats = 2,
 } = {}) {
@@ -22,6 +25,10 @@ export function createVoiceConversation({
   if (!Number.isInteger(maxTurns) || maxTurns < 1 || !Number.isInteger(maxRepeats) || maxRepeats < 1) {
     throw new TypeError('Voice turn limits must be positive integers.');
   }
+  const initialPrompt = getInitialPrompt ?? (() => {
+    const opening = chooseCheckinOpening();
+    return () => opening.spoken;
+  })();
   let active = false;
   let destroyed = false;
   let generation = 0;
@@ -84,6 +91,20 @@ export function createVoiceConversation({
     if (!current(id)) return;
     cancelAudio();
     speechFactory.release?.();
+    if (onReadyForReview) {
+      response = await request(() => onReadyForReview(response), id);
+      if (!current(id)) return;
+    }
+    if (response.status === 'saved') {
+      onReview(response);
+      const confirmation = savedMessage(response);
+      report('speaking', confirmation);
+      await speaker.speak(confirmation);
+      if (!current(id)) return;
+      active = false;
+      report('saved', confirmation);
+      return;
+    }
     onReview(response);
     report('speaking', notice || 'Your check-in is ready to review.');
     await speaker.speak('Your check-in summary is ready. Please review it on screen and confirm when you are ready to save.');
@@ -208,7 +229,7 @@ export function createVoiceConversation({
         if (client.state?.nextQuestion) {
           onQuestion(client.state.nextQuestion);
           await ask(questionText(client.state.nextQuestion, client.state), id);
-        } else await ask(initialPrompt, id);
+        } else await ask(initialPrompt(), id);
       } catch (error) { fail(error, id); }
     },
     pause,

@@ -19,8 +19,6 @@ export function questionsFor(record: HealthRecord, { numericPain = false }: { nu
       add('symptoms', s.id, 'severity', `How severe is your ${s.name} right now, on a scale of 1 to 10?`, Array.from({ length: 10 }, (_, index) => String(index + 1)));
     else if (s.severity === null && s.severityScore === null)
       add('symptoms', s.id, 'severity', `Would you describe your ${s.name} as mild, moderate, or severe?`, ['Mild', 'Moderate', 'Severe']);
-    if (!s.functionalImpact)
-      add('symptoms', s.id, 'functionalImpact', `How is your ${s.name} affecting your usual activities?`, ['Not affecting activities', 'Making activities harder', 'Unable to do usual activities']);
     if (numericPain && isPain && s.firstOccurrence == null)
       add('symptoms', s.id, 'firstOccurrence', `Is this the first time you have had this ${s.name}?`, ['Yes, first time', 'No, I have had it before']);
     if (!s.trend && (!(numericPain && isPain) || s.firstOccurrence === false))

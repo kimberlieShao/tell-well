@@ -271,8 +271,6 @@ test('choosing a follow-up option stops speech before the request, including a f
     click(page, '[data-screen="topics"] [data-next]');
     await until(() => ready(page) && screen(page) === 'pain-score', 'numeric score');
     click(page, '#painScoreSkip');
-    await until(() => ready(page) && screen(page) === 'additional', 'impact question');
-    click(page, '[data-screen="additional"] [data-integration-skip]');
     await until(() => ready(page) && screen(page) === 'guided', 'first occurrence question');
     const repeat=[...page.document.querySelectorAll<HTMLButtonElement>('.integration-question-controls .severity-card')].find(button=>button.textContent==='No, I have had it before')!;
     repeat.click();
@@ -330,8 +328,8 @@ test('review locks edits during save, preserves corrections on error, and retrie
   await withPage(async page => {
     await analyze(page, 'My arm pain is 7 out of 10.');
     click(page, '[data-screen="topics"] [data-next]');
-    await until(() => screen(page) === 'additional' && ready(page), 'impact question');
-    click(page, '[data-screen="additional"] [data-integration-review]');
+    await until(() => screen(page) === 'guided' && ready(page), 'first occurrence question');
+    click(page, '[data-screen="guided"] [data-integration-review]');
     await until(() => screen(page) === 'review' && ready(page), 'review');
     click(page, '#reviewSymptoms [data-edit-review]');
     fill(page, '[data-record-field="severityScore"]', '4');
@@ -398,13 +396,16 @@ test('one click starts a spoken conversation that reaches the existing review wi
   await withPage(async page => {
     click(page, '#dailyCheckinButton');
     await until(() => page.app.conversation.state.phase === 'listening', 'initial listening');
-    assert.match(page.spokenQuestions[0], /How are you feeling/);
+    const opening=page.document.querySelector('[data-screen="intro"] h2')!.textContent!;
+    assert.equal(page.document.querySelector('.patient-prompt')!.textContent,opening);
+    assert.equal(page.spokenQuestions[0],opening);
+    assert.ok(opening.split(/\s+/).length<=8,'Opening is one short question');
     await page.speech.at(-1).turn('My arm and leg hurt.');
     assert.equal(screen(page), 'pain-score');
     assert.equal(page.client.state.symptoms.length, 2);
     assert.match(page.spokenQuestions.at(-1)!, /arm/);
     assert.equal((page.document.getElementById('voiceReview') as HTMLButtonElement).disabled, false);
-    for (const answer of ['seven out of ten', 'Not affecting activities', 'No, I have had it before', 'same', 'For three days', 'three', 'Walking is harder', 'No, I have had it before', 'worse', 'Since yesterday']) {
+    for (const answer of ['seven out of ten', 'No, I have had it before', 'same', 'For three days', 'three', 'No, I have had it before', 'worse', 'Since yesterday']) {
       await until(() => page.app.conversation.state.phase === 'listening', `ready for ${answer}`);
       await page.speech.at(-1).turn(answer);
     }
@@ -461,9 +462,9 @@ test('pausing during analysis reconciles the manual screen with the eventual nex
     assert.equal(ready(page),false);
     release();await turn;
     assert.equal(ready(page),true);
-    assert.equal(page.client.state.nextQuestion.field,'functionalImpact');
-    assert.equal(screen(page),'additional');
-    assert.equal((page.document.getElementById('impactTranscript') as HTMLTextAreaElement).value,'');
+    assert.equal(page.client.state.nextQuestion.field,'firstOccurrence');
+    assert.equal(screen(page),'guided');
+    assert.equal((page.document.getElementById('followupAnswer') as HTMLTextAreaElement).value,'');
     assert.equal(page.app.conversation.active,false);
   },demoExtractor,true);
 });
@@ -476,9 +477,9 @@ test('pausing the next spoken question does not paste a prior answer into its ma
     let release!:()=>void;
     page.speakerGate=new Promise<void>(resolve=>{release=resolve;});
     const turn=page.speech.at(-1).turn('7');
-    await until(()=>screen(page)==='additional'&&page.app.conversation.state.phase==='speaking','speaking next question');
+    await until(()=>screen(page)==='guided'&&page.app.conversation.state.phase==='speaking','speaking next question');
     click(page,'#voicePause');
-    assert.equal((page.document.getElementById('impactTranscript') as HTMLTextAreaElement).value,'');
+    assert.equal((page.document.getElementById('followupAnswer') as HTMLTextAreaElement).value,'');
     assert.equal(page.client.state.symptoms[0].severityScore,7);
     release();await turn;
     assert.ok(page.speech.every(input=>!input.isActive));

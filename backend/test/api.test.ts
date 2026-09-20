@@ -22,7 +22,7 @@ async function withApi(run: (post: (path: string, body: unknown, headers?: Recor
 const initialText = 'My knees hurt more today and I forgot my prednisone this morning.';
 const session = (state: CheckinResponse) => ({ sessionId: state.sessionId, version: state.version });
 
-test('full transcript → two answers → review → confirmed save; fixed response shape', async () => {
+test('full transcript → severity answer → review → confirmed save; fixed response shape', async () => {
   await withApi(async post => {
     let r = await post('/api/analyze', { transcript: initialText });
     assert.equal(r.status, 200);
@@ -34,14 +34,12 @@ test('full transcript → two answers → review → confirmed save; fixed respo
     assert.equal(state.medications[0].dose, null);
     assert.equal(state.medications[0].status, 'missed');
     assert.equal(state.medications[0].time, 'morning');
-    assert.deepEqual(state.missingFields, ['symptoms[0].severity', 'symptoms[0].functionalImpact']);
+    assert.deepEqual(state.missingFields, ['symptoms[0].severity']);
     assert.deepEqual(state.diet, []);
     assert.deepEqual(state.vitals, []);
     r = await post('/api/analyze', { ...session(state), questionId: state.nextQuestion!.id, transcript: 'Moderate' });
     state = responseSchema.parse(r.body);
     assert.equal(state.symptoms[0].severity, 'moderate');
-    r = await post('/api/analyze', { ...session(state), answer: { questionId: state.nextQuestion!.id, value: 'Making activities harder' } });
-    state = responseSchema.parse(r.body);
     assert.equal(state.status, 'review');
     assert.equal(state.nextQuestion, null);
     assert.equal(state.symptoms.length, 1);
@@ -165,12 +163,13 @@ test('review can finish early, edits can clear/remove fields, confirmation requi
   });
 });
 
-test('skip moves to the next question without making up a value', async () => {
+test('skipping the final question reaches review without making up a value', async () => {
   await withApi(async post => {
     let { body: state } = await post('/api/analyze', { transcript: initialText });
     ({ body: state } = await post('/api/analyze', { ...session(state), action: 'skip', questionId: state.nextQuestion.id }));
     assert.equal(state.symptoms[0].severity, null);
-    assert.equal(state.nextQuestion.field, 'functionalImpact');
+    assert.equal(state.nextQuestion, null);
+    assert.equal(state.status, 'review');
     assert.deepEqual(state.skippedFields, ['symptoms[0].severity']);
   });
 });

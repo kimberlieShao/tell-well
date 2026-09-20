@@ -32,7 +32,12 @@ async function fixture(options: Record<string, any> = {}) {
     messages: any[] = [];
     closed = false;
     constructor(public url: string) { sockets.push(this); queueMicrotask(() => this.emit({ message_type: 'session_started' })); }
-    emit(message: any) { this.onmessage?.({ data: JSON.stringify(message) }); }
+    emit(message: any) {
+      this.onmessage?.({ data: JSON.stringify(message) });
+      if (message.message_type === 'committed_transcript') {
+        this.onmessage?.({ data: JSON.stringify({ ...message, message_type: 'committed_transcript_with_timestamps', language_code: 'en' }) });
+      }
+    }
     send(data: string) { this.messages.push(JSON.parse(data)); }
     close() { this.closed = true; this.readyState = 3; this.onclose?.(); }
   }
@@ -61,6 +66,9 @@ test('VAD closes recording and delivers exactly one committed answer after clean
     const socket = f.sockets[0]!;
     const url = new URL(socket.url);
     assert.equal(url.searchParams.get('commit_strategy'), 'vad');
+    assert.equal(url.searchParams.get('language_code'), 'en');
+    assert.equal(url.searchParams.get('include_language_detection'), 'true');
+    assert.equal(url.searchParams.has('secondary_languages'), false);
     assert.equal(url.searchParams.get('vad_silence_threshold_secs'), '2');
     socket.emit({ message_type: 'partial_transcript', text: 'six maybe' });
     await tick();

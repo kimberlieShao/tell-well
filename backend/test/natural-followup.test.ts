@@ -19,6 +19,7 @@ test('Gemini handles context-rich answers and preserves their exact words throug
  assert.equal(inputs[1],raw);assert.equal(state.status,'review');assert.equal(state.symptoms[0].severityScore,6);
  assert.equal(state.symptoms[0].duration,'since waking up yesterday');assert.equal(state.reportedAnswers!.at(-1)!.transcript,raw);
  const saved=store.save({sessionId:state.sessionId,version:state.version,confirmed:true});assert.equal(saved.reportedAnswers!.at(-1)!.transcript,raw);
+ assert.equal(saved.symptoms[0].functionalImpact,'Stairs are difficult; can walk on flat ground');
 });
 test('an unmatched free answer is retained without repeating or inventing a structured value',async()=>{
  const extractor:Extractor={mode:'gemini',async extract(text,record,q){return q?emptyRecord():demoExtractor.extract('My arm hurts.',record,null);}};

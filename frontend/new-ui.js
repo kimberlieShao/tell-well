@@ -1,13 +1,15 @@
 import { parsePainScore } from './pain-score.js';
 import { createCheckinClient } from './checkin-api.js';
 import { createElevenLabsSpeechInput, createVoiceSpeechFactory } from './elevenlabs-speech.js';
-import { normalizeBackendResponse, toBackendRecord } from './version-b-adapter.js';
+import { normalizeBackendResponse, toBackendRecord, mealsFromBackend, isWaterEntry } from './version-b-adapter.js';
 import { createElevenLabsSpeaker } from './elevenlabs-speaker.js';
 import { createVoiceConversation } from './voice-conversation.js';
+import { chooseCheckinOpening } from './checkin-openings.js';
 
-export function mountVersionB(document, {client = null, mealClient = createCheckinClient(), speechFactory = createElevenLabsSpeechInput, speakerFactory = createElevenLabsSpeaker, conversationEnabled = true, initialProfile = null, profileStore = null} = {}) {
+export function mountVersionB(document, {client = null, mealClient = createCheckinClient({flow:'brief'}), speechFactory = createElevenLabsSpeechInput, speakerFactory = createElevenLabsSpeaker, conversationEnabled = true, initialProfile = null, profileStore = null} = {}) {
   const window = document.defaultView;
   let conversation = null;
+  let openingPrompt = null;
 
     const modal = document.getElementById('consentModal');
     const description = document.getElementById('modalDescription');
@@ -68,7 +70,7 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     speakPrompt.addEventListener('click', () => {
       if (!('speechSynthesis' in window)) return;
       window.speechSynthesis.cancel();
-      const utterance = new window.SpeechSynthesisUtterance('Tell me how you are feeling. You can mention symptoms, medications, meals, or measurements.');
+      const utterance = new window.SpeechSynthesisUtterance(openingPrompt.spoken);
       utterance.rate = 0.9;
       utterance.onstart = () => { speakPrompt.textContent = '◖ Reading prompt...'; };
       utterance.onend = () => { speakPrompt.textContent = '◖ Read prompt aloud'; };
@@ -76,18 +78,35 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     });
     const recognizers = new Set();
     function createSpeechRecognizer(textarea, { onStart, onEnd, onError, onStatus } = {}) {
+      let listening = false;
+      let generation = 0;
       const speech = speechFactory({ textarea, onStatus: (status) => {
+        if (['error', 'unavailable', 'idle'].includes(status?.type)) { listening = false; generation++; }
         if (status?.type === 'error' || status?.type === 'unavailable') onError?.(status.message);
         if (status?.type === 'idle') onEnd?.();
         onStatus?.(status);
       }});
       const recognizer = {
-        async start() { try { await speech.start(); onStart?.(); } catch (error) { onError?.(error.message); } },
-        async stop() { const text = await speech.finish(); onEnd?.(); return text; },
-        cancel() { speech.cancel(); },
+        async start() {
+          const id = ++generation;
+          listening = false;
+          try {
+            await speech.start();
+            if (id !== generation) return;
+            listening = true;
+            onStart?.();
+          } catch (error) {
+            if (id !== generation) return;
+            listening = false;
+            onError?.(error.message);
+          }
+        },
+        async stop() { listening = false; generation++; const text = await speech.finish(); onEnd?.(); return text; },
+        cancel() { listening = false; generation++; speech.cancel(); },
         isActive: () => speech.isActive,
+        isListening: () => listening,
         get mode() { return speech.mode; },
-        destroy() { speech.destroy(); recognizers.delete(recognizer); },
+        destroy() { listening = false; generation++; speech.destroy(); recognizers.delete(recognizer); },
       };
       recognizers.add(recognizer);
       return recognizer;
@@ -116,10 +135,12 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     const showFlowScreen = (screenName) => {
       currentFlowScreen = screenName;
       flowScreens.forEach((screen) => { screen.hidden = screen.dataset.screen !== screenName; });
-      const steps = {intro:1,listening:2,topics:3,'pain-score':4,additional:4,medication:4,guided:4,vital:4,review:5,trends:6};
-      flowStep.textContent = screenName === 'trends' ? 'Saved' : `Step ${steps[screenName] || 4} of 6`;
-      flowProgress.style.width = `${((steps[screenName] || 4) / 6) * 100}%`;
-      if (screenName === 'listening') { setListeningDisplay(flowVoiceRecognizer.isActive()); document.getElementById('flowTranscript').focus(); }
+      const steps = briefFlow ? {intro:1,listening:1,guided:2,review:3,trends:3}
+        : {intro:1,listening:2,topics:3,'pain-score':4,additional:4,medication:4,guided:4,vital:4,review:5,trends:6};
+      const total=briefFlow?3:6;
+      flowStep.textContent = screenName === 'trends' ? 'Saved' : `Step ${steps[screenName] || 2} of ${total}`;
+      flowProgress.style.width = `${((steps[screenName] || 2) / total) * 100}%`;
+      if (screenName === 'listening') { setListeningDisplay(flowVoiceRecognizer.isListening()); document.getElementById('flowTranscript').focus(); }
       if (screenName === 'review') renderReview();
     };
     const stopAllVoice = () => { for (const recognition of recognizers) recognition.cancel(); };
@@ -193,7 +214,8 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
       }])),
     };
 
-    client ??= createCheckinClient({painScale:'1-10',getMedications:()=>patientState.medications});
+    client ??= createCheckinClient({painScale:'1-10',flow:'brief',getMedications:()=>patientState.medications});
+    const briefFlow = client.flow === 'brief';
 
     function formatDateOfBirth(iso) {
       if(!iso)return 'Not provided';
@@ -507,6 +529,7 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
       waterGlasses: 0,
       caffeine: [],
     };
+    const appliedDietSessions = new Set();
     const MEAL_TYPES = [
       { key: 'breakfast', label: 'Breakfast' },
       { key: 'lunch', label: 'Lunch' },
@@ -604,9 +627,8 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
       parseResult.meals.forEach(({ mealType, items }) => {
         sections.push(`<div class="voice-preview-section"><div class="voice-preview-title">${mealTypeLabel(mealType)}</div><ul class="meal-item-list">${items.map((i) => `<li>${escapeHTML(i)}</li>`).join('')}</ul></div>`);
       });
-      if (parseResult.waterGlasses > 0) {
-        sections.push(`<div class="voice-preview-section"><div class="voice-preview-title">Water</div><p class="trend-panel-meta">${parseResult.waterGlasses} glass${parseResult.waterGlasses === 1 ? '' : 'es'}</p></div>`);
-      }
+      for(const entry of parseResult.hydration || [])
+        sections.push(`<div class="voice-preview-section"><div class="voice-preview-title">Water</div><p class="trend-panel-meta">${escapeHTML(entry.description)}</p></div>`);
       if (parseResult.caffeine.length) {
         sections.push(`<div class="voice-preview-section"><div class="voice-preview-title">Caffeine</div><ul class="meal-item-list">${parseResult.caffeine.map((c) => `<li>${capitalizeFirst(c.type)} ×${c.count}</li>`).join('')}</ul></div>`);
       }
@@ -682,17 +704,16 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
       document.getElementById('mealVoicePanel').hidden = true;
       document.getElementById('mealsMain').hidden = false;
     }
-    function applyVoiceParseToState(parseResult) {
+    function applyDietResponse(response, {brief = false, source = 'daily-checkin'} = {}) {
+      if (response.status !== 'saved' || appliedDietSessions.has(response.sessionId)) return;
+      const parseResult = mealsFromBackend(response, {unknownMeal:brief?'snacks':'unspecified'});
       parseResult.meals.forEach(({ mealType, items }) => {
         if (!mealState.meals[mealType]) mealState.meals[mealType] = [];
-        items.forEach((name) => mealState.meals[mealType].push({ id: makeMealId(), name, note: '', source: 'voice' }));
+        items.forEach((name) => mealState.meals[mealType].push({ id: makeMealId(), name, note: '', source }));
       });
-      if (parseResult.waterGlasses > 0) mealState.waterGlasses = Math.min(12, mealState.waterGlasses + parseResult.waterGlasses);
-      parseResult.caffeine.forEach(({ type, count }) => {
-        const existing = mealState.caffeine.find((c) => c.type === type && c.source === 'voice');
-        if (existing) existing.count += count;
-        else mealState.caffeine.push({ id: makeMealId(), type, count, size: null, source: 'voice' });
-      });
+      for (const entry of parseResult.hydration) if (Number.isFinite(entry.glasses) && entry.glasses >= 0)
+        mealState.waterGlasses = entry.mode === 'total' ? entry.glasses : mealState.waterGlasses + entry.glasses;
+      appliedDietSessions.add(response.sessionId);
     }
     function renderCaffeineList() {
       const container = document.getElementById('caffeineList');
@@ -706,11 +727,13 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     function renderWater() {
       const value = mealState.waterGlasses;
       document.getElementById('waterCountValue').textContent = value;
+      document.getElementById('waterSlider').max = Math.max(12,value);
+      document.getElementById('waterSlider').step = 'any';
       document.getElementById('waterSlider').value = value;
       document.getElementById('waterDrops').innerHTML = Array.from({ length: 12 }, (_, i) => `<span class="water-drop${i < value ? ' filled' : ''}">💧</span>`).join('');
     }
     function setWaterGlasses(value) {
-      mealState.waterGlasses = Math.max(0, Math.min(12, value));
+      mealState.waterGlasses = Math.max(0, value);
       renderWater();
     }
     function renderMealsMain() {
@@ -723,12 +746,7 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     // into mealState entries. Called on Confirm & Save — never invents a meal
     // when the user didn't mention food, since it only ever reads what's already there.
     function addMealsFromCheckin() {
-      checkinState.diet.forEach((entry) => {
-        const items = entry.item ? [entry.item] : [];
-        if (items.length === 0) return;
-        const mealType = entry.time && mealState.meals[entry.time] ? entry.time : 'unspecified';
-        items.forEach((name) => mealState.meals[mealType].push({ id: makeMealId(), name, note: '', source: 'daily-checkin' }));
-      });
+      applyDietResponse(client.state,{brief:briefFlow});
     }
     document.getElementById('waterSlider').addEventListener('input', (event) => setWaterGlasses(Number(event.target.value)));
     document.getElementById('mealsVoiceCTA').addEventListener('click', () => showMealVoiceCapture());
@@ -796,11 +814,17 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
           mealClient.reset();
           let result = await mealClient.start(transcriptText);
           if (result.status !== 'review') result = await mealClient.review();
+          if (mealClient.flow === 'brief' && foodOnly(result)) {
+            const saved = await mealClient.save();
+            applyDietResponse(saved,{brief:true,source:'voice'});
+            closeMealVoicePanel(); renderMealsMain();
+            let note=document.getElementById('mealRecordedNotice');
+            if(!note){note=document.createElement('p');note.id='mealRecordedNotice';note.setAttribute('role','status');document.getElementById('mealsMain').prepend(note);}
+            note.textContent=foodConfirmation(saved);
+            return;
+          }
           mealVoiceState.normalized = normalizeBackendResponse(result, {transcript:transcriptText});
-          mealVoiceState.parsedResult = {
-            meals: mealVoiceState.normalized.diet.map((entry) => ({mealType: mealState.meals[entry.time] ? entry.time : 'unspecified', items:[entry.item]})),
-            waterGlasses:0,caffeine:[],
-          };
+          mealVoiceState.parsedResult = mealsFromBackend(result,{unknownMeal:mealClient.flow==='brief'?'snacks':'unspecified'});
           document.getElementById('mealVoiceBody').innerHTML = mealVoicePreviewTemplate(mealVoiceState.parsedResult, mealVoiceState.rawTranscript);
         } catch (error) {
           const status = document.getElementById('mealsVoiceStatus');
@@ -816,8 +840,8 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
           // This panel reviews meals only. Other extracted categories were not
           // shown here and must not be silently saved under a meal confirmation.
           const reviewed = toBackendRecord(mealVoiceState.normalized);
-          await mealClient.save({symptoms:[],medications:[],diet:reviewed.diet,vitals:[],wellness:null});
-          if (mealVoiceState.parsedResult) applyVoiceParseToState(mealVoiceState.parsedResult);
+          const saved=await mealClient.save({symptoms:[],medications:[],diet:reviewed.diet,vitals:[],wellness:null});
+          applyDietResponse(saved,{brief:mealClient.flow==='brief',source:'voice'});
           mealVoiceState.parsedResult = null;
           closeMealVoicePanel(); renderMealsMain();
         } catch (error) {
@@ -831,6 +855,8 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     // The existing Version B state remains the source of truth for its screens.
     const flowTranscript = document.getElementById('flowTranscript');
     const checkinState = {reportedAnswers:[],transcript:'',symptoms:[],medications:[],diet:[],vitals:[],functionalImpact:[],painScore:null,completed:false,generalStatus:null,noSymptoms:false,resolvedSymptoms:[],sessionId:null,version:null,nextQuestion:null,status:null,backendRecord:null};
+    const recordedSessions = new Set();
+    const automaticSaves = new Map();
     const excludedIds = new Set();
     let uiBusy = false;
     let selectedScore = null;
@@ -855,6 +881,7 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     };
     conversation=createVoiceConversation({
       client,speaker:lazySpeaker,
+      getInitialPrompt:()=>openingPrompt.spoken,
       speechFactory:speechFactory===createElevenLabsSpeechInput?createVoiceSpeechFactory():speechFactory,
       textarea:flowTranscript,
       onRecord(response){
@@ -871,13 +898,9 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
         }
       },
       onQuestion(question){ renderQuestion(question); },
-      questionText(question,response){
-        const item=response[question.category]?.find(item=>item.id===question.entityId);
-        const context=question.category==='symptoms' && item?.location && !item.name.toLowerCase().includes(item.location.toLowerCase())
-          ? `About the ${item.name} in your ${item.location}. ` : '';
-        return context+question.text;
-      },
-      onReview(){stopAllVoice();showFlowScreen('review');voiceControls.hidden=true;},
+      questionText(question){ return question.text; },
+      ...(briefFlow ? {onReadyForReview:prepareReview,savedMessage:foodConfirmation} : {}),
+      onReview(response){stopAllVoice();showFlowScreen(response.status==='saved'?'trends':'review');voiceControls.hidden=true;},
       onState(state){
         const locked=state.active||state.busy;
         setBusy(locked);
@@ -958,6 +981,9 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     }
     function resetCheckinState() {
       client.reset(); excludedIds.clear(); selectedScore=null;
+      openingPrompt=chooseCheckinOpening(openingPrompt?.question);
+      document.querySelector('.patient-prompt').textContent=openingPrompt.question;
+      checkinFlow.querySelector('[data-screen="intro"] h2').textContent=openingPrompt.question;
       Object.assign(checkinState,{reportedAnswers:[],transcript:'',symptoms:[],medications:[],diet:[],vitals:[],functionalImpact:[],painScore:null,completed:false,generalStatus:null,noSymptoms:false,resolvedSymptoms:[],sessionId:null,version:null,nextQuestion:null,status:null,backendRecord:null});
       flowTranscript.value=''; integrationStatus.textContent=''; clearError();
       voiceControls.hidden=!conversationEnabled; voiceReply.value=''; document.getElementById('voiceReplyLabel').hidden=true;
@@ -969,6 +995,44 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     }
     function mergeAnalysisIntoState(response) {
       Object.assign(checkinState,normalizeBackendResponse(response,{transcript:checkinState.transcript,excludedIds}));
+    }
+    function foodOnly(response) {
+      return response.diet.length>0 && !response.symptoms.length && !response.medications.length && !response.vitals.length;
+    }
+    function foodConfirmation(response) {
+      const water=response.diet.some(isWaterEntry);
+      const food=response.diet.some(entry=>!isWaterEntry(entry));
+      return food && water ? 'Food and water recorded.' : water ? 'Water recorded.' : 'Food recorded.';
+    }
+    function recordSavedResponse(response) {
+      mergeAnalysisIntoState(response);
+      checkinState.completed=true;
+      addMealsFromCheckin();
+      if(!recordedSessions.has(response.sessionId)) {
+        checkinHistory.push({timestamp:new Date().toISOString(),...structuredClone(checkinState)});
+        recordedSessions.add(response.sessionId);
+      }
+      renderSavedHistory();renderMealsMain();
+      const savedScreen=checkinFlow.querySelector('[data-screen="trends"]');
+      savedScreen.querySelector('h2').textContent=briefFlow && foodOnly(response)?foodConfirmation(response):'Saved to your record';
+      savedScreen.querySelector('p').textContent=briefFlow && foodOnly(response)
+        ? response.diet.map(entry=>entry.description).join(' · ')
+        : 'You can see how this check-in connects with your measurements and symptoms over time.';
+    }
+    async function prepareReview(response) {
+      if(!briefFlow || response.status!=='review' || !foodOnly(response))return response;
+      let saving=automaticSaves.get(response.sessionId);
+      if(!saving) {
+        saving=client.save(toBackendRecord(checkinState)).then(saved=>{recordSavedResponse(saved);return saved;});
+        automaticSaves.set(response.sessionId,saving);
+        saving.catch(()=>{
+          automaticSaves.delete(response.sessionId);
+          if(!destroyed && checkinFlow.classList.contains('open')) {
+            showFlowScreen('review');voiceControls.hidden=true;
+          }
+        });
+      }
+      return saving;
     }
     function symptomLabel(symptom) {
       if (/^pain$/i.test(symptom.name) && symptom.location) return `${capitalizeFirst(symptom.location)} pain`;
@@ -993,11 +1057,12 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     async function enterReview() {
       if (conversation?.active) conversation.stop(); voiceControls.hidden=true;
       stopAllVoice();
-      if (client.state?.status !== 'review') mergeAnalysisIntoState(await client.review());
-      showFlowScreen('review');
+      if (client.state?.status !== 'review' && client.state?.status !== 'saved') mergeAnalysisIntoState(await client.review());
+      const response=await prepareReview(client.state);
+      if(!destroyed && checkinFlow.classList.contains('open'))showFlowScreen(response.status==='saved'?'trends':'review');
     }
     async function advanceQuestion() {
-      while (client.state?.nextQuestion && excludedIds.has(client.state.nextQuestion.entityId)) mergeAnalysisIntoState(await client.skip());
+      while (client.state?.nextQuestion && excludedIds.has(client.state.nextQuestion.entityId)) mergeAnalysisIntoState(await client.skip({scope:'entity'}));
       if (!checkinState.nextQuestion || client.state.status==='review') { await enterReview(); return; }
       renderQuestion(checkinState.nextQuestion);
     }
@@ -1040,7 +1105,7 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
       let screenName='guided';
       if(question.category==='symptoms' && question.field==='severity' && /pain|ache|hurt/i.test(symptom?.name||'')) {
         screenName='pain-score';selectedScore=null;
-        const screen=checkinFlow.querySelector('[data-screen="pain-score"]');screen.querySelector('h2').textContent=`How severe is your ${name.toLowerCase()} right now?`;
+        const screen=checkinFlow.querySelector('[data-screen="pain-score"]');screen.querySelector('h2').textContent=question.text;
         screen.querySelector('.guided-context').textContent=`About your ${name.toLowerCase()}`;
         screen.querySelector('.guided-count').textContent='1–10';
         selectPainScore(null);
@@ -1052,14 +1117,16 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
         textarea.addEventListener('input',update);
         area.append(textarea,voice,status);screen.insertBefore(area,screen.querySelector('.integration-question-actions'));
         attachQuestionSpeech(textarea,voice,status,update);
-      } else if(question.category==='symptoms' && question.field==='functionalImpact') {
+      } else if(question.category==='symptoms' && question.field==='functionalImpact' && question.type==='single_choice') {
         screenName='additional';const screen=checkinFlow.querySelector('[data-screen="additional"]');screen.querySelector('.guided-context').textContent=`About your ${name.toLowerCase()}`;screen.querySelector('h2').textContent=question.text;
         screen.querySelectorAll('input[name="impact"]').forEach(input=>input.checked=false);
         const textarea=document.getElementById('impactTranscript');textarea.value='';
         attachQuestionSpeech(textarea,document.getElementById('impactVoice'),document.getElementById('impactVoiceStatus'));
       } else if(question.category==='medications') {
         screenName='medication';const screen=checkinFlow.querySelector('[data-screen="medication"]');screen.querySelector('h2').textContent=question.text;
-        screen.querySelector('p').textContent='Use the medication name you know, or skip if you are unsure.';
+        screen.querySelector('p').textContent=question.field==='name'
+          ? 'Use the medication name you know, or skip if you are unsure.'
+          : 'Share what you know, or skip if you prefer.';
         const medList=document.getElementById('medList');medList.replaceChildren();medList.hidden=true;
         document.getElementById('medAmbiguity').hidden=true;document.getElementById('medVoice').hidden=true;document.getElementById('medVoiceStatus').hidden=true;
         screen.querySelector('[data-next]').hidden=true;
@@ -1076,38 +1143,61 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
         makeAnswerBox(screen,question);
       } else {
         const screen=checkinFlow.querySelector('[data-screen="guided"]');screen.querySelector('.guided-context').textContent=`About ${name}`;screen.querySelector('.guided-count').textContent='Follow-up';screen.querySelector('h2').textContent=question.text;
+        if(question.field==='details') {
+          screen.querySelector('.guided-context').textContent=checkinState.symptoms.map(symptomLabel).join(' · ');
+          screen.querySelector('.guided-count').textContent='Optional details';
+        }
         screen.querySelector(':scope > .severity-list').hidden=true;document.getElementById('severityVoice').hidden=true;document.getElementById('severityVoiceStatus').hidden=true;
         makeAnswerBox(screen,question);
+        if(question.field==='details') {
+          const note=document.createElement('p');note.className='brief-details-note';
+          note.textContent='Symptom? Location? Pain score (1–10)? Activities? Since when?';
+          note.style.cssText='padding:12px;border-radius:10px;background:#f4eee8;font-size:13px;line-height:1.6';
+          screen.querySelector('.integration-question-controls').prepend(note);
+        }
       }
       showFlowScreen(screenName);
     }
     const reviewFields={
       symptoms:[['name','Symptom'],['location','Location'],['severityScore','Pain score (1–10)'],['severity','Severity',['','mild','moderate','severe']],['functionalImpact','Effect on activities'],['trend','Trend',['','better','same','worse']],['duration','Duration'],['firstOccurrence','First time',['','yes','no']]],
       medications:[['name','Medication name'],['description','Description'],['dose','Dose'],['status','Status',['','taken','missed','stopped','mentioned']],['time','Time']],
-      diet:[['description','Food or drink'],['time','Meal / time']],
+      diet:[['description','Food or drink'],['time','Meal / time'],['waterGlasses','Water (glasses)'],['waterMode','Water count',['','add','total']]],
       vitals:[['name','Measurement'],['value','Value'],['unit','Unit'],['time','Time']],
     };
     function renderReviewCard(category,item) {
       const card=document.createElement('div');card.className='review-card';card.dataset.recordId=item.id;
       const head=document.createElement('div');head.className='review-card-head';
-      const title=document.createElement('strong');title.textContent=category==='symptoms'?symptomLabel(item):category==='diet'?(item.time||'Diet'):category==='vitals'?item.type:item.name||'Unidentified medication';
+      const title=document.createElement('strong');title.textContent=category==='symptoms'?symptomLabel(item):category==='diet'?(isWaterEntry(item)?'Water':item.time||(briefFlow?'Snacks':'Diet')):category==='vitals'?item.type:item.name||'Unidentified medication';
       const edit=document.createElement('button');edit.className='review-edit';edit.textContent='Edit';edit.dataset.editReview='';
-      const summary=document.createElement('p');
+      const summary=document.createElement(briefFlow && category==='symptoms'?'table':'p');
       const readable=category==='symptoms'?[item.painScore==null?'':`${item.painScore} / 10`,(/pain|ache|hurt/i.test(item.name||'')?'':item.severity),item.location,item.functionalImpact,item.firstOccurrence==null?'':item.firstOccurrence?'First occurrence':'Experienced before',item.trend,item.duration]:category==='medications'?[item.dose,item.status?.replaceAll('_',' '),item.time,item.description]:category==='diet'?[item.item]:[item.value,item.unit,item.time];
-      summary.textContent=readable.filter(Boolean).join(' · ')||'Details not provided';
+      if(briefFlow && category==='symptoms') {
+        summary.className='brief-symptom-table';summary.style.cssText='width:100%;font-size:13px;border-collapse:collapse';
+        const pain=/pain|ache|hurt/i.test(item.name||'');
+        const detailRows=[['Symptom',item.name],['Location',item.location],['Pain score (1–10)',pain?(item.painScore??item.severityScore):null],['Activities',item.functionalImpact],['Since when',item.duration],['Trend',item.trend],['First time',item.firstOccurrence==null?null:item.firstOccurrence?'Yes':'No']];
+        if(!pain && item.severity)detailRows.push(['Severity',item.severity]);
+        for(const [label,value] of detailRows) {
+          const row=document.createElement('tr');const key=document.createElement('th');const cell=document.createElement('td');
+          key.scope='row';key.textContent=label;key.style.cssText='text-align:left;padding:5px 12px 5px 0;font-weight:500';
+          cell.textContent=value==null||(typeof value==='string'&&!value.trim())?'Not Provided':String(value);row.append(key,cell);summary.append(row);
+        }
+      } else summary.textContent=readable.filter(Boolean).join(' · ')||'Details not provided';
       const form=document.createElement('div');form.className='integration-fields';form.hidden=true;
       for(const [field,labelText,options] of reviewFields[category]) {
         const isPain=category==='symptoms' && /pain|ache|hurt/i.test(item.name||'');
+        if(category==='diet' && ['waterGlasses','waterMode'].includes(field) && !isWaterEntry(item))continue;
         if(isPain && field==='severity')continue;
         if(category==='symptoms' && !isPain && ['severityScore','firstOccurrence'].includes(field))continue;
         const label=document.createElement('label');label.textContent=labelText;
         const input=document.createElement(options?'select':'input');input.dataset.recordCategory=category;input.dataset.recordId=item.id;input.dataset.recordField=field;
         input.setAttribute('aria-label',`${labelText}: ${title.textContent}`);
-        if(options)for(const value of options){const option=document.createElement('option');option.value=value;option.textContent=value?capitalizeFirst(value.replaceAll('_',' ')):'Not provided';input.append(option);}
+        if(options)for(const value of options){const option=document.createElement('option');option.value=value;option.textContent=value?capitalizeFirst(value.replaceAll('_',' ')):'Not Provided';input.append(option);}
         if(field==='severityScore'){input.type='number';input.min='1';input.max='10';input.step='1';}
+        if(field==='waterGlasses'){input.type='number';input.min='0';input.step='any';}
         input.value=field==='severityScore'?(item.painScore??item.severityScore??''):field==='firstOccurrence'?(item.firstOccurrence==null?'':item.firstOccurrence?'yes':'no'):item[field]??'';
         input.addEventListener('input',()=>{
           let value=input.value.trim();if(field==='severityScore'){value=value===''?null:Number(value);item.painScore=value;}
+          else if(field==='waterGlasses')value=value===''?null:Number(value);
           else if(field==='firstOccurrence')value=value===''?null:value==='yes';
           else value=value||null;
           item[field]=value;
@@ -1161,7 +1251,9 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     document.querySelector('.flow-done').addEventListener('click',()=>run(async()=>{
       const text=(await flowVoiceRecognizer.stop()).trim();if(!text)throw new Error('Please speak or type your check-in before continuing.');
       integrationStatus.textContent='Organizing your check-in…';
-      checkinState.transcript=text;excludedIds.clear();client.reset();mergeAnalysisIntoState(await client.start(text));renderDetectedTopics();showFlowScreen('topics');
+      checkinState.transcript=text;excludedIds.clear();client.reset();mergeAnalysisIntoState(await client.start(text));
+      if(briefFlow)await advanceQuestion();
+      else {renderDetectedTopics();showFlowScreen('topics');}
     }));
     checkinFlow.querySelector('[data-screen="topics"] [data-next]').addEventListener('click',()=>run(async()=>{applyTopicExclusions();await advanceQuestion();}));
     document.getElementById('editTopics').addEventListener('click',()=>{if(!uiBusy){flowTranscript.value=checkinState.transcript;showFlowScreen('listening');}});
@@ -1189,7 +1281,7 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     document.getElementById('reviewConfirmSave').addEventListener('click',()=>run(async()=>{
       const record=toBackendRecord(checkinState);
       for(const symptom of record.symptoms)if(symptom.severityScore!==null&&(!Number.isInteger(symptom.severityScore)||symptom.severityScore<1||symptom.severityScore>10))throw new Error('Pain scores must be whole numbers from 1 to 10, or left blank.');
-      const response=await client.save(record);mergeAnalysisIntoState(response);checkinState.completed=true;addMealsFromCheckin();checkinHistory.push({timestamp:new Date().toISOString(),...structuredClone(checkinState)});renderSavedHistory();renderMealsMain();showFlowScreen('trends');integrationStatus.textContent='Saved in temporary server memory. Records are lost when the backend restarts.';
+      const response=await client.save(record);recordSavedResponse(response);showFlowScreen('trends');integrationStatus.textContent='Saved in temporary server memory. Records are lost when the backend restarts.';
     }));
     function renderSavedHistory() {
       const history = document.querySelector('.checkin-history');

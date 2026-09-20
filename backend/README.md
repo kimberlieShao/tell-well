@@ -1,11 +1,11 @@
 # Pulsewise backend and connected frontend
 
-This server runs Version B at `/app`, Gemini health extraction, check-in sessions, and ElevenLabs transcription and spoken questions. The Daily Check-in can automatically alternate between listening and asking follow-ups, then show the existing summary for review. See [FRONTEND-INTEGRATION.md](../FRONTEND-INTEGRATION.md) for the UI files and [HANDOFF.md](HANDOFF.md) for teammate integration.
+This server runs Version B at `/app`, Gemini health extraction, check-in sessions, and ElevenLabs transcription and spoken questions. Daily Check-in uses a brief flow: one shared invitation for symptom details, then editable review. Food/water-only entries are logged directly and end with a short confirmation. See [FRONTEND-INTEGRATION.md](../FRONTEND-INTEGRATION.md) for the UI files and [HANDOFF.md](HANDOFF.md) for teammate integration.
 
 | Endpoint | Purpose |
 | --- | --- |
 | `POST /api/analyze` | Extract transcript details, update session, return the next question |
-| `POST /api/checkin/save` | Validate and save a user-confirmed record in memory |
+| `POST /api/checkin/save` | Validate and save a reviewed record with `confirmed: true` in memory |
 | `POST /api/speech/token` | Return a single-use ElevenLabs Scribe Realtime token |
 | `POST /api/speech/speak` | Convert question text to an MP3 using the private ElevenLabs key |
 
@@ -45,7 +45,7 @@ For `gemini-2.5-flash`, `gemini-2.5-flash-lite`, and `gemini-2.5-pro`, the adapt
 
 Account compatibility check (September 19, 2026): `gemini-2.5-flash` appeared in ListModels but its generation request returned 404 with Google's explanation that the model is no longer available to new users. Google recommended `gemini-3.6-flash` through Interactions. One live wellness extraction with that replacement succeeded; the local `.env` was updated to `GEMINI_MODEL=gemini-3.6-flash`. A backend restart is needed to load it. The 2.5 adapter remains for accounts that retain access, but is not a working alternative for this account.
 
-- **Gemini** receives completed transcript text, the current record, and question. It extracts structured facts; the server validates them and chooses rule-based questions. It uses the Interactions API with `store: false`. This disables interaction retrieval through that API, not all provider data processing. Temporary HTTP 503 failures are retried up to twice with roughly 1- and 2-second delays (or a longer provider-requested delay), within one 25-second deadline. Quota/access errors are not retried. Failure does not trigger an automatic demo fallback or modify an existing session.
+- **Gemini** receives completed transcript text, the current record, question, and flow context. It extracts facts and can propose a question in the same request; the server validates the result and enforces the selected flow. The Interactions route uses `store: false`. This disables interaction retrieval through that API, not all provider data processing. Temporary HTTP 503 failures are retried up to twice with roughly 1- and 2-second delays (or a longer provider-requested delay), within one 25-second deadline. Quota/access errors are not retried. Failure does not trigger an automatic demo fallback or modify an existing session.
 - **ElevenLabs** transcribes browser microphone audio and reads the backend's questions aloud. The same key needs **Speech to Text** and **Text to Speech** access. The browser streams mono 16 kHz PCM directly to Scribe v2 Realtime using a single-use token. Conversation mode uses voice activity detection with a two-second silence threshold; each recording is limited to 30 seconds. The backend's TTS route returns MP3 audio, and the microphone starts only after question playback ends. Typed input remains available without speech configuration. This uses the Scribe and text-to-speech APIs, without an ElevenLabs Agents configuration.
 - **Demo extraction** (`EXTRACTION_MODE=demo`, the default) is a limited phrase parser. It supports the documented fictional cases, not general medical language. Responses identify it as demo. To run beside Gemini: `EXTRACTION_MODE=demo PORT=3002 npm start`, then open port 3002. ElevenLabs voice still needs its key in demo extraction mode.
 
@@ -57,11 +57,27 @@ See [API.md](API.md) and `contracts/*.schema.json` for complete formats. The fro
 
 The additive nullable `wellness` object represents an explicit report such as “I feel fine today.” It makes a no-symptom check-in savable without inventing a symptom. Unrelated empty text still cannot save. Medication refusal is retained as a mention and description, not falsely classified as taken.
 
-Version B starts with `painScale: "1-10"`. Pain lacking a numeric score triggers its existing 1–10 screen even if a category such as mild was stated. The preference persists for the session; old clients omitting it retain categorical questions. Each symptom has its own ID and score.
+The main Version B client starts with `flow: "brief"` and `painScale: "1-10"`; both are start-only preferences. When symptoms are present, the server returns one shared `details` question. The screen names all symptoms and shows the optional note **Symptom? Location? Pain score (1–10)? Activities? Since when?** The spoken invitation is short and does not read the note aloud. One answer or skip ends the questions, even when some fields remain unknown. There are no separate activity-impact questions.
 
-Review may finish early. Users can correct/remove facts before Confirm; saved records retain missing-field notices. An exact repeated save request is idempotent. Keep one request in flight, retain data on errors, and do not blindly replay analyze requests after an uncertain network failure.
+Symptom review uses compact tables, displays unknown values as **Not Provided**, and leaves their edit fields blank so they remain `null`. Non-pain scores use the same **Not Provided** placeholder. Users can correct/remove facts before **Confirm & Save**. Each symptom keeps its own ID and score. A standalone score such as “it's 2:00” is interpreted as 2/10 only in a known pain-score context, or a brief details question with exactly one pain symptom; “it started at 2:00 PM” remains timing. A bare score is not assigned arbitrarily between multiple symptoms. The backend also preserves explicitly supplied decimal scores rather than rounding them; the existing score buttons remain whole numbers.
 
-Click **Start Daily Check-in** to begin the voice conversation, or **Type instead** for manual entry. Pause, resume, use buttons/typing, or review early using the displayed controls. Exact spoken “skip,” “pause,” and “finish check-in” commands are supported. The frontend sends each completed answer to the same session, and the backend remains responsible for choosing missing-field questions. Provider failures pause the flow with the transcript retained; nothing is silently switched to mock interpretation. Final review still requires **Confirm & Save**.
+Brief reports without symptoms go directly to review. If they contain food or water and no symptoms, medications, or vitals, the frontend automatically submits the save request and ends with “Food recorded,” “Water recorded,” or “Food and water recorded.” An accompanying wellness statement is allowed. Other records, including mixed symptom/food entries, retain editable review and explicit confirmation. This is frontend behavior: the API itself still requires a review state and `confirmed: true` to save.
+
+Structured diet entries retain optional `waterGlasses` and `waterMode`. A water count with `waterMode: "add"` increments the slider; `"total"` replaces it. Zero and fractional counts are preserved, and the slider expands above 12 instead of clamping the reported count. Water without a stated glass count uses `waterGlasses: null`, `waterMode: "add"`: its words are recorded without changing the slider or creating a snack. No bottle/volume-to-glass conversion occurs. Food with an explicit breakfast/lunch/dinner time goes to that meal; unknown meal times go to Snacks in brief mode. Each saved session is applied once, so rendering or retrying cannot add its food/water again.
+
+An exact repeated save request is idempotent. Keep one request in flight, retain data on errors, and do not blindly replay analyze requests after an uncertain network failure. A failed direct food/water save leaves a reviewable record for retry. Closing or pausing during an in-flight save permits data reconciliation but cannot restart audio or reopen the modal.
+
+### Legacy flow when `flow` is omitted
+
+Clients omitting `flow` retain the earlier behavior. Gemini proposes one relevant question or review alongside fact extraction in the **same request**. It uses the current record, exact previous question, prior answers, and asked/skipped targets. Questions stay within the reported health categories; the app does not survey unrelated categories. Wellness-only and meal-only reports can go directly to review, but these legacy clients do not receive the main frontend's brief-mode automatic food/water save.
+
+The server validates every proposed target, rejects already answered/asked/skipped fields, and limits the flow to six follow-ups overall and three per item. It stores the exact accepted question for both the screen and ElevenLabs audio. Invalid proposals use a short deterministic fallback without discarding valid extracted facts. Unchecked topics are excluded from subsequent questions without using the visible question budget. Typed and spoken answers both receive contextual extraction/planning, including answers that supply several details at once.
+
+Unknown values remain blank. Contextual answers that do not map to a structured field remain in `reportedAnswers` for review. Demo mode uses deterministic questions. In this legacy flow, `painScale: "1-10"` requests the numeric severity question; omitting it retains categorical severity questions. Questions collect information; this is not a diagnostic or clinical triage system. Gemini failures preserve the existing session and pause visibly. No new API key is needed; restart the backend after updating the code.
+
+The opening is one short question, selected locally from six variations and held constant during pause/retry. The spoken prompt matches the displayed opening without a trailing category list or instructions. Both Gemini and demo mode omit daily-activity impact follow-ups (eating, getting dressed, walking, etc.); explicitly volunteered activity effects can still appear in the record.
+
+Click **Start Daily Check-in** to begin the voice conversation, or **Type instead** for manual entry. Pause, resume, use buttons/typing, or review early using the displayed controls. Exact spoken “skip,” “pause,” and “finish check-in” commands are supported. The frontend sends each completed answer to the same session, and the backend enforces the selected brief or legacy policy. Provider failures pause the flow with the transcript retained; nothing is silently switched to mock interpretation.
 
 ## Phone or separate frontend
 
@@ -76,7 +92,8 @@ Browser microphone capture requires localhost or HTTPS; plain HTTP to a LAN addr
 | `src/schema.ts` | Records and request/response validation |
 | `src/extractor.ts` | Gemini adapter and explicit demo parser |
 | `src/gemini-schema.ts` | Provider-compatible JSON schema |
-| `src/questions.ts` | Deterministic questions and targeted answers |
+| `src/questions.ts` | Eligible fields, fallback wording, and targeted answers |
+| `src/followups.ts` | Gemini question policy, validation, category boundaries, and limits |
 | `src/checkins.ts` | In-memory sessions, review, save |
 | `src/speech.ts` | Single-use ElevenLabs tokens |
 | `src/tts.ts` | ElevenLabs question audio, timeouts, and safe errors |
@@ -89,11 +106,11 @@ npm test
 npm run schema
 ```
 
-TypeScript checking and all **102 automated tests** passed after the conversation update. Tests include the requested extraction cases, Version B events, independent pain scores, review corrections, API failures, simulated speech/audio behavior, automatic conversation sequencing, VAD finalization, TTS, cancellation, and review without auto-save. `npm run schema` regenerates machine-readable health contracts; the speech response formats are documented separately in [API.md](API.md).
+`npm run check` and all **203 automated tests** passed for the brief-flow update. Automated coverage includes one-answer completion, contextual numeric replies, independent pain scores, review corrections, exact food/water updates, direct-save failures, cancellation during save, legacy behavior, simulated speech/audio, VAD, and TTS. The four focused brief UI tests also passed after retaining reported trend/first occurrence/non-pain severity in the table. Offline browser checks verified “It's 2:00.” becoming 2/10 after the shared pain-details question, editable missing values, confirmed save, and direct food/water logging into Snacks with slider 3. No live provider API calls were made for this update. `npm run schema` regenerates machine-readable health contracts; speech response formats are documented separately in [API.md](API.md).
 
-Earlier live verification succeeded for synthetic ElevenLabs audio, Gemini wellness, separate arm/leg pain, and unnamed missed medication. The earlier browser Gemini check-in completed independent scores 7/3, impact/trend questions, review, and save. Live refusal and meals checks encountered provider busy/quota limits (503/429); their deterministic cases passed automated tests.
+Historical verification, before the brief flow: synthetic ElevenLabs audio, Gemini wellness, separate arm/leg pain, and unnamed missed medication succeeded. An earlier browser Gemini check-in completed independent scores 7/3, the then-current impact/trend questions, review, and save. Earlier refusal and meals checks encountered provider busy/quota limits (503/429). These results do not verify the new brief interaction.
 
-The conversation update separately passed a live Gemini wellness-to-review check, a live ElevenLabs TTS check returning MP3 audio, and a synthetic VAD transcription check that delivered one completed turn without manual finalization. Physical microphone capture and a complete live hands-free browser conversation have not yet been manually verified.
+An earlier conversation update also passed a live Gemini wellness-to-review check, an ElevenLabs TTS check returning MP3 audio, and synthetic VAD transcription. Physical microphone capture and a complete live hands-free browser conversation remain unverified for the brief-flow update.
 
 ## Prototype limits
 

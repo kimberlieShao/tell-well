@@ -3,10 +3,21 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { geminiExtractionSchema } from './gemini-schema.js';
 import { geminiQuotaReason } from './gemini-quota.js';
 import { emptyRecord, extractionSchema, type Extraction, type HealthRecord, type Question } from './schema.js';
+import { extractionResultSchema, followUpInstructions, briefFollowUpInstructions, type ExtractionResult } from './followups.js';
+
+export interface FollowUpContext {
+  askedQuestionIds: string[];
+  skippedQuestionIds: string[];
+  excludedEntityIds: string[];
+  numericPain: boolean;
+  remainingQuestions: number;
+  flow?: 'brief';
+}
 
 export interface Extractor {
   mode: 'demo' | 'gemini';
-  extract(transcript: string, record: HealthRecord, question: Question | null): Promise<Extraction>;
+  adaptiveQuestions?: boolean;
+  extract(transcript: string, record: HealthRecord, question: Question | null, context?: FollowUpContext): Promise<ExtractionResult>;
 }
 
 const instructions = `Extract ONLY health facts explicitly reported by the user in the latest transcript.
@@ -16,6 +27,10 @@ Return arrays symptoms, medications, diet, vitals and nullable wellness using th
 Return only new facts or updates to existing entities; do not repeat unchanged entries.
 Use an existing entity id when updating that entity; use null for a new entity.
 For an answer to currentQuestion, update that question's entity using its existing id and name.
+When currentQuestion.field is details, it covers ALL current symptoms: extract each reported detail for its correct symptom, using existing IDs, and retain missing values as null. Do not combine multiple symptom locations.
+Treat this details reply as elaboration of the existing complaint, not a fresh list of isolated keywords. A more precise location (arm -> elbow) and related sensations at that site (pain and itching) belong in ONE update with the existing ID; preserve both sensations in name. Generic limitations such as problems with eating, dressing, or walking belong in functionalImpact, not a new symptom. Retain distinct complaints when another location, opposite side, separate/unrelated problem, or independently different score/timing is reported. Never merge every symptom merely because the question uses one anchor ID. Specific swallowing difficulty, loss of appetite, or nausea are not generic activity limitations.
+Example: existing arm pain; details "My arm gets itchy at the elbows. The pain score is two. I have problems with eating. It started yesterday." -> ONE existing-ID update: name="arm pain and itchiness", location="elbows", severityScore=2, functionalImpact="Problems with eating", duration="started yesterday", trend=null, firstOccurrence=null. Do not add itchiness or problems with eating as separate entries in this context. If there are several possible symptoms for an unassigned detail, keep the ambiguity rather than choosing the first one.
+Interpret a short answer using the question: "it's 2" answers a pain-score question with severityScore=2. Speech can render this as "it's 2:00"; in a pain-score question (or a details question about exactly one pain symptom), a standalone H:00 reply means a score H/10, not a time. Never apply that conversion to actual timing such as "it started at 2:00", AM/PM, nonzero minutes, or multiple symptoms with no identified target.
 Users answer in their own words; options are examples, not a required vocabulary.
 For location, preserve the reported specific body area and side, e.g. 'outside of my left knee'.
 For duration, keep reported timing as text without guessing an exact date: 'since I woke up', 'on and off for a couple of weeks'.
@@ -42,6 +57,8 @@ reports an intention, not an actual dose: use status=mentioned and keep the exac
 description. Never turn refusal, intention, negation, or a question into medication taken.
 For vitals keep value and unit separate, never invent or convert a unit, and never classify as healthy/unsafe.
 For diet just record the stated food/drink and time. Do not estimate calories/nutrients.
+Keep water in a separate diet entry from food. For an explicit count of glasses of water, set waterGlasses to the count and waterMode="total" for a stated daily total ("today", "so far", "in total"); use "add" for an additional drink or no stated total. "Two more glasses" is add even when today is mentioned. Never convert bottles, milliliters or other units into glasses. For water without a glass count, waterGlasses=null and waterMode="add" so it is not logged as food. Non-water entries omit both water fields or set them null. Preserve the actual food/drink words in description.
+For meals, use time breakfast, lunch, dinner or snacks only when explicitly named; otherwise time=null. The app groups unassigned food under Snacks without claiming the person called it a snack.
 Use a separate diet entry for each meal. "I had oatmeal for breakfast, chicken and rice for
 lunch, and pasta for dinner" has three entries; chicken and rice belong together at lunch.
 For an explicit positive wellbeing report such as "I feel fine today", return
@@ -50,7 +67,10 @@ Use status="normal" for explicitly feeling normal. Wellness is null when not exp
 reported, for unrelated text such as "hello", or when a positive wellbeing claim is negated.
 Never infer wellbeing merely from an empty symptom list. Keep any separately reported symptoms.
 The same medication can have different events (missed morning vs taken evening); these need different entries.
-Do not fabricate a medication list, missing field list, follow-up question, or medical advice.`;
+Do not fabricate a medication list, missing field list, or medical advice.
+When currentQuestion.field is context, preserve the user's meaning and extract only explicitly reported health facts; never add a context field to a health item.
+Propose the next question separately in followUp according to the supplied flow policy.
+Do not propose follow-ups for questionContext.excludedEntityIds; those topics were unchecked by the user.`;
 
 export function createGeminiExtractor(config: { apiKey: string; model: string; fetcher?: typeof fetch }): Extractor {
   const fetcher = config.fetcher ?? fetch;
@@ -64,17 +84,20 @@ export function createGeminiExtractor(config: { apiKey: string; model: string; f
     : 'https://generativelanguage.googleapis.com/v1beta/interactions';
   return {
     mode: 'gemini',
-    async extract(transcript, record, question) {
+    adaptiveQuestions: true,
+    async extract(transcript, record, question, context) {
       // Retries share one deadline, shorter than the frontend's 30-second timeout.
       const deadline = Date.now() + 25_000;
       const signal = AbortSignal.timeout(25_000);
       try {
-        const input = JSON.stringify({ latestTranscript: transcript, currentRecord: record, currentQuestion: question });
+        const input = JSON.stringify({ latestTranscript: transcript, currentRecord: record, currentQuestion: question,
+          ...(context ? { questionContext: context } : {}) });
+        const systemInstructions = `${instructions}\n${context?.flow === 'brief' ? briefFollowUpInstructions : followUpInstructions}`;
         const request: RequestInit = {
           method: 'POST', signal,
           headers: { 'Content-Type': 'application/json', 'x-goog-api-key': config.apiKey },
           body: JSON.stringify(useGenerateContent ? {
-            systemInstruction: { parts: [{ text: instructions }] },
+            systemInstruction: { parts: [{ text: systemInstructions }] },
             contents: [{ role: 'user', parts: [{ text: input }] }],
             generationConfig: {
               responseMimeType: 'application/json', responseJsonSchema: geminiExtractionSchema,
@@ -85,7 +108,7 @@ export function createGeminiExtractor(config: { apiKey: string; model: string; f
             },
           } : {
             model: config.model,
-            system_instruction: instructions,
+            system_instruction: systemInstructions,
             input,
             response_format: { type: 'text', mime_type: 'application/json', schema: geminiExtractionSchema },
             generation_config: { max_output_tokens: 4096 },
@@ -130,13 +153,13 @@ export function createGeminiExtractor(config: { apiKey: string; model: string; f
             throw new Error('Incomplete or blocked model response');
           const raw = candidate.content?.parts?.filter(part => part.thought !== true && typeof part.text === 'string')
             .map(part => part.text).join('');
-          return extractionSchema.parse(JSON.parse(raw ?? ''));
+          return extractionResultSchema.parse(JSON.parse(raw ?? ''));
         }
         const result = await response.json() as { status?: string; steps?: { type?: string; content?: { type?: string; text?: string }[] }[] };
         if (result.status !== 'completed') throw new Error('Incomplete or blocked model response');
         const output = result.steps?.findLast(step => step.type === 'model_output');
         const raw = output?.content?.filter(part => part.type === 'text').map(part => part.text ?? '').join('');
-        return extractionSchema.parse(JSON.parse(raw ?? ''));
+        return extractionResultSchema.parse(JSON.parse(raw ?? ''));
       } catch (error) {
         if (error instanceof ApiError) throw error;
         if (signal.aborted) throw new ApiError(502, 'EXTRACTION_FAILED', 'Gemini took too long to respond. Try again shortly. Your existing record was not changed.');
@@ -147,6 +170,59 @@ export function createGeminiExtractor(config: { apiKey: string; model: string; f
 }
 
 /** Offline integration aid, intentionally limited. It is never used as a fallback for AI errors. */
+function demoWaterDetails(text: string): Pick<Extraction['diet'][number], 'waterGlasses' | 'waterMode'> {
+  if (!/\bwater\b/i.test(text)) return {};
+  const numbers = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+  const normalized = text.toLowerCase().replace(/\b(zero|one|two|three|four|five|six|seven|eight|nine|ten)\b/g,
+    word => String(numbers.indexOf(word)));
+  const count = normalized.match(/\b(\d+(?:\.\d+)?)\s+(?:more\s+)?glass(?:es)?\s+(?:of\s+)?water\b/);
+  const waterGlasses = count && Number(count[1]) <= 100 ? Number(count[1]) : null;
+  const waterMode = /\b(?:more|another|additional)\b/.test(normalized) ? 'add'
+    : /\b(?:today|so far|in total|total)\b/.test(normalized) ? 'total' : 'add';
+  return { waterGlasses, waterMode };
+}
+
+function demoDietEntries(transcript: string): Extraction['diet'] {
+  const entries: Extraction['diet'] = [];
+  for (const statement of transcript.split(/\.(?!\d)|[;!?]|\bbut\b/i)) {
+    if (/\b(?:no|not|don't|don’t|didn't|didn’t|never|maybe|might|perhaps|possibly|not sure)\b/i.test(statement)) continue;
+    const start = statement.search(/\b(?:(?:i|we)\s+)?(?:had|ate|drank)\b/i);
+    if (start < 0) continue;
+    let remaining = statement.slice(start);
+    // Preserve named meals and food conjunctions, but give every water report
+    // its own entry so hydration never consumes the associated food or meal.
+    const meals = [...remaining.matchAll(/([^,]+?)\s+for\s+(breakfast|lunch|dinner)\b/gi)];
+    for (const meal of meals) {
+      const parts: string[] = [];
+      for (const raw of meal[0].trim().replace(/^and\s+/i, '').split(/\band\b/i)) {
+        const part = raw.trim();
+        const previous = parts.at(-1);
+        if (previous && !/\bwater\b/i.test(previous) && !/\bwater\b/i.test(part)) parts[parts.length - 1] += ` and ${part}`;
+        else if (part) parts.push(part);
+      }
+      for (const description of parts)
+        entries.push({ id: null, description, time: meal[2].toLowerCase(), ...demoWaterDetails(description) });
+      remaining = remaining.replace(meal[0], ' ');
+    }
+    let precedingWaterReport = false;
+    for (const raw of remaining.split(/\band\b/i)) {
+      const description = raw.trim().replace(/^[,\s]+|[,\s]+$/g, '');
+      if (!description) continue;
+      const explicitReport = /\b(?:ate|drank)\b/i.test(description);
+      // In "I drank one glass of water and two more glasses of water", the
+      // second count shares the explicit drinking verb, not a guessed unit.
+      const additionalWater = precedingWaterReport && /^(?:\d+(?:\.\d+)?|zero|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:more\s+)?(?:glass(?:es)?|bottles?|cups?|lit(?:er|re)s?|ml)\s+(?:of\s+)?water\b/i.test(description);
+      if (explicitReport || additionalWater) {
+        entries.push({ id: null, description,
+          time: description.match(/\b(morning|afternoon|evening|tonight|bedtime|breakfast|lunch|dinner)\b/i)?.[0].toLowerCase() ?? null,
+          ...demoWaterDetails(description) });
+        precedingWaterReport = /\bwater\b/i.test(description);
+      } else precedingWaterReport = false;
+    }
+  }
+  return entries;
+}
+
 export const demoExtractor: Extractor = {
   mode: 'demo',
   async extract(transcript, record, question) {
@@ -166,19 +242,7 @@ export const demoExtractor: Extractor = {
         ? [statement] : statement.split(/\band\b/i)
     ).map(s => s.trim()).filter(Boolean);
     const medicationNames = ['prednisone', 'lisinopril', 'ibuprofen', 'methotrexate', 'hydroxychloroquine'];
-    // Meal conjunctions are different from symptom conjunctions: chicken and rice
-    // are one lunch. Parse explicit meal reports before splitting other clauses.
-    const mealStatements = transcript.split(/\.(?!\d)|[;!?]/).filter(statement => /\b(?:had|ate|drank)\b/i.test(statement));
-    for (const statement of mealStatements) {
-      const start = statement.search(/\b(?:(?:i|we)\s+)?(?:had|ate|drank)\b/i);
-      const reported = statement.slice(start);
-      const meals = [...reported.matchAll(/([^,]+?)\s+for\s+(breakfast|lunch|dinner)\b/gi)];
-      if (!meals.length || /\b(?:no|not|don't|don’t|didn't|didn’t|never|maybe|might|perhaps)\b/i.test(statement)) continue;
-      for (const meal of meals) {
-        const description = meal[0].trim().replace(/^and\s+/i, '');
-        result.diet.push({ id: null, description, time: meal[2].toLowerCase() });
-      }
-    }
+    result.diet.push(...demoDietEntries(transcript));
     const wellness = transcript.match(/\bi\s+(?:feel|am)\s+(fine|well|good|okay|ok|normal)(?:\s+today)?\b/i);
     const wellnessPrefix = wellness ? transcript.slice(0, wellness.index).split(/\.(?!\d)|[;!?]|\bbut\b/i).at(-1) ?? '' : '';
     if (wellness && !/\b(?:no|not|don't|don’t|didn't|didn’t|never|maybe|might|perhaps|whether|if)\b/i.test(wellnessPrefix))
@@ -222,9 +286,6 @@ export const demoExtractor: Extractor = {
           duration: t.match(/\b(?:for|since)\s+[^,]+/)?.[0] ?? null,
         });
       }
-      if (/\b(?:ate|drank|had for breakfast|had for lunch|had for dinner)\b/.test(t)
-        && !/\bfor\s+(?:breakfast|lunch|dinner)\b/.test(t))
-        result.diet.push({ id: null, description: clause, time: time ?? t.match(/\b(?:breakfast|lunch|dinner)\b/)?.[0] ?? null });
       const vital = t.match(/\b(heart rate|temperature|blood pressure|oxygen saturation)\s*(?:was|is|of|:)?\s*(\d+(?:\.\d+)?(?:\s*\/\s*\d+)?)\s*(bpm|°?c\b|°?f\b|mmhg|%)?/);
       if (vital) result.vitals.push({ id: null, name: vital[1], value: vital[2], unit: vital[3] ?? null, time });
     }

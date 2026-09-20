@@ -1,6 +1,23 @@
 const speechError = (code, message) => Object.assign(new Error(message), { code });
 const join = (...parts) => parts.map(part => part.trim()).filter(Boolean).join(' ');
 
+// The requested language is a recognition hint, not an output guarantee.
+// Check the provider's final language metadata and reject other writing systems
+// (including the Cyrillic output that can otherwise slip through an English hint).
+const englishTranscriptProblem = (text, languageCode) => {
+  const letters = text.replace(/[µμ](?=[gGlL]\b)/gu, '').match(/\p{L}/gu) ?? [];
+  if (letters.some(letter => !/\p{Script=Latin}/u.test(letter)))
+    return speechError('SPEECH_ENGLISH_REQUIRED', 'That recording was not recognized as English. Please try again in English, or type your answer.');
+  // Scores and measurements such as "2:00" or "118/76" have no language.
+  if (/\d/.test(text) && /^[\d\s.,:/%+\-–()!?]+$/u.test(text)) return null;
+  const language = typeof languageCode === 'string' ? languageCode.trim().toLowerCase() : '';
+  if (!language || ['und', 'unknown'].includes(language))
+    return speechError('SPEECH_LANGUAGE_UNVERIFIED', 'The recording language could not be confirmed. Please record again in English, or type your answer.');
+  if (!/^(?:en|eng)(?:[-_][a-z0-9]+)*$/.test(language))
+    return speechError('SPEECH_ENGLISH_REQUIRED', 'That recording was not recognized as English. Please try again in English, or type your answer.');
+  return null;
+};
+
 const abortable = (promise, signal, problem) => new Promise((resolve, reject) => {
   const onAbort = () => reject(problem());
   if (signal.aborted) { reject(problem()); return; }
@@ -21,6 +38,7 @@ export async function createMicrophoneCapture({
   AudioWorkletNodeImpl = globalThis.AudioWorkletNode,
 } = {}) {
   let stream, context, source, worklet, gain, flushResolve, flushReject, flushTimer;
+  let startPromise, startResolve, startReject;
   let closed = false;
   let started = false;
   const cleanup = () => {
@@ -34,7 +52,9 @@ export async function createMicrophoneCapture({
     if (!audioContext && context && context.state !== 'closed') void context.close().catch(() => {});
   };
   const cancel = () => {
-    flushReject?.(speechError('SPEECH_CANCELLED', 'Recording was cancelled.'));
+    const problem = speechError('SPEECH_CANCELLED', 'Recording was cancelled.');
+    startReject?.(problem);
+    flushReject?.(problem);
     cleanup();
   };
   const guard = () => {
@@ -69,12 +89,18 @@ export async function createMicrophoneCapture({
     gain.gain.value = 0;
     worklet.port.onmessage = ({ data }) => {
       if (closed) return;
-      if (data?.type === 'audio' && data.buffer instanceof ArrayBuffer) onAudio(new Uint8Array(data.buffer));
+      if (data?.type === 'audio' && data.buffer instanceof ArrayBuffer && data.buffer.byteLength) {
+        onAudio(new Uint8Array(data.buffer));
+        // Connecting the graph is not proof that the microphone is running.
+        // Silence counts as input too; users need not speak to become ready.
+        startResolve?.();
+      }
       if (data?.type === 'limit') onLimit();
       if (data?.type === 'flushed') { flushResolve?.(); cleanup(); }
     };
     worklet.onprocessorerror = () => {
       const problem = speechError('SPEECH_CAPTURE_FAILED', 'Audio capture stopped. Type your response or record it again.');
+      startReject?.(problem);
       flushReject?.(problem);
       cleanup();
       onError(problem);
@@ -82,11 +108,21 @@ export async function createMicrophoneCapture({
     return {
       start() {
         guard();
-        if (started) return;
+        if (started) return startPromise;
         started = true;
-        source.connect(worklet);
-        worklet.connect(gain);
-        gain.connect(context.destination);
+        startPromise = new Promise((resolve, reject) => { startResolve = resolve; startReject = reject; });
+        // Some callers only use cancellation; the returned promise still
+        // rejects for callers awaiting startup, without an unhandled rejection.
+        startPromise.catch(() => {});
+        try {
+          source.connect(worklet);
+          worklet.connect(gain);
+          gain.connect(context.destination);
+        } catch (error) {
+          startReject(error);
+          cleanup();
+        }
+        return startPromise;
       },
       async finish() {
         guard();
@@ -145,6 +181,9 @@ export function createElevenLabsSpeechInput({
     clearTimeout(session.startTimer);
     clearTimeout(session.finishTimer);
     clearTimeout(session.limitTimer);
+    clearTimeout(session.languageTimer);
+    session.pendingAudio.length = 0;
+    session.pendingAudioBytes = 0;
     session.controller.abort();
     session.capture?.cancel();
     if (session.socket) {
@@ -164,6 +203,11 @@ export function createElevenLabsSpeechInput({
     session.finalReject?.(problem);
     cleanup(session);
     report('error', problem.message);
+  };
+  const waitForLanguage = session => {
+    if (session.languageTimer) return;
+    session.languageTimer = setTimeout(() => fail(session, speechError('SPEECH_LANGUAGE_UNVERIFIED',
+      'The recording language could not be confirmed. Please record again in English, or type your answer.')), finishTimeoutMs);
   };
   const complete = session => {
     if (!current(session)) return;
@@ -200,6 +244,20 @@ export function createElevenLabsSpeechInput({
     for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
     session.socket.send(JSON.stringify({ message_type: 'input_audio_chunk', audio_base_64: btoa(binary), sample_rate: 16000, commit }));
     session.samples += bytes.length / 2;
+  };
+  const captureAudio = (session, bytes) => {
+    if (!current(session) || !bytes.length) return;
+    try {
+      if (session.socketReady) sendAudio(session, bytes);
+      else {
+        // Keep the beginning of the reply while the token/socket connects.
+        // Cap at the existing 30-second mono PCM limit; never drop early words.
+        if (session.pendingAudioBytes + bytes.length > 30 * 16000 * 2)
+          throw speechError('SPEECH_CONNECTION_SLOW', 'The speech connection took too long. Please record your answer again or type it.');
+        session.pendingAudio.push(bytes.slice());
+        session.pendingAudioBytes += bytes.length;
+      }
+    } catch (problem) { fail(session, problem); }
   };
 
   const cancel = () => {
@@ -239,7 +297,9 @@ export function createElevenLabsSpeechInput({
         // Install the waiter before sending commit, including for synchronous test sockets.
         const final = new Promise((resolve, reject) => { session.finalResolve = resolve; session.finalReject = reject; });
         final.catch(() => {});
-        session.finishTimer = setTimeout(() => fail(session, speechError('SPEECH_TIMEOUT', 'The speech service did not finish in time. Review or type your transcript.')), finishTimeoutMs);
+        session.finishTimer = setTimeout(() => fail(session, session.unverified.length
+          ? speechError('SPEECH_LANGUAGE_UNVERIFIED', 'The recording language could not be confirmed. Please record again in English, or type your answer.')
+          : speechError('SPEECH_TIMEOUT', 'The speech service did not finish in time. Review or type your transcript.')), finishTimeoutMs);
         await session.capture.finish();
         // VAD can deliver the final segment while the worklet is flushing.
         if (session.result !== undefined) return session.result;
@@ -278,7 +338,7 @@ export function createElevenLabsSpeechInput({
       if (!available) return Promise.reject(speechError('SPEECH_UNAVAILABLE', 'Voice input needs a supported browser on HTTPS or localhost. Type your check-in instead.'));
       lastError = null;
       mode = 'form';
-      const session = { controller: new AbortController(), before: textarea.value.trim(), committed: [], samples: 0, commitSent: false, heardSpeech: false, generation: ++generation };
+      const session = { controller: new AbortController(), before: textarea.value.trim(), committed: [], unverified: [], lastVerifiedText: null, finishCommitObserved: false, samples: 0, commitSent: false, heardSpeech: false, pendingAudio: [], pendingAudioBytes: 0, socketReady: false, generation: ++generation };
       active = session;
       const connecting = (stage, message) => {
         if (!current(session)) return;
@@ -296,21 +356,26 @@ export function createElevenLabsSpeechInput({
       session.startTimer = setTimeout(() => fail(session, speechError('SPEECH_START_TIMEOUT', startupErrors[session.startStage])), startTimeoutMs);
       session.startPromise = (async () => {
         try {
-          const capturePending = Promise.resolve(captureFactory({ signal: session.controller.signal, onStatus: status => connecting(status.stage, status.message), onAudio: bytes => {
-            try { sendAudio(session, bytes); } catch (problem) { fail(session, problem); }
-          }, onError: problem => fail(session, problem), onLimit: () => reachedLimit(session) }));
+          const capturePending = Promise.resolve(captureFactory({ signal: session.controller.signal, onStatus: status => connecting(status.stage, status.message), onAudio: bytes => captureAudio(session, bytes), onError: problem => fail(session, problem), onLimit: () => reachedLimit(session) }));
           // Permission dialogs cannot be programmatically dismissed. The caller can
           // still cancel immediately, and a subsequently granted stream is released.
           capturePending.then(capture => { if (!current(session)) capture.cancel(); }, () => {});
           session.capture = await abortable(capturePending, session.controller.signal, () => session.problem ?? speechError('SPEECH_CANCELLED', 'Recording was cancelled.'));
           if (!current(session)) { session.capture.cancel(); throw speechError('SPEECH_CANCELLED', 'Recording was cancelled.'); }
+          // Start as soon as the microphone is available (after spoken prompts
+          // finish), while the token and WebSocket connect independently.
+          const captureReady = Promise.resolve(session.capture.start());
+          captureReady.catch(problem => fail(session, problem));
+          if (!current(session)) throw session.problem ?? speechError('SPEECH_CANCELLED', 'Recording was cancelled.');
+          session.limitTimer = setTimeout(() => reachedLimit(session), Math.min(maxRecordingMs, 30000));
           connecting('token', 'Preparing ElevenLabs transcription…');
-          const response = await fetchImpl(tokenUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}', signal: session.controller.signal });
+          const response = await abortable(fetchImpl(tokenUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}', signal: session.controller.signal }), session.controller.signal, () => session.problem ?? speechError('SPEECH_CANCELLED', 'Recording was cancelled.'));
           if (!response.ok) throw speechError('SPEECH_UNAVAILABLE', 'ElevenLabs could not start. Check the backend voice configuration or type your check-in.');
-          const result = await response.json();
+          const result = await abortable(response.json(), session.controller.signal, () => session.problem ?? speechError('SPEECH_CANCELLED', 'Recording was cancelled.'));
           if (!current(session)) throw speechError('SPEECH_CANCELLED', 'Recording was cancelled.');
           if (typeof result.token !== 'string' || !result.token.trim()) throw speechError('SPEECH_UNAVAILABLE', 'The speech service could not start. Type your check-in instead.');
-          const query = new URLSearchParams({ model_id: 'scribe_v2_realtime', token: result.token, audio_format: 'pcm_16000', commit_strategy: commitStrategy });
+          // Wait for the delayed language result before publishing any speech.
+          const query = new URLSearchParams({ model_id: 'scribe_v2_realtime', token: result.token, audio_format: 'pcm_16000', language_code: 'en', include_language_detection: 'true', commit_strategy: commitStrategy });
           if (commitStrategy === 'vad') query.set('vad_silence_threshold_secs', String(vadSilenceThresholdSecs));
           connecting('connection', 'Connecting to ElevenLabs…');
           const socket = new WebSocketImpl(`wss://api.elevenlabs.io/v1/speech-to-text/realtime?${query}`);
@@ -320,19 +385,53 @@ export function createElevenLabsSpeechInput({
             if (!current(session)) return;
             let message;
             try { message = JSON.parse(data); } catch { fail(session, speechError('SPEECH_INVALID_RESPONSE', 'The speech service returned an invalid response. Type your check-in instead.')); return; }
-            if (message.message_type === 'session_started') { session.readyResolve(); return; }
+            if (message.message_type === 'session_started') {
+              if (message.config && Object.hasOwn(message.config, 'language_code')
+                  && !/^(?:en|eng)$/i.test(String(message.config.language_code ?? ''))) {
+                fail(session, speechError('SPEECH_LANGUAGE_CONFIG', 'English transcription could not be enabled. Refresh and try again, or type your answer.'));
+                return;
+              }
+              session.readyResolve(); return;
+            }
             if (message.message_type === 'partial_transcript' && typeof message.text === 'string') {
               if (message.text.trim()) session.heardSpeech = true;
-              textarea.value = join(stable(session), message.text);
-              mode = 'spoken';
-              report('transcribing', 'Listening…');
+              // Partial results have no language metadata; keep the last
+              // verified words visible instead of briefly displaying foreign text.
+              report('transcribing', 'Listening in English…');
               return;
             }
             if (message.message_type === 'committed_transcript' && typeof message.text === 'string') {
-              if (message.text.trim()) session.committed.push(message.text.trim());
+              const text = message.text.trim();
+              if (session.commitSent) session.finishCommitObserved = true;
+              if (text) {
+                session.heardSpeech = true;
+                session.unverified.push(text);
+                waitForLanguage(session);
+                report('transcribing', 'Checking your English transcript…');
+              } else if (session.commitSent && !session.unverified.length) complete(session);
+              return;
+            }
+            if (message.message_type === 'committed_transcript_with_timestamps' && typeof message.text === 'string') {
+              const text = message.text.trim();
+              if (!text) return;
+              // Normal and enriched commits describe the same segment. A
+              // duplicate enriched notification must not append it again.
+              if (!session.unverified.length && text === session.lastVerifiedText) return;
+              const problem = englishTranscriptProblem(text, message.language_code);
+              if (problem) { fail(session, problem); return; }
+              // Some providers may send only the enriched final. Do not make
+              // that valid final wait for a separate plain notification.
+              if (!session.unverified.length && session.commitSent) session.finishCommitObserved = true;
+              session.unverified.shift();
+              session.committed.push(text);
+              session.lastVerifiedText = text;
+              clearTimeout(session.languageTimer);
+              session.languageTimer = null;
+              if (session.unverified.length) waitForLanguage(session);
               textarea.value = stable(session);
               mode = 'spoken';
-              if (session.commitSent || (commitStrategy === 'vad' && session.committed.length)) complete(session);
+              if (!session.unverified.length && ((session.commitSent && session.finishCommitObserved)
+                  || commitStrategy === 'vad')) complete(session);
               return;
             }
             if (message.message_type === 'warning') { report('notice', 'The speech service sent a notice.'); return; }
@@ -344,12 +443,21 @@ export function createElevenLabsSpeechInput({
           socket.onclose = () => fail(session, speechError('SPEECH_CONNECTION_LOST', 'The speech connection ended before your transcript was ready. Review or type it.'));
           await ready;
           if (!current(session)) throw speechError('SPEECH_CANCELLED', 'Recording was cancelled.');
-          session.capture.start();
+          session.socketReady = true;
+          const queuedAudio = session.pendingAudio.splice(0);
+          session.pendingAudioBytes = 0;
+          for (const bytes of queuedAudio) {
+            if (!current(session)) break;
+            sendAudio(session, bytes);
+          }
           if (session.result !== undefined) return;
+          connecting('audio', 'Starting microphone audio…');
+          await abortable(captureReady, session.controller.signal, () => session.problem ?? speechError('SPEECH_CANCELLED', 'Recording was cancelled.'));
+          if (session.result !== undefined) return;
+          if (!current(session)) throw session.problem ?? speechError('SPEECH_CANCELLED', 'Recording was cancelled.');
           clearTimeout(session.startTimer);
           mode = 'spoken';
-          report('listening', 'Listening with ElevenLabs…');
-          session.limitTimer = setTimeout(() => reachedLimit(session), Math.min(maxRecordingMs, 30000));
+          report('listening', 'Listening in English with ElevenLabs…');
         } catch (error) {
           const problem = session.problem ?? (typeof error.code === 'string' ? error : speechError('SPEECH_START_FAILED', error.name === 'NotAllowedError'
             ? 'Microphone access was not allowed. Allow it in your browser or type your check-in.'

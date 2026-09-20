@@ -97,10 +97,10 @@ test('numeric pain preference persists and asks for a score even when mild was r
     assert.equal(invalidPreferenceChange.status, 400);
     ({ body: state } = await post('/api/analyze', { ...session(state), answer: { questionId: state.nextQuestion.id, value: '4' } }));
     assert.equal(state.symptoms[0].severityScore, 4);
-    assert.equal(state.nextQuestion.field, 'functionalImpact');
+    assert.equal(state.nextQuestion.field, 'firstOccurrence');
 
     const legacy = (await post('/api/analyze', { transcript: 'I have mild arm pain.' })).body;
-    assert.equal(legacy.nextQuestion.field, 'functionalImpact');
+    assert.equal(legacy.nextQuestion.field, 'trend');
     const nonPain = (await post('/api/analyze', { transcript: 'I have nausea.', painScale: '1-10' })).body;
     assert.deepEqual(nonPain.nextQuestion.options, ['Mild', 'Moderate', 'Severe']);
   });

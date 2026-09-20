@@ -3,7 +3,7 @@
 const fields = {
   symptoms: ['id', 'name', 'location', 'severity', 'severityScore', 'trend', 'functionalImpact', 'duration', 'firstOccurrence'],
   medications: ['id', 'name', 'description', 'dose', 'status', 'time'],
-  diet: ['id', 'description', 'time'],
+  diet: ['id', 'description', 'time', 'waterGlasses', 'waterMode'],
   vitals: ['id', 'name', 'value', 'unit', 'time'],
 };
 const clone = value => structuredClone(value);
@@ -50,14 +50,18 @@ export function toBackendRecord(state) {
   };
 }
 
-// Group only an explicit structured meal time. Unknown time remains unspecified.
-export function mealsFromBackend(response) {
+export const isWaterEntry = entry => entry.waterGlasses != null || entry.waterMode != null;
+
+// Group structured meal times and hydration without interpreting the transcript.
+export function mealsFromBackend(response, { unknownMeal = 'unspecified' } = {}) {
   const groups = new Map();
+  const hydration = [];
   for (const entry of response.diet) {
+    if (isWaterEntry(entry)) { hydration.push({ id: entry.id, glasses: entry.waterGlasses, mode: entry.waterMode, description: entry.description }); continue; }
     const time = entry.time?.trim().toLowerCase();
-    const mealType = ['breakfast', 'lunch', 'dinner', 'snacks'].includes(time) ? time : 'unspecified';
+    const mealType = ['breakfast', 'lunch', 'dinner', 'snacks'].includes(time) ? time : unknownMeal;
     if (!groups.has(mealType)) groups.set(mealType, []);
     groups.get(mealType).push(entry.description);
   }
-  return { meals: [...groups].map(([mealType, items]) => ({ mealType, items })), waterGlasses: 0, caffeine: [] };
+  return { meals: [...groups].map(([mealType, items]) => ({ mealType, items })), hydration, waterGlasses: 0, caffeine: [] };
 }

@@ -119,8 +119,6 @@ test('frontend uses real API for typed numeric answer, corrected review, and con
     input(page, '#pw-answer', '7');
     click(page, '#pw-send');
     await until(() => page.client.state?.symptoms[0]?.severityScore === 7 && !page.client.busy, 'numeric severity accepted');
-    input(page, '#pw-answer', 'Making activities harder');
-    click(page, '#pw-send');
     await until(() => page.client.state?.status === 'review' && page.document.querySelector('[data-record-field="severityScore"]'), 'review rendered');
     input(page, '[data-record-field="severityScore"]', '4');
     click(page, '#pw-save');

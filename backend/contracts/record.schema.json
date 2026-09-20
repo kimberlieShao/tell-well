@@ -95,6 +95,12 @@
                 "type": "null"
               }
             ]
+          },
+          "firstOccurrence": {
+            "type": [
+              "boolean",
+              "null"
+            ]
           }
         },
         "required": [
@@ -224,6 +230,32 @@
                 "type": "null"
               }
             ]
+          },
+          "waterGlasses": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "waterMode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "add",
+                  "total"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -326,6 +358,84 @@
           "type": "null"
         }
       ]
+    },
+    "reportedAnswers": {
+      "maxItems": 100,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "questionId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "entityId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "field": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "question": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "transcript": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8000
+          },
+          "interpretation": {
+            "type": "string",
+            "enum": [
+              "recorded",
+              "unconfirmed"
+            ]
+          }
+        },
+        "required": [
+          "questionId",
+          "entityId",
+          "field",
+          "question",
+          "transcript",
+          "interpretation"
+        ],
+        "additionalProperties": false
+      }
     }
   },
   "required": [
