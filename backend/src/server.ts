@@ -28,7 +28,10 @@ const app = createApp(extractor, {
   speechAudioProvider: process.env.ELEVENLABS_API_KEY?.trim()
     ? createSpeechAudioProvider({ apiKey: process.env.ELEVENLABS_API_KEY, voiceId: process.env.ELEVENLABS_VOICE_ID || undefined, modelId: process.env.ELEVENLABS_TTS_MODEL || undefined }) : undefined,
   wearable,
+  demo: { on: process.env.DEMO_DEFAULT === 'on', locked: process.env.DEMO_LOCKED === '1' },
 });
+// Behind a platform's HTTPS proxy the browser's Origin is https while the request arrives as http.
+if (process.env.TRUST_PROXY === '1') app.set('trust proxy', 1);
 const server = app.listen(port, host, () => {
   console.log(`Pulsewise API running at http://${host}:${port} (${mode} extraction)`);
   console.log('POST /api/analyze | POST /api/checkin/save');

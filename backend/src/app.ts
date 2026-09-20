@@ -12,14 +12,18 @@ import { analyzeInputSchema, saveInputSchema } from './schema.js';
 import type { SpeechTokenProvider } from './speech.js';
 import { MAX_SPOKEN_TEXT_LENGTH, SPEECH_VOICE_PRESETS, type SpeechAudioProvider } from './tts.js';
 
-export function createApp(extractor: Extractor, config: { origins?: string[]; store?: Checkins; speechTokenProvider?: SpeechTokenProvider; speechAudioProvider?: SpeechAudioProvider; wearable?: BiometricsSource; log?: CheckinLog } = {}) {
+export function createApp(extractor: Extractor, config: { origins?: string[]; store?: Checkins; speechTokenProvider?: SpeechTokenProvider; speechAudioProvider?: SpeechAudioProvider; wearable?: BiometricsSource; log?: CheckinLog; demo?: { on?: boolean; locked?: boolean } } = {}) {
   const app = express();
   const store = config.store ?? new Checkins(extractor);
   const log = config.log ?? new CheckinLog();
   // The Arthur Itis demo: an example person with rheumatoid arthritis. Off by default, so the
-  // app shows the real wearable and the real check-ins.
-  let demo = false;
+  // app shows the real wearable and the real check-ins. A public deployment starts it on and locks it
+  // (DEMO_DEFAULT=on, DEMO_LOCKED=1): the switch is held in this process's memory, so a restart, or a
+  // second instance, must not be able to disagree about it.
+  let demo = config.demo?.on ?? false;
+  const demoLocked = config.demo?.locked ?? false;
   const demoNights = arthritisSource(() => log.today());
+  if (demo) log.seed(arthritisCheckins(log.today()).map(c => ({ date: c.date, symptoms: c.symptoms.map(s => ({ name: s.name, score: s.score })) })));
   const origins = new Set(config.origins ?? ['http://localhost:8081', 'http://localhost:5500', 'http://127.0.0.1:5500']);
   app.disable('x-powered-by');
   app.use((req, res, next) => {
@@ -101,7 +105,7 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
       const rows = fetched.sort((a, b) => a.date.localeCompare(b.date));
       const last = rows.findLast(r => metricKeys.some(k => r[k] !== null));
       const readings = last ? Object.fromEntries(metricKeys.map(k => [k, reading(rows, k, last, new Set())])) : {};
-      res.json({ connected: true, source: invented ? 'demo' : config.wearable.name, date: last?.date ?? null, readings, days: rows.slice(-days) });
+      res.json({ connected: true, source: invented ? 'demo' : config.wearable.name, live: config.wearable.live !== false, date: last?.date ?? null, readings, days: rows.slice(-days) });
     } catch (error) {
       if (!(error instanceof BiometricsUnavailable)) throw error;
       res.json({ connected: false, reason: error.reason, message: error.message });
@@ -133,13 +137,15 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
   // The patterns quote whichever nights the card is showing, real or example.
   // Enough nights to cover every day the example person checked in on, so the sleep pattern counts them all.
   const nightsInUse = async () => config.wearable ? await config.wearable.fetchDays(40).catch(() => undefined) : undefined;
-  app.get('/api/demo', async (_req, res) => { res.json({ on: demo, name: DEMO_NAME, story: demo ? arthritisToday(log.today(), await nightsInUse()) : null }); });
+  app.get('/api/demo', async (_req, res) => { res.json({ on: demo, locked: demoLocked, name: DEMO_NAME, story: demo ? arthritisToday(log.today(), await nightsInUse()) : null }); });
   app.post('/api/demo', async (req, res) => {
     const { on } = z.strictObject({ on: z.boolean() }).parse(req.body);
-    demo = on;
-    if (on) log.seed(arthritisCheckins(log.today()).map(c => ({ date: c.date, symptoms: c.symptoms.map(s => ({ name: s.name, score: s.score })) })));
-    else log.clearSeed();
-    res.json({ on: demo, name: DEMO_NAME, story: demo ? arthritisToday(log.today(), await nightsInUse()) : null });
+    if (!demoLocked) {
+      demo = on;
+      if (on) log.seed(arthritisCheckins(log.today()).map(c => ({ date: c.date, symptoms: c.symptoms.map(s => ({ name: s.name, score: s.score })) })));
+      else log.clearSeed();
+    }
+    res.json({ on: demo, locked: demoLocked, name: DEMO_NAME, story: demo ? arthritisToday(log.today(), await nightsInUse()) : null });
   });
   // What the Records calendar shows: the example person's check-ins while the demo is on, otherwise the
   // confirmed check-ins this server has kept. Check-ins are in the record format (see RECORDS-DATA-FORMAT.md).

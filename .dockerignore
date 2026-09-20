@@ -1,0 +1,9 @@
+.git
+**/node_modules
+**/.env
+**/.env.*
+!**/.env.example
+**/.DS_Store
+whoop
+frontend1
+*.md

@@ -52,6 +52,9 @@
 .wearable-live-value { display: flex; align-items: baseline; gap: 8px; margin-top: 12px; }
 .wearable-live-value strong { font: 400 42px/1 Georgia, serif; letter-spacing: -.5px; font-variant-numeric: tabular-nums; }
 .wearable-live-value span { color: #c4d9ca; font: 700 13px Arial, sans-serif; }
+.wearable-live-note { display: none; margin: 12px 0 0; color: #ffffff; font: 400 15px/1.35 Georgia, serif; }
+.wearable-live.no-live-source:not(.is-live) .wearable-live-value { display: none; }
+.wearable-live.no-live-source:not(.is-live) .wearable-live-note { display: block; }
 .wearable-live-heart { flex: none; width: 66px; height: 61px; }
 .wearable-live-heart svg { display: block; width: 100%; height: 100%; }
 .wearable-live-heart .heart-shape { fill: rgba(23, 33, 27, .18); transition: fill .3s; }

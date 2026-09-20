@@ -31,6 +31,8 @@ export type WearableDay = { date: string } & Record<MetricKey, number | null>;
 export interface BiometricsSource {
   name: 'whoop' | 'demo';
   connectUrl: string | null;
+  /** false when the source is a file, not a band: the app then says live heart rate needs a connected band. */
+  live?: boolean;
   fetchDays(days: number): Promise<WearableDay[]>;
   account(): Promise<string | null>;
 }
@@ -115,7 +117,7 @@ export function snapshotSource(file = new URL('../demo-data/whoop-snapshot.json'
     return { date: r.date, ...Object.fromEntries(metricKeys.map(k => [k, num(r[k])])) } as WearableDay;
   }).sort((a, b) => a.date.localeCompare(b.date));
   return {
-    name: 'whoop', connectUrl: null,
+    name: 'whoop', connectUrl: null, live: false,
     async fetchDays(days) { return nights.slice(-Math.max(1, days)); },
     async account() { return null; },
   };

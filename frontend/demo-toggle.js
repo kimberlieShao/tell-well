@@ -33,6 +33,7 @@ export function mountDemoToggle(doc, { apiBase = '' } = {}) {
 
   fetch(`${apiBase}/api/demo`).then(res => res.json()).then(state => {
     input.checked = !!state.on;
+    if (state.locked) { input.disabled = true; label.title = 'Fixed on for this public demo'; }
     if (state.on && state.story) apply(doc, state.story);
   }).catch(() => {});
 }

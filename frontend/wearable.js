@@ -60,6 +60,7 @@ async function loadNightly(doc, apiBase) {
   let message = "Wearable data isn't available right now.";
   try {
     const data = await (await fetch(`${apiBase}/api/biometrics`)).json();
+    if (data.connected && data.live === false) doc.getElementById('liveCard')?.classList.add('no-live-source');
     if (data.connected && data.date) {
       const day = new Date(`${data.date}T12:00:00`).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
       status.textContent = data.source === 'demo' ? `Example data · ${day}` : `Updated ${day}`;
