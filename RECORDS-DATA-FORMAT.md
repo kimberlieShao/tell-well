@@ -146,7 +146,7 @@ accessible label says the same in words, e.g. `September 18, 2026, pain recorded
 | `id` | not shown | UUID |
 | `description` | the row title | text |
 | `time` | Time | text, e.g. `"Lunch"` |
-| `waterGlasses` | Water | number |
+| `waterGlasses` | Water, always as whole glasses (`2.95` is shown as `3 glasses`) | number |
 | `waterMode` | `total` adds "in total today" to the water line | `add`, `total` |
 
 **Vital** (`vitals[]`, shown under "Vitals" as `Blood pressure: 128/82 mmHg`)

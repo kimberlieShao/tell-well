@@ -138,7 +138,7 @@ function describe(entry) {
     parts.push(`${v.name}: ${[v.value, v.unit].filter(Boolean).join(' ')}${v.time ? ` at ${v.time}` : ''}`);
   }
   const water = entry.diet.map(d => d.waterGlasses).filter(g => g !== null).at(-1);
-  if (water != null) parts.push(`${water} glasses of water`);
+  if (water != null) { const glasses = Math.max(0, Math.round(water)); parts.push(`${glasses} ${glasses === 1 ? 'glass' : 'glasses'} of water`); }
   return parts.join('; ');
 }
 

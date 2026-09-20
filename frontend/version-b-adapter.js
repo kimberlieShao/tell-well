@@ -7,12 +7,20 @@ const fields = {
   vitals: ['id', 'name', 'value', 'unit', 'time'],
 };
 const clone = value => structuredClone(value);
+
+/** Water is counted in whole glasses: the nearest whole number, never below 0, or null when there is no count. */
+export const wholeGlasses = value => {
+  if (value === null || value === undefined || value === '') return null;
+  const glasses = Math.round(Number(value));
+  return Number.isFinite(glasses) ? Math.max(0, glasses) : null;
+};
 const pick = (item, keys) => Object.fromEntries(keys.map(key => [key, item[key] ?? null]));
 
 export function normalizeBackendResponse(response, { transcript = '', excludedIds = new Set() } = {}) {
   const record = Object.fromEntries(Object.keys(fields).map(category => [category,
     response[category].filter(item => !excludedIds.has(item.id)).map(item => pick(item, fields[category])),
   ]));
+  record.diet = record.diet.map(entry => ({ ...entry, waterGlasses: wholeGlasses(entry.waterGlasses) }));
   record.wellness = clone(response.wellness ?? null);
   record.reportedAnswers = clone(response.reportedAnswers ?? []).filter(answer=>!answer.entityId || !excludedIds.has(answer.entityId));
   return {
@@ -43,7 +51,10 @@ export function toBackendRecord(state) {
       severityScore: Object.hasOwn(symptom, 'painScore') ? symptom.painScore : symptom.severityScore ?? null,
     }, fields.symptoms)),
     medications: state.medications.map(item => pick(item, fields.medications)),
-    diet: state.diet.map(entry => pick({ ...entry, description: entry.item ?? entry.description }, fields.diet)),
+    diet: state.diet.map(entry => {
+      const item = pick({ ...entry, description: entry.item ?? entry.description }, fields.diet);
+      return { ...item, waterGlasses: wholeGlasses(item.waterGlasses) }; // what is saved is whole glasses too
+    }),
     vitals: state.vitals.map(vital => pick({ ...vital, name: vital.type ?? vital.name }, fields.vitals)),
     wellness: state.generalStatus && state.backendRecord?.wellness
       ? { ...state.backendRecord.wellness, status: state.generalStatus } : null,
@@ -57,7 +68,7 @@ export function mealsFromBackend(response, { unknownMeal = 'unspecified' } = {})
   const groups = new Map();
   const hydration = [];
   for (const entry of response.diet) {
-    if (isWaterEntry(entry)) { hydration.push({ id: entry.id, glasses: entry.waterGlasses, mode: entry.waterMode, description: entry.description }); continue; }
+    if (isWaterEntry(entry)) { hydration.push({ id: entry.id, glasses: wholeGlasses(entry.waterGlasses), mode: entry.waterMode, description: entry.description }); continue; }
     const time = entry.time?.trim().toLowerCase();
     const mealType = ['breakfast', 'lunch', 'dinner', 'snacks'].includes(time) ? time : unknownMeal;
     if (!groups.has(mealType)) groups.set(mealType, []);

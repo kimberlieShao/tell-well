@@ -40,7 +40,7 @@ async function withPage(starts: any[], run: (page: any) => Promise<void>, answer
   try{await run(page);}finally{page.app.destroy();dom.window.close();}
 }
 
-test('brief food and water log once, group unknown meals as snacks, and preserve exact add/total counts',async()=>{
+test('brief food and water log once, group unknown meals as snacks, and keep add/total counts as whole glasses',async()=>{
   const food=base({sessionId:'food-1',diet:[diet('breakfast','eggs','breakfast'),diet('snack','apple'),diet('water','two glasses of water',null,2,'add')]});
   const total=base({sessionId:'water-2',diet:[diet('total','13.5 glasses today',null,13.5,'total')]});
   const zero=base({sessionId:'water-3',diet:[diet('zero','zero glasses today',null,0,'total')]});
@@ -55,9 +55,11 @@ test('brief food and water log once, group unknown meals as snacks, and preserve
     page.click('#desktopMealsNav');page.click('#desktopHomeNav');page.click('#desktopMealsNav');
     assert.equal(page.app.mealState.waterGlasses,2);assert.equal(page.app.mealState.meals.snacks.length,1);
     page.click('#flowClose');await page.start();
-    assert.equal(page.app.mealState.waterGlasses,13.5);
-    assert.equal(page.document.getElementById('waterSlider').value,'13.5');
-    assert.equal(page.document.getElementById('waterSlider').max,'13.5');
+    // 13.5 glasses is counted as 14 whole glasses. A count above 12 is kept and shown; the slider stops at 12.
+    assert.equal(page.app.mealState.waterGlasses,14);
+    assert.equal(page.document.getElementById('waterCountValue').textContent,'14');
+    assert.equal(page.document.getElementById('waterSlider').value,'12');
+    assert.equal(page.document.getElementById('waterSlider').max,'12');
     assert.equal(page.app.mealState.meals.snacks.length,1);
     page.click('#flowClose');await page.start();assert.equal(page.app.mealState.waterGlasses,0);
     assert.equal(page.requests.filter((r:any)=>r.path.endsWith('/save')).length,3);

@@ -84,6 +84,8 @@
 .med-form #medWhen { flex: 1 1 120px; }
 .med-form input, .med-form select { min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 10px 11px; color: var(--ink); background: #fbfcfa; font: 12px Arial, sans-serif; }
 .med-form button { flex: none; border: 1px solid var(--forest); border-radius: 8px; padding: 10px 14px; color: #ffffff; background: var(--forest); font: 700 12px Arial, sans-serif; white-space: nowrap; cursor: pointer; }
+.water-step-button:disabled { cursor: default; opacity: .4; }
+.water-step-button:disabled:hover { border-color: var(--line); background: white; }
 .med-form-error { flex-basis: 100%; margin: 0; color: #a33b2d; font: 12px/1.5 Arial, sans-serif; }
 .med-form-error[hidden] { display: none; }
 

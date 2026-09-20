@@ -1,7 +1,7 @@
 import { parsePainScore } from './pain-score.js';
 import { createCheckinClient } from './checkin-api.js';
 import { createElevenLabsSpeechInput, createVoiceSpeechFactory } from './elevenlabs-speech.js';
-import { normalizeBackendResponse, toBackendRecord, mealsFromBackend, isWaterEntry } from './version-b-adapter.js';
+import { normalizeBackendResponse, toBackendRecord, mealsFromBackend, isWaterEntry, wholeGlasses } from './version-b-adapter.js';
 import { createElevenLabsSpeaker } from './elevenlabs-speaker.js';
 import { mountVoicePicker } from './voice-picker.js';
 import { getDemoProfile } from './demo-profile.js';
@@ -739,8 +739,9 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
         if (!mealState.meals[mealType]) mealState.meals[mealType] = [];
         items.forEach((name) => mealState.meals[mealType].push({ id: makeMealId(), name, note: '', source }));
       });
-      for (const entry of parseResult.hydration) if (Number.isFinite(entry.glasses) && entry.glasses >= 0)
-        mealState.waterGlasses = entry.mode === 'total' ? entry.glasses : mealState.waterGlasses + entry.glasses;
+      // Glasses are whole numbers here (mealsFromBackend rounds them), so the count stays a whole number.
+      for (const entry of parseResult.hydration) if (entry.glasses !== null)
+        mealState.waterGlasses = entry.mode === 'total' ? entry.glasses : (wholeGlasses(mealState.waterGlasses) ?? 0) + entry.glasses;
       appliedDietSessions.add(response.sessionId);
     }
     function renderCaffeineList() {
@@ -752,16 +753,27 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
       container.innerHTML = mealState.caffeine.map((entry) => `
         <div class="more-detail-row"><span>${capitalizeFirst(entry.type)} ×${entry.count}</span><button class="review-edit" data-action="edit-caffeine" data-id="${entry.id}">Edit</button></div>`).join('');
     }
+    // The Water card counts whole glasses. The slider runs 0 to 12, one drop for each glass. A larger count the
+    // person reported ("I drank 14 glasses") is kept and shown as it is; only the controls stop at 12.
+    const WATER_MAX = 12;
     function renderWater() {
-      const value = mealState.waterGlasses;
+      const value = wholeGlasses(mealState.waterGlasses) ?? 0;
+      const slider = document.getElementById('waterSlider');
       document.getElementById('waterCountValue').textContent = value;
-      document.getElementById('waterSlider').max = Math.max(12,value);
-      document.getElementById('waterSlider').step = 'any';
-      document.getElementById('waterSlider').value = value;
+      document.querySelector('#mealsView .water-unit').textContent = value === 1 ? 'glass' : 'glasses';
+      slider.min = '0'; slider.max = String(WATER_MAX); slider.step = '1';
+      slider.value = String(Math.min(value, WATER_MAX));
+      document.querySelector('[data-action="water-minus"]').disabled = value <= 0;
+      document.querySelector('[data-action="water-plus"]').disabled = value >= WATER_MAX;
       document.getElementById('waterDrops').innerHTML = Array.from({ length: 12 }, (_, i) => `<span class="water-drop${i < value ? ' filled' : ''}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2.6 C15 6 19 10.4 19 14.4 C19 18.4 15.8 21.4 12 21.4 C8.2 21.4 5 18.4 5 14.4 C5 10.4 9 6 12 2.6 Z"/><path class="drop-shine" d="M9.4 14.6 C9.4 12.8 10.4 11.4 11.4 10.4 C10 11 8 13 8 15 C8 16.8 9.2 18 10.4 18.4 C9.8 17.4 9.4 16 9.4 14.6 Z"/></svg></span>`).join('');
     }
     function setWaterGlasses(value) {
-      mealState.waterGlasses = Math.max(0, value);
+      mealState.waterGlasses = Math.min(WATER_MAX, wholeGlasses(value) ?? 0);
+      renderWater();
+    }
+    function stepWater(delta) {
+      const value = wholeGlasses(mealState.waterGlasses) ?? 0;
+      mealState.waterGlasses = delta > 0 ? (value >= WATER_MAX ? value : value + 1) : Math.max(0, value - 1);
       renderWater();
     }
     function renderMealsMain() {
@@ -826,9 +838,9 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
         showMealsMain();
         renderMealsMain();
       } else if (action === 'water-plus') {
-        setWaterGlasses(mealState.waterGlasses + 1);
+        stepWater(1);
       } else if (action === 'water-minus') {
-        setWaterGlasses(mealState.waterGlasses - 1);
+        stepWater(-1);
       } else if (action === 'cancel-voice-entry') {
         closeMealVoicePanel();
       } else if (action === 'analyze-voice-entry') {
@@ -843,7 +855,7 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
           let result = await mealClient.start(transcriptText);
           if (result.status !== 'review') result = await mealClient.review();
           if (mealClient.flow === 'brief' && foodOnly(result)) {
-            const saved = await mealClient.save();
+            const saved = await mealClient.save(toBackendRecord(normalizeBackendResponse(result, {transcript:transcriptText})));
             applyDietResponse(saved,{brief:true,source:'voice'});
             closeMealVoicePanel(); renderMealsMain();
             let note=document.getElementById('mealRecordedNotice');
@@ -1242,11 +1254,11 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
         input.setAttribute('aria-label',`${labelText}: ${title.textContent}`);
         if(options)for(const value of options){const option=document.createElement('option');option.value=value;option.textContent=value?capitalizeFirst(value.replaceAll('_',' ')):'Not Provided';input.append(option);}
         if(field==='severityScore'){input.type='number';input.min='1';input.max='10';input.step='1';}
-        if(field==='waterGlasses'){input.type='number';input.min='0';input.step='any';}
+        if(field==='waterGlasses'){input.type='number';input.min='0';input.step='1';input.addEventListener('change',()=>{input.value=item.waterGlasses??'';});}
         input.value=field==='severityScore'?(item.painScore??item.severityScore??''):field==='firstOccurrence'?(item.firstOccurrence==null?'':item.firstOccurrence?'yes':'no'):item[field]??'';
         input.addEventListener('input',()=>{
           let value=input.value.trim();if(field==='severityScore'){value=value===''?null:Number(value);item.painScore=value;}
-          else if(field==='waterGlasses')value=value===''?null:Number(value);
+          else if(field==='waterGlasses')value=wholeGlasses(value);
           else if(field==='firstOccurrence')value=value===''?null:value==='yes';
           else value=value||null;
           item[field]=value;

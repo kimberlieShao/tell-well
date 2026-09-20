@@ -104,8 +104,8 @@ const medicationRow = medication => {
 };
 
 const dietRow = item => {
-  const glasses = item.waterGlasses;
-  const water = glasses === null || glasses === undefined ? null
+  const glasses = present(item.waterGlasses) && Number.isFinite(Number(item.waterGlasses)) ? Math.max(0, Math.round(Number(item.waterGlasses))) : null; // whole glasses, never a decimal
+  const water = glasses === null ? null
     : `${glasses} ${glasses === 1 ? 'glass' : 'glasses'}${item.waterMode === 'total' ? ' in total today' : ''}`;
   return { title: item.description, summary: present(item.time) ? item.time : null, fields: fields([['Time', item.time], ['Water', water]]) };
 };
