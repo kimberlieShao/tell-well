@@ -12,9 +12,9 @@ export const METRICS = {
 };
 
 const TILES = [
-  { key: 'sleepHours', label: 'Sleep', icon: '☾' },
-  { key: 'skinTemp', label: 'Skin temp', icon: '◐' },
-  { key: 'spo2', label: 'Blood oxygen', icon: '○' },
+  { key: 'sleepHours', label: 'Sleep', icon: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="#ec7d68"><path d="M20 15.4 C18.6 19 15 21.6 11 21.6 C5.8 21.6 2 17.4 2 12.4 C2 7.6 5.6 3.6 10.2 3 C7.8 5.2 6.6 8 6.8 11 C7.2 15.8 11.4 19.4 16.2 19 C17.6 18.8 19 18.2 20 17.4 C20.6 17 20.4 16 20 15.4 Z"/></svg>` },
+  { key: 'skinTemp', label: 'Skin temp', icon: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="#ec7d68"><path d="M12 2.4 C13.8 2.4 15.2 3.8 15.2 5.6 L15.2 13.4 C16.4 14.4 17.2 15.8 17.2 17.4 C17.2 20.2 14.8 22.4 12 22.4 C9.2 22.4 6.8 20.2 6.8 17.4 C6.8 15.8 7.6 14.4 8.8 13.4 L8.8 5.6 C8.8 3.8 10.2 2.4 12 2.4 Z"/><path d="M12 15.2 C13.4 15.2 14.4 16.2 14.4 17.5 C14.4 18.8 13.4 19.8 12 19.8 C10.6 19.8 9.6 18.8 9.6 17.5 C9.6 16.2 10.6 15.2 12 15.2 Z" fill="#fbe4de"/></svg>` },
+  { key: 'spo2', label: 'Blood oxygen', icon: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="#ec7d68"><path d="M9.4 3.6 C13.6 3.6 16.8 7 16.8 11.2 C16.8 15.4 13.6 18.6 9.4 18.6 C5.4 18.6 2.2 15.4 2.2 11.2 C2.2 7 5.4 3.6 9.4 3.6 Z"/><path d="M9.4 7.2 C11.6 7.2 13.2 8.9 13.2 11.1 C13.2 13.3 11.6 15 9.4 15 C7.3 15 5.7 13.3 5.7 11.1 C5.7 8.9 7.3 7.2 9.4 7.2 Z" fill="#fbe4de"/><path d="M18.4 13.4 C20.4 13.4 22 15 22 17 C22 19 20.4 20.6 18.4 20.6 C16.4 20.6 14.8 19 14.8 17 C14.8 15 16.4 13.4 18.4 13.4 Z"/></svg>` },
 ];
 
 // Red up/down when outside the person's usual range; green arrow pointing at the number when inside it.
@@ -108,7 +108,9 @@ function renderTiles(doc, readings) {
     const reading = readings?.[key];
     const tile = el(doc, 'article', 'patient-metric');
     const name = el(doc, 'div', 'patient-metric-label');
-    name.append(el(doc, 'span', 'patient-metric-icon', icon), label);
+    const mark = el(doc, 'span', 'patient-metric-icon');
+    mark.innerHTML = icon; // a fixed drawing, no data from anywhere
+    name.append(mark, label);
     const value = el(doc, 'div', 'patient-metric-value', format(key, reading?.value));
     value.append(el(doc, 'span', 'metric-unit', METRICS[key].unit));
     tile.append(name, value);

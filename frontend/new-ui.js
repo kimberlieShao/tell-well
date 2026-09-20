@@ -182,7 +182,6 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
       profile: {
         firstName: initialProfile ? (initialProfile.displayName || 'there') : 'Mary',
         dateOfBirth: initialProfile ? '' : '1958-03-04',
-        preferredLanguage: 'English',
         emergencyContact: initialProfile ? '' : 'Daniel (Son)',
       },
       medications: structuredClone(initialProfile?.medications || []),
@@ -204,7 +203,9 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     function updateHomeGreeting() {
       const name = patientState.profile.firstName;
       const heading = document.querySelector('.patient-greeting h1');
-      if (heading) heading.textContent = `Good morning, ${name}`;
+      const hour = new Date().getHours();
+      const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+      if (heading) heading.innerHTML = `${greeting}, <span class="greeting-name">${escapeHTML(name)}</span>`;
       const avatar = document.querySelector('.topbar .avatar');
       if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
       const crumb = document.querySelector('.topbar .crumb');
@@ -295,7 +296,6 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
         <div class="more-detail-list">
           <div class="more-detail-row"><span>Name</span><strong>${escapeHTML(p.firstName)}</strong></div>
           <div class="more-detail-row"><span>Date of birth</span><strong>${formatDateOfBirth(p.dateOfBirth)}</strong></div>
-          <div class="more-detail-row"><span>Preferred language</span><strong>${escapeHTML(p.preferredLanguage)}</strong></div>
           <div class="more-detail-row"><span>Emergency contact</span><strong>${escapeHTML(p.emergencyContact)}</strong></div>
         </div>
         <button class="more-detail-button" data-action="edit-profile">Edit profile</button>
@@ -303,12 +303,10 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
     }
     function profileEditTemplate() {
       const p = patientState.profile;
-      const languages = ['English', 'Spanish', 'Mandarin', 'Other'];
       return `<article class="card more-detail-panel">
         <h2>Edit Profile</h2>
         <div class="field" style="margin-bottom: 14px"><label>Name</label><input id="editProfileName" type="text" value="${escapeHTML(p.firstName)}"></div>
         <div class="field" style="margin-bottom: 14px"><label>Date of birth</label><input id="editProfileDob" type="date" value="${p.dateOfBirth}"></div>
-        <div class="field" style="margin-bottom: 14px"><label>Preferred language</label><select id="editProfileLanguage">${languages.map((lang) => `<option ${lang === p.preferredLanguage ? 'selected' : ''}>${lang}</option>`).join('')}</select></div>
         <div class="field" style="margin-bottom: 18px"><label>Emergency contact</label><input id="editProfileContact" type="text" value="${escapeHTML(p.emergencyContact)}"></div>
         <div style="display: flex; gap: 9px">
           <button class="more-detail-button" style="flex: 1; text-align: center" data-action="cancel-profile-edit">Cancel</button>
@@ -402,7 +400,6 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
       return `<article class="card more-detail-panel">
         <h2>Settings</h2>
         <div class="more-detail-list">
-          <div class="more-detail-row"><span>Language</span><strong>${patientState.profile.preferredLanguage}</strong></div>
           <div class="more-detail-row"><span>Account</span><strong>${escapeHTML(patientState.profile.firstName)}</strong></div>
         </div>
       </article>`;
@@ -448,7 +445,6 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
       } else if (action === 'save-profile') {
         patientState.profile.firstName = document.getElementById('editProfileName').value.trim() || patientState.profile.firstName;
         patientState.profile.dateOfBirth = document.getElementById('editProfileDob').value || patientState.profile.dateOfBirth;
-        patientState.profile.preferredLanguage = document.getElementById('editProfileLanguage').value;
         patientState.profile.emergencyContact = document.getElementById('editProfileContact').value.trim();
         moreEditingProfile = false;
         renderMoreSubview('profile');
@@ -707,7 +703,7 @@ export function mountVersionB(document, {client = null, mealClient = createCheck
       const value = mealState.waterGlasses;
       document.getElementById('waterCountValue').textContent = value;
       document.getElementById('waterSlider').value = value;
-      document.getElementById('waterDrops').innerHTML = Array.from({ length: 12 }, (_, i) => `<span class="water-drop${i < value ? ' filled' : ''}">💧</span>`).join('');
+      document.getElementById('waterDrops').innerHTML = Array.from({ length: 12 }, (_, i) => `<span class="water-drop${i < value ? ' filled' : ''}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2.6 C15 6 19 10.4 19 14.4 C19 18.4 15.8 21.4 12 21.4 C8.2 21.4 5 18.4 5 14.4 C5 10.4 9 6 12 2.6 Z"/><path class="drop-shine" d="M9.4 14.6 C9.4 12.8 10.4 11.4 11.4 10.4 C10 11 8 13 8 15 C8 16.8 9.2 18 10.4 18.4 C9.8 17.4 9.4 16 9.4 14.6 Z"/></svg></span>`).join('');
     }
     function setWaterGlasses(value) {
       mealState.waterGlasses = Math.max(0, Math.min(12, value));

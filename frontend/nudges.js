@@ -3,11 +3,11 @@
 
 const TIERS = { note: 'Worth a note', watch: 'Worth watching', check_in: 'Check in with your care team' };
 const THANKS = {
-  not_a_flare: 'Thanks. Pulsewise will wait for a bigger change in these numbers before mentioning them again.',
-  was_a_flare: 'Thanks. Pulsewise will mention changes like this a little sooner.',
+  not_a_flare: 'Thanks. Tell-Well will wait for a bigger change in these numbers before mentioning them again.',
+  was_a_flare: 'Thanks. Tell-Well will mention changes like this a little sooner.',
 };
 const CALM = {
-  connected: 'Nothing worth a look right now. Pulsewise compares your wearable with your check-ins and will say here when the two line up.',
+  connected: 'Nothing worth a look right now. Tell-Well compares your wearable with your check-ins and will say here when the two line up.',
   other: 'Nothing worth a look right now. Connect a device and check in regularly, and patterns will show up here.',
 };
 

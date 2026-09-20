@@ -58,7 +58,8 @@ export function buildSummary(doc, wearable, now = new Date()) {
   // Saved check-ins as the Trends view lists them (rendered by new-ui.js).
   const checkins = [...doc.querySelectorAll('.checkin-history-row')].slice(0, 5)
     .map(row => [row.querySelector('.checkin-history-date')?.textContent ?? '', row.querySelector('.checkin-history-copy')?.textContent ?? '']);
-  const name = doc.querySelector('.topbar .crumb')?.textContent.split(' / ')[0].trim();
+  const greeted = doc.querySelector('.patient-greeting h1')?.textContent ?? '';
+  const name = greeted.split(',').slice(1).join(',').trim() || doc.querySelector('.topbar .crumb')?.textContent.split(' / ')[0].trim();
 
   const summary = h('section', '', 'visit-summary');
   summary.append(h('h1', 'Health summary for your visit'));
@@ -100,7 +101,7 @@ export function buildSummary(doc, wearable, now = new Date()) {
   summary.append(h('h2', 'Recent check-ins'));
   summary.append(checkins.length ? table(['Date', 'What was reported'], checkins) : h('p', 'No check-ins saved yet.'));
 
-  summary.append(h('p', 'Made with Pulsewise from the person’s own check-ins and wearable. Not medical advice.', 'vs-footer'));
+  summary.append(h('p', 'Made with Tell-Well from the person’s own check-ins and wearable. Not medical advice.', 'vs-footer'));
   return summary;
 }
 

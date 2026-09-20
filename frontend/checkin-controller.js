@@ -367,7 +367,7 @@ export function mountCheckin(document, { client = createCheckinClient(), Recogni
   }
   function exportSummary() {
     if (!savedRecords.length) return;
-    const paragraphs = ['Pulsewise — user-reviewed check-ins', 'Temporary prototype records; not a diagnosis.', ''];
+    const paragraphs = ['Tell-Well — user-reviewed check-ins', 'Temporary prototype records; not a diagnosis.', ''];
     for (const record of savedRecords) {
       paragraphs.push(new Date(record.savedAt).toLocaleString());
       for (const category of Object.keys(fields)) for (const item of record[category]) {
@@ -405,7 +405,7 @@ export function mountCheckin(document, { client = createCheckinClient(), Recogni
     previous?.remove();
     const print = el('section');
     print.id = 'pw-print-summary';
-    print.append(el('h1', 'Pulsewise — reviewed check-ins'));
+    print.append(el('h1', 'Tell-Well — reviewed check-ins'));
     for (const record of savedRecords) { print.append(el('h2', new Date(record.savedAt).toLocaleString())); showRecord(record, print); }
     document.body.append(print);
     window.print();
