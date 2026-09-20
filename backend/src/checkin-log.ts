@@ -1,6 +1,6 @@
 import { screenText, type Screen } from './safety.js';
 import type { Day, NudgeFeedback } from './nudges.js';
-import type { CheckinResponse } from './schema.js';
+import type { CheckinResponse, HealthRecord } from './schema.js';
 
 // What the home page's "Worth a look" box needs: saved check-ins, the latest red-flag screen and
 // nudge feedback. Like check-in sessions, this is a prototype store in memory: a restart clears it.
@@ -8,10 +8,14 @@ import type { CheckinResponse } from './schema.js';
 const SEVERITY_SCORE = { mild: 3, moderate: 5, severe: 8 } as const;
 const ALERT_HOURS = 24;
 
+/** A saved check-in as the Records calendar reads it: the record itself, plus which session and when. */
+export type SavedRecord = HealthRecord & { sessionId: string; savedAt: string };
+
 export const localDate = (date: Date) => date.toLocaleDateString('en-CA'); // YYYY-MM-DD, local time
 
 export class CheckinLog {
   private saved = new Map<string, { date: string; symptoms: { name: string; score: number | null }[] }>();
+  private records = new Map<string, SavedRecord>();
   private alert: (Screen & { at: number }) | null = null;
   readonly feedback: NudgeFeedback[] = [];
   private seeded: { date: string; symptoms: { name: string; score: number | null }[] }[] = [];
@@ -37,10 +41,17 @@ export class CheckinLog {
   /** Remember a confirmed check-in. Saving the same session twice replaces its entry. */
   remember(saved: CheckinResponse) {
     if (saved.status !== 'saved' || !saved.savedAt) return;
+    const { sessionId, savedAt, symptoms, medications, diet, vitals, wellness, reportedAnswers } = saved;
+    this.records.set(sessionId, structuredClone({ sessionId, savedAt, symptoms, medications, diet, vitals, wellness, reportedAnswers }));
     this.saved.set(saved.sessionId, {
       date: localDate(new Date(saved.savedAt)),
       symptoms: saved.symptoms.map(s => ({ name: s.name, score: s.severityScore ?? (s.severity ? SEVERITY_SCORE[s.severity] : null) })),
     });
+  }
+
+  /** Every confirmed check-in, oldest first, in the record format (what the Records calendar shows). */
+  savedRecords(): SavedRecord[] {
+    return structuredClone([...this.records.values()].sort((a, b) => a.savedAt.localeCompare(b.savedAt)));
   }
 
   /** Preload the example check-ins (the Arthur Itis demo). Real check-ins are kept separately. */

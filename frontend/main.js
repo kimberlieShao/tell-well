@@ -4,7 +4,6 @@ import { mountMedications } from './medications.js';
 import { mountDemoToggle } from './demo-toggle.js';
 import { mountNudges } from './nudges.js';
 import { mountRecords } from './records.js';
-import { PLACEHOLDER_CHECKINS } from './records-placeholder.js'; // PLACEHOLDER: remove with records-placeholder.js
 import { mountVisitSummary } from './visit-summary.js';
 import { mountWearable } from './wearable.js';
 
@@ -16,7 +15,7 @@ try {
     mountWearable(document);
     mountNudges(document);
     mountMedications(document);
-    mountRecords(document, { checkins: PLACEHOLDER_CHECKINS }); // PLACEHOLDER: replace with real records
+    mountRecords(document);
     mountVisitSummary(document);
     mountDemoToggle(document);
     document.documentElement.dataset.textSize=profile.accessibility?.textSize||'normal';

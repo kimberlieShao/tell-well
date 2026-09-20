@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
-import { JSDOM } from 'jsdom';
+import { JSDOM, VirtualConsole } from 'jsdom';
+import { arthritisRecords } from '../src/demo-story.js';
 import { recordSchema } from '../src/schema.js';
 
 // The Records page (calendar + day dialog) in jsdom. Times are built in local time so the tests do not
@@ -9,7 +11,7 @@ import { recordSchema } from '../src/schema.js';
 const recordsUrl = new URL('../../frontend/records.js', import.meta.url).href;
 const uiUrl = new URL('../../frontend/new-ui.js', import.meta.url).href;
 const visitUrl = new URL('../../frontend/visit-summary.js', import.meta.url).href;
-const placeholderUrl = new URL('../../frontend/records-placeholder.js', import.meta.url).href;
+const toggleUrl = new URL('../../frontend/demo-toggle.js', import.meta.url).href;
 const readText = (path: string) => readFile(new URL(`../../${path}`, import.meta.url), 'utf8');
 
 const NOW = new Date(2026, 8, 20, 10, 0); // Sunday, September 20, 2026
@@ -42,13 +44,14 @@ const fixtures = [
   }),
 ];
 
-async function withRecords(run: (page: any) => Promise<void> | void, checkins: any[] = fixtures) {
+// `load` stands in for GET /api/records. By default it answers with the given check-ins as the person's own.
+async function withRecords(run: (page: any) => Promise<void> | void, checkins: any[] = fixtures, load?: () => Promise<any>, waitForLoad = true) {
   const dom = new JSDOM(await readText('index.html'), { url: 'https://example.test/app', runScripts: 'outside-only' });
   const { mountRecords } = await import(recordsUrl);
   const document = dom.window.document;
   const page: any = {
     dom, document,
-    mounted: mountRecords(document, { checkins, now: NOW }),
+    mounted: mountRecords(document, { load: load ?? (async () => ({ source: 'real', name: null, checkins })), now: NOW }),
     $: (selector: string) => document.querySelector(selector),
     $$: (selector: string) => [...document.querySelectorAll(selector)],
     day: (n: number, month = 9) => document.querySelector(`[data-date="2026-${String(month).padStart(2, '0')}-${String(n).padStart(2, '0')}"]`),
@@ -59,7 +62,7 @@ async function withRecords(run: (page: any) => Promise<void> | void, checkins: a
     rows: () => page.$$('.records-row'),
     labels: (row: Element) => [...row.querySelectorAll('dt')].map(node => node.textContent),
   };
-  try { await run(page); } finally { page.mounted.destroy(); dom.window.close(); }
+  try { if (waitForLoad) await page.mounted.ready; await run(page); } finally { page.mounted.destroy(); dom.window.close(); }
 }
 
 test('navigation has five tabs, Records second, on desktop and phone, with the same icon style', async () => {
@@ -71,7 +74,7 @@ test('navigation has five tabs, Records second, on desktop and phone, with the s
   const { mountRecords } = await import(recordsUrl);
   const document = window.document as Document;
   const app = mountVersionB(document, { conversationEnabled: false, speechFactory: () => ({ available: false, cancel() {}, destroy() {} }), speakerFactory: () => ({ stop() {}, destroy() {} }) });
-  const records = mountRecords(document, { checkins: [], now: NOW });
+  const records = mountRecords(document, { load: async () => ({ source: 'real', name: null, checkins: [] }), now: NOW });
   try {
     const names = (selector: string) => [...document.querySelectorAll(selector)].map(node => node.textContent!.trim());
     assert.deepEqual(names('.nav-button'), ['Home', 'Records', 'Trends', 'Meals', 'More']);
@@ -359,15 +362,214 @@ test('check-ins without a date or without anything to show are ignored, and { ch
   const { groupByDay, normalizeCheckins } = await import(recordsUrl);
   assert.equal(normalizeCheckins(null).length, 0);
   assert.equal(normalizeCheckins({ checkins: [{ savedAt: 'not a date' }, { symptoms: [] }, fixtures[0]] }).length, 1);
-  const days = groupByDay({ checkins: [checkin(at(5, 9)), checkin(at(6, 9), { vitals: [{ id: 'v', name: 'Pulse', value: '70', unit: 'bpm', time: null }] }), fixtures[0]] });
-  assert.deepEqual([...days.keys()], ['2026-09-04']);
+  const vital = (extra: any) => ({ id: 'v', name: 'Pulse', value: '70', unit: 'bpm', time: null, ...extra });
+  const days = groupByDay({ checkins: [
+    checkin(at(5, 9)), // nothing at all
+    checkin(at(6, 9), { vitals: [vital({ value: null })] }), // a reading with no value
+    checkin(at(7, 9), { vitals: [vital({})] }), // a reading with a value counts
+    fixtures[0],
+  ] });
+  assert.deepEqual([...days.keys()], ['2026-09-04', '2026-09-07']);
+});
+
+const vitalOf = (id: string, name: string, value: string | null, extra: any = {}) => ({ id, name, value, unit: null, time: null, ...extra });
+
+test('vitals get their own group, one line per reading such as "Blood pressure: 128/82 mmHg", and only readings with a value', async () => {
   await withRecords(page => {
-    assert.equal(page.$$('.records-day.has-records').length, 3);
-    page.mounted.setCheckins([]);
+    assert.equal(page.day(12).classList.contains('has-records'), true); // a day with only vitals still has a dot
+    page.open(12);
+    assert.deepEqual(page.$$('.records-group-title').map((node: Element) => node.textContent), ['Vitals']);
+    assert.deepEqual(page.rows().map((row: Element) => row.querySelector('.records-row-title')!.textContent), ['Blood pressure: 128/82 mmHg', 'Pulse: 71']);
+    const [pressure, pulse] = page.rows();
+    assert.equal(pulse.querySelector('button'), null); // nothing more to show, so it does not open
+    pressure.querySelector('.records-row-head').click();
+    assert.deepEqual(page.labels(pressure), ['Time']);
+    assert.equal(pressure.querySelector('dd').textContent, '8:20 am');
+    assert.equal(pressure.querySelector('.records-quote-text').textContent, 'It was a bit high yesterday.');
+    assert.equal(page.$('.records-group-title').closest('section').querySelectorAll('.records-row').length, 2);
+    page.$('#recordsDayClose').click();
+    page.open(13); // readings without a value are not shown, and do not make a dot
+    assert.equal(page.day(13).classList.contains('has-records'), false);
+  }, [
+    checkin(at(12, 9), {
+      vitals: [vitalOf('v1', 'Blood pressure', '128/82', { unit: 'mmHg', time: '8:20 am' }), vitalOf('v2', 'Pulse', '71'), vitalOf('v3', 'Temperature', null)],
+      reportedAnswers: [answer('It was a bit high yesterday.', { entityId: 'v1' })],
+    }),
+    checkin(at(13, 9), { vitals: [vitalOf('v4', 'Blood pressure', null)] }),
+  ]);
+});
+
+test('with several check-ins on a day, each vital carries its time, in the same place as the other groups', async () => {
+  await withRecords(page => {
+    page.open(12);
+    assert.deepEqual(page.$$('.records-group-title').map((node: Element) => node.textContent), ['Symptoms', 'Vitals']);
+    assert.deepEqual(page.rows().map((row: Element) => row.querySelector('.records-time')?.textContent), ['8:00 AM', '6:15 PM']);
+  }, [
+    checkin(at(12, 8), { symptoms: [symptom('s1', 'Stiffness')] }),
+    checkin(at(12, 18, 15), { vitals: [vitalOf('v1', 'Blood pressure', '120/80', { unit: 'mmHg' })] }),
+  ]);
+});
+
+test('the records are read from the server when the page starts and again each time the tab is opened', async () => {
+  let calls = 0;
+  let answerWith: any = { source: 'real', name: null, checkins: [] };
+  await withRecords(async page => {
+    assert.equal(calls, 1);
     assert.equal(page.$$('.records-day.has-records').length, 0);
-    page.mounted.setCheckins({ checkins: fixtures });
+    assert.equal(page.$('#recordsStatus').hidden, true);
+    answerWith = { source: 'real', name: null, checkins: fixtures }; // a check-in saved in the meantime
+    page.$('#desktopRecordsNav').click();
+    await page.mounted.ready;
+    assert.equal(calls, 2);
     assert.equal(page.$$('.records-day.has-records').length, 3);
-  });
+    page.$('#recordsNav').click(); // the phone's tab does the same
+    await page.mounted.ready;
+    assert.equal(calls, 3);
+  }, [], async () => { calls++; return answerWith; });
+});
+
+test('the example person is labelled, and the label goes when the real records are back', async () => {
+  let payload: any = { source: 'demo', name: 'Arthur Itis', checkins: fixtures };
+  await withRecords(async page => {
+    const status = page.$('#recordsStatus');
+    assert.equal(status.hidden, false);
+    assert.equal(status.textContent, 'Example data · Arthur Itis');
+    assert.equal(status.getAttribute('role'), 'status');
+    assert.equal(page.$$('.records-day.has-records').length, 3);
+    payload = { source: 'real', name: null, checkins: [] };
+    page.$('#desktopRecordsNav').click();
+    await page.mounted.ready;
+    assert.equal(status.hidden, true);
+    assert.equal(page.$$('.records-day.has-records').length, 0); // the calendar changed without a page reload
+  }, [], async () => payload);
+});
+
+test('when the records cannot be loaded, the calendar still shows and says so, and the next visit tries again', async () => {
+  let fail = true;
+  await withRecords(async page => {
+    const status = page.$('#recordsStatus');
+    assert.equal(status.hidden, false);
+    assert.match(status.textContent, /could not be loaded/);
+    assert.ok(status.classList.contains('is-error'));
+    assert.equal(page.title(), 'September 2026');
+    assert.equal(page.$$('.records-day').length, 30);
+    fail = false;
+    page.$('#desktopRecordsNav').click();
+    await page.mounted.ready;
+    assert.equal(status.hidden, true);
+    assert.equal(page.$$('.records-day.has-records').length, 3);
+  }, [], async () => { if (fail) throw new Error('offline'); return { source: 'real', name: null, checkins: fixtures }; });
+});
+
+test('an old answer that arrives late cannot replace a newer one', async () => {
+  const gates: ((value: any) => void)[] = [];
+  let n = 0;
+  await withRecords(async page => {
+    page.$('#desktopRecordsNav').click(); // second request
+    gates[1]!({ source: 'real', name: null, checkins: fixtures }); // the newer answer arrives first
+    await page.mounted.ready;
+    assert.equal(page.$$('.records-day.has-records').length, 3);
+    gates[0]!({ source: 'demo', name: 'Old', checkins: [] }); // then the slow first one
+    await new Promise(resolve => setTimeout(resolve, 5));
+    assert.equal(page.$$('.records-day.has-records').length, 3);
+    assert.equal(page.$('#recordsStatus').hidden, true);
+  }, [], () => new Promise(resolve => { gates[n++] = resolve; }), false); // the first answer is held back on purpose
+});
+
+test('the default loader asks GET /api/records, and a failing request shows the message', async () => {
+  const dom = new JSDOM(await readText('index.html'), { url: 'https://example.test/app', runScripts: 'outside-only' });
+  const originalFetch = globalThis.fetch;
+  const { mountRecords } = await import(recordsUrl);
+  const requested: string[] = [];
+  let status = 200;
+  globalThis.fetch = (async (url: string) => { requested.push(String(url)); return Response.json({ source: 'real', name: null, checkins: fixtures }, { status }); }) as typeof fetch;
+  const records = mountRecords(dom.window.document, { apiBase: 'http://api.test', now: NOW });
+  try {
+    await records.ready;
+    assert.deepEqual(requested, ['http://api.test/api/records']);
+    assert.equal(dom.window.document.querySelectorAll('.records-day.has-records').length, 3);
+    status = 500;
+    await records.refresh();
+    assert.equal(dom.window.document.getElementById('recordsStatus')!.hidden, false);
+  } finally { records.destroy(); globalThis.fetch = originalFetch; dom.window.close(); }
+});
+
+// The demo switch reloads the page (every card reads its data again). From Records, the reload comes back to Records.
+async function withDemoSwitch(run: (ctx: any) => Promise<void>, { openRecords, remember = true }: { openRecords: boolean; remember?: boolean }) {
+  const reloads: string[] = [];
+  const virtualConsole = new VirtualConsole();
+  virtualConsole.on('jsdomError', error => { if (/navigation/i.test(error.message)) reloads.push(error.message); }); // jsdom cannot reload; it reports it
+  const dom = new JSDOM(await readText('index.html'), { url: 'https://example.test/app', runScripts: 'outside-only', virtualConsole });
+  const window = dom.window as any;
+  window.structuredClone = structuredClone; window.scrollTo = () => {};
+  window.eval(await readText('frontend/profile-store.js'));
+  const originalFetch = globalThis.fetch;
+  const posted: any[] = [];
+  globalThis.fetch = (async (url: string, init?: RequestInit) => {
+    if (init?.method === 'POST') { posted.push(JSON.parse(String(init.body))); return Response.json({ on: posted.at(-1).on }); }
+    return Response.json({ on: false });
+  }) as typeof fetch;
+  const { mountVersionB } = await import(uiUrl);
+  const { mountRecords } = await import(recordsUrl);
+  const { mountDemoToggle } = await import(toggleUrl);
+  const document = window.document as Document;
+  const app = mountVersionB(document, { conversationEnabled: false, speechFactory: () => ({ available: false, cancel() {}, destroy() {} }), speakerFactory: () => ({ stop() {}, destroy() {} }) });
+  const loads: number[] = [];
+  const records = mountRecords(document, { load: async () => { loads.push(1); return { source: 'real', name: null, checkins: [] }; }, now: NOW });
+  mountDemoToggle(document);
+  try {
+    if (openRecords) (document.getElementById('desktopRecordsNav') as HTMLElement).click();
+    await records.ready;
+    await run({ document, window, dom, reloads, posted, loads, flag: () => window.sessionStorage.getItem('tellwell.returnTo') });
+  } finally { records.destroy(); app.destroy(); globalThis.fetch = originalFetch; dom.window.close(); }
+}
+const flip = async (ctx: any) => {
+  const box = ctx.document.getElementById('demoSwitch') as HTMLInputElement;
+  box.checked = true;
+  box.dispatchEvent(new ctx.window.Event('change', { bubbles: true }));
+  for (let i = 0; i < 100 && !ctx.reloads.length; i++) await new Promise(resolve => setTimeout(resolve, 5));
+};
+
+test('switching the demo on while Records is open reloads the page and leaves a note to come back to Records', async () => {
+  await withDemoSwitch(async ctx => {
+    assert.equal(ctx.flag(), null);
+    await flip(ctx);
+    assert.deepEqual(ctx.posted, [{ on: true }]);
+    assert.equal(ctx.reloads.length, 1); // the whole page reloads, as the demo switch always did
+    assert.equal(ctx.flag(), 'records');
+  }, { openRecords: true });
+});
+
+test('switching the demo from another tab leaves no note, so the reload lands on Home as before', async () => {
+  await withDemoSwitch(async ctx => {
+    await flip(ctx);
+    assert.equal(ctx.reloads.length, 1);
+    assert.equal(ctx.flag(), null);
+  }, { openRecords: false });
+});
+
+test('a page that starts with the note opens on Records, loads once, and clears the note', async () => {
+  const dom = new JSDOM(await readText('index.html'), { url: 'https://example.test/app', runScripts: 'outside-only' });
+  const window = dom.window as any;
+  window.structuredClone = structuredClone; window.scrollTo = () => {};
+  window.eval(await readText('frontend/profile-store.js'));
+  window.sessionStorage.setItem('tellwell.returnTo', 'records');
+  const { mountVersionB } = await import(uiUrl);
+  const { mountRecords } = await import(recordsUrl);
+  const document = window.document as Document;
+  const app = mountVersionB(document, { conversationEnabled: false, speechFactory: () => ({ available: false, cancel() {}, destroy() {} }), speakerFactory: () => ({ stop() {}, destroy() {} }) });
+  let loads = 0;
+  const records = mountRecords(document, { load: async () => { loads++; return { source: 'demo', name: 'Arthur Itis', checkins: fixtures }; }, now: NOW });
+  try {
+    await records.ready;
+    assert.equal((document.getElementById('recordsView') as HTMLElement).hidden, false);
+    assert.equal((document.querySelector('.patient-home') as HTMLElement).hidden, true);
+    assert.ok(document.getElementById('desktopRecordsNav')!.classList.contains('active'));
+    assert.equal(loads, 1);
+    assert.equal(window.sessionStorage.getItem('tellwell.returnTo'), null);
+    assert.equal(document.getElementById('recordsStatus')!.textContent, 'Example data · Arthur Itis');
+    assert.equal(document.querySelectorAll('.records-day.has-records').length, 3);
+  } finally { records.destroy(); app.destroy(); dom.window.close(); }
 });
 
 test('the doctor summary moved from Home to Records, below the calendar, and still works', async () => {
@@ -420,22 +622,31 @@ function assertBackendShape(checkins: any[]) {
   }
 }
 
-test('the placeholder records follow the backend check-in format and look right on the calendar', async () => {
-  const { PLACEHOLDER_CHECKINS } = await import(placeholderUrl);
-  assertBackendShape(PLACEHOLDER_CHECKINS);
-  assert.match(await readText('frontend/records-placeholder.js'), /^\/\/ PLACEHOLDER: replace with real records/);
-  const names = (key: string) => PLACEHOLDER_CHECKINS.flatMap((item: any) => item[key].map((entry: any) => entry.name));
-  assert.ok(names('symptoms').includes('Headache') && names('symptoms').includes('Arm pain'));
-  assert.ok(names('medications').length >= 1);
+test('the placeholder data is gone, and main.js no longer refers to it', async () => {
+  assert.equal(existsSync(new URL('../../frontend/records-placeholder.js', import.meta.url)), false);
+  assert.doesNotMatch(await readText('frontend/main.js'), /placeholder/i);
+  assert.match(await readText('frontend/main.js'), /mountRecords\(document\)/);
+  assert.doesNotMatch(await readText('frontend/records.js'), /placeholder/i);
+});
+
+test('the example person from the backend shows on the calendar, with Vitals and two check-ins on one day', async () => {
+  const records = JSON.parse(JSON.stringify(arthritisRecords('2026-09-20')));
+  assertBackendShape(records);
+  const dayOf = (savedAt: string) => { const d = new Date(savedAt); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  const days = [...new Set<string>(records.map((item: any) => dayOf(item.savedAt)))].sort();
+  const withReadings = records.filter((item: any) => item.vitals.some((vital: any) => vital.value));
+  assert.ok(withReadings.length >= 5, 'the example person has blood pressure readings');
   await withRecords(page => {
+    assert.equal(page.$('#recordsStatus').textContent, 'Example data · Arthur Itis');
     const marked = page.$$('.records-day.has-records').map((node: HTMLElement) => node.dataset.date);
-    assert.ok(marked.length >= 3 && marked.length <= 4, marked.join());
-    assert.ok(marked.every((date: string) => date.startsWith('2026-09')));
-    page.open(19);
-    assert.ok(page.$$('.records-time').length >= 2); // more than one check-in that day
-  }, PLACEHOLDER_CHECKINS);
-  // Nothing but main.js refers to the placeholder file, so deleting it is a two-line change.
-  assert.doesNotMatch(await readText('frontend/records.js'), /records-placeholder/);
+    assert.deepEqual(marked.filter((date: string) => date.startsWith('2026-09')), days.filter((date: any) => date.startsWith('2026-09')));
+    const newest = records.at(-1);
+    page.open(Number(dayOf(newest.savedAt).slice(-2)));
+    assert.ok(page.$$('.records-group-title').some((node: Element) => node.textContent === 'Vitals'));
+    assert.match(page.$$('.records-row-title').map((node: Element) => node.textContent).join('|'), /Blood pressure: \d+\/\d+ mmHg/);
+    const twice = days.find((day: string) => records.filter((item: any) => dayOf(item.savedAt) === day).length > 1);
+    if (twice) { page.$('#recordsDayClose').click(); page.open(Number(twice.slice(-2))); assert.ok(page.$$('.records-time').length >= 2); }
+  }, [], async () => ({ source: 'demo', name: 'Arthur Itis', checkins: records }));
 });
 
 test('the example in RECORDS-DATA-FORMAT.md is a valid list of check-ins', async () => {
@@ -448,7 +659,8 @@ test('the example in RECORDS-DATA-FORMAT.md is a valid list of check-ins', async
   await withRecords(page => {
     assert.equal(page.$$('.records-day.has-records').length, 1);
     page.open(19);
-    assert.deepEqual(page.$$('.records-group-title').map((node: Element) => node.textContent), ['Symptoms', 'Medications', 'Meals', 'In your own words']);
+    assert.deepEqual(page.$$('.records-group-title').map((node: Element) => node.textContent), ['Symptoms', 'Medications', 'Meals', 'Vitals', 'In your own words']);
+    assert.ok(page.$$('.records-row-title').some((node: Element) => node.textContent === 'Blood pressure: 128/82 mmHg'));
     page.rows()[0].querySelector('.records-row-head').click();
     assert.equal(page.rows()[0].querySelectorAll('.records-quote').length, 1);
   }, parsed.checkins.map((item: any) => ({ ...item, savedAt: at(19, 8, 30) })));

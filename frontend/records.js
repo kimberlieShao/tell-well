@@ -1,12 +1,15 @@
 // Records page: a month calendar of past check-ins, and a dialog with everything recorded on one day.
 //
 // The data is a list of saved check-ins in the backend's own field names (see RECORDS-DATA-FORMAT.md):
-// each has `savedAt` plus the record's symptoms, medications, diet and reportedAnswers.
-// This module only displays what it is given. Where the check-ins come from is decided by the caller.
+// each has `savedAt` plus the record's symptoms, medications, diet, vitals and reportedAnswers.
+// It comes from GET /api/records, which returns the example person while the demo switch is on and the
+// person's own confirmed check-ins otherwise.
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const TREND = { better: 'Better', same: 'About the same', worse: 'Worse' };
 const MEDICATION_STATUS = { taken: 'Taken', missed: 'Missed', stopped: 'Stopped', mentioned: 'Mentioned' };
+// Set by the demo switch just before it reloads the page, so the reload lands back on this page.
+const RETURN_KEY = 'tellwell.returnTo';
 
 const pad = number => String(number).padStart(2, '0');
 const present = value => value !== null && value !== undefined && String(value).trim() !== '';
@@ -27,9 +30,12 @@ export function normalizeCheckins(input) {
   return list(checkins).filter(checkin => checkin && !Number.isNaN(new Date(checkin.savedAt).getTime()));
 }
 
+// Only readings that have a value are shown.
+const shownVitals = checkin => list(checkin.vitals).filter(vital => present(vital.value));
+
 // A check-in counts as a record when the day dialog has something to show for it.
 const hasContent = checkin => ['symptoms', 'medications', 'diet', 'reportedAnswers'].some(key => list(checkin[key]).length)
-  || present(checkin.wellness?.statement);
+  || shownVitals(checkin).length > 0 || present(checkin.wellness?.statement);
 
 /** Check-ins that have something to show, by local day, oldest first. */
 export function groupByDay(input) {
@@ -79,6 +85,11 @@ const dietRow = item => {
   return { title: item.description, summary: present(item.time) ? item.time : null, fields: fields([['Time', item.time], ['Water', water]]) };
 };
 
+const vitalRow = vital => ({
+  title: `${present(vital.name) ? vital.name : 'Reading'}: ${[vital.value, vital.unit].filter(present).join(' ')}`,
+  summary: null, fields: fields([['Time', vital.time]]),
+});
+
 const quoteOf = answer => ({
   question: present(answer.question) ? answer.question : null,
   text: answer.transcript,
@@ -87,19 +98,19 @@ const quoteOf = answer => ({
 
 /**
  * Everything the day dialog shows, as plain data: `notes` (well-day statements) and `groups`
- * (Symptoms, Medications, Meals, In your own words), each with rows in time order. A row's `fields`
+ * (Symptoms, Medications, Meals, Vitals, In your own words), each with rows in time order. A row's `fields`
  * hold only values that exist. A time is attached to a row only when the day has several check-ins.
  */
 export function buildDay(checkins) {
   const multiple = checkins.length > 1;
   const notes = [];
-  const groups = { symptoms: [], medications: [], diet: [], words: [] };
+  const groups = { symptoms: [], medications: [], diet: [], vitals: [], words: [] };
   for (const checkin of checkins) {
     const time = multiple ? timeLabel(new Date(checkin.savedAt)) : null;
     const answers = list(checkin.reportedAnswers).filter(answer => present(answer.transcript));
     const known = new Set();
-    for (const [category, toRow] of [['symptoms', symptomRow], ['medications', medicationRow], ['diet', dietRow]]) {
-      for (const item of list(checkin[category])) {
+    for (const [category, toRow] of [['symptoms', symptomRow], ['medications', medicationRow], ['diet', dietRow], ['vitals', vitalRow]]) {
+      for (const item of category === 'vitals' ? shownVitals(checkin) : list(checkin[category])) {
         known.add(item.id);
         groups[category].push({ ...toRow(item), time, quotes: answers.filter(answer => answer.entityId === item.id).map(quoteOf) });
       }
@@ -114,12 +125,34 @@ export function buildDay(checkins) {
   }
   return {
     multiple, notes,
-    groups: [['symptoms', 'Symptoms'], ['medications', 'Medications'], ['diet', 'Meals'], ['words', 'In your own words']]
+    groups: [['symptoms', 'Symptoms'], ['medications', 'Medications'], ['diet', 'Meals'], ['vitals', 'Vitals'], ['words', 'In your own words']]
       .map(([key, title]) => ({ key, title, rows: groups[key] })).filter(group => group.rows.length),
   };
 }
 
-export function mountRecords(doc, { checkins = [], now = new Date() } = {}) {
+const storageOf = doc => { try { return doc.defaultView.sessionStorage; } catch { return null; } };
+
+/** Called by the demo switch just before it reloads the page: if Records is open, the reload comes back to it. */
+export function rememberRecordsTab(doc) {
+  const view = doc.getElementById('recordsView');
+  if (!view || view.hidden) return;
+  try { storageOf(doc)?.setItem(RETURN_KEY, 'records'); } catch { /* the reload just lands on Home */ }
+}
+
+function takeReturnFlag(doc) {
+  try {
+    const storage = storageOf(doc);
+    const returning = storage?.getItem(RETURN_KEY) === 'records';
+    storage?.removeItem(RETURN_KEY);
+    return returning;
+  } catch { return false; }
+}
+
+/**
+ * `load` returns `{ source, name, checkins }`; by default it asks GET /api/records. The data is read
+ * again every time the Records tab is opened, so a check-in saved a moment ago is there.
+ */
+export function mountRecords(doc, { apiBase = '', load, now = new Date() } = {}) {
   const grid = doc.getElementById('recordsGrid');
   const overlay = doc.getElementById('recordsDay');
   if (!grid || !overlay) return null;
@@ -129,10 +162,19 @@ export function mountRecords(doc, { checkins = [], now = new Date() } = {}) {
   const dayTitle = doc.getElementById('recordsDayTitle');
   const dayBody = doc.getElementById('recordsDayBody');
   const closeButton = doc.getElementById('recordsDayClose');
+  const status = doc.getElementById('recordsStatus');
+  const openers = ['desktopRecordsNav', 'recordsNav'].map(id => doc.getElementById(id)).filter(Boolean);
+  const fetchRecords = load ?? (async () => {
+    const response = await fetch(`${apiBase}/api/records`);
+    if (!response.ok) throw new Error(`Records request failed (${response.status})`);
+    return response.json();
+  });
 
   const today = new Date(now);
   const todayKey = dateKey(today);
-  let days = groupByDay(checkins);
+  let days = new Map();
+  let requests = 0;
+  let latest = null;
   let view = new Date(today.getFullYear(), today.getMonth(), 1);
   let focusKey = todayKey;
   let opener = null;
@@ -289,6 +331,31 @@ export function mountRecords(doc, { checkins = [], now = new Date() } = {}) {
     opener = null;
   }
 
+  function showStatus(text, failed) {
+    if (!status) return;
+    status.textContent = text;
+    status.hidden = !text;
+    status.classList.toggle('is-error', failed);
+  }
+
+  /** Read the records again. Only the newest request is used, so a slow old answer cannot overwrite a newer one. */
+  function refresh() {
+    const mine = ++requests;
+    latest = (async () => {
+      try {
+        const data = await fetchRecords();
+        if (mine !== requests) return;
+        days = groupByDay(data);
+        showStatus(data?.source === 'demo' ? `Example data · ${data.name ?? 'demo person'}` : '', false);
+        closeDay();
+        renderCalendar();
+      } catch {
+        if (mine === requests) showStatus('Your records could not be loaded. Open this page again to try again.', true);
+      }
+    })();
+    return latest;
+  }
+
   grid.addEventListener('click', event => {
     const button = event.target.closest?.('.records-day');
     if (!button || button.getAttribute('aria-disabled') === 'true') return;
@@ -336,9 +403,17 @@ export function mountRecords(doc, { checkins = [], now = new Date() } = {}) {
   };
   doc.addEventListener('keydown', keydown);
 
+  for (const opener of openers) opener.addEventListener('click', refresh);
   renderCalendar();
+  // After the demo switch reloads the page, opening the tab loads the data; otherwise load it now.
+  if (takeReturnFlag(doc) && openers[0]) openers[0].click(); else refresh();
   return {
-    setCheckins(updated) { days = groupByDay(updated); closeDay(); renderCalendar(); },
-    destroy() { doc.removeEventListener('keydown', keydown); },
+    refresh,
+    get ready() { return latest; },
+    destroy() {
+      doc.removeEventListener('keydown', keydown);
+      for (const opener of openers) opener.removeEventListener('click', refresh);
+      requests++;
+    },
   };
 }

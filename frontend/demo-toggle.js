@@ -2,6 +2,8 @@
 // real check-ins. The wearable panel and live heart rate are untouched, so real WHOOP nights and
 // the Bluetooth band still work while the example week of symptoms is on screen.
 
+import { rememberRecordsTab } from './records.js';
+
 export function mountDemoToggle(doc, { apiBase = '' } = {}) {
   const box = doc.getElementById('demoToggle');
   if (!box) return;
@@ -20,6 +22,7 @@ export function mountDemoToggle(doc, { apiBase = '' } = {}) {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ on: input.checked }),
       });
+      rememberRecordsTab(doc); // if Records is open, the reload comes back to it
       doc.defaultView.location.reload(); // every card reads its data again
     } catch {
       input.disabled = false;

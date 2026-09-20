@@ -3,6 +3,10 @@
 
 :root { --blush: #fbe4de; } /* the light coral tint already used behind the More page icons */
 
+/* ---- Where the data comes from ---- */
+.records-status { display: inline-block; margin: 0 0 12px; border-radius: 999px; padding: 5px 12px; color: var(--forest); background: var(--mint); font: 700 11px Arial, sans-serif; letter-spacing: .6px; text-transform: uppercase; }
+.records-status.is-error { border-radius: 10px; color: #8e382f; background: #fff1ee; letter-spacing: 0; text-transform: none; font-size: 12px; }
+
 /* ---- Calendar ---- */
 .records-calendar { padding: 18px 20px 16px; }
 .records-month { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
