@@ -93,6 +93,8 @@
 .med-reset:hover:not(:disabled) { background: #f4eee8; }
 .med-reset:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
 .med-reset:disabled { cursor: default; opacity: .5; }
+/* The example person has no counts of the reader's own to reset. */
+body.demo-on .med-reset { display: none; }
 .medication-metric .med-progress-list { display: grid; gap: 5px; margin-top: 12px; font: 12px/1.35 Arial, sans-serif; }
 .med-progress-row { display: grid; grid-template-columns: minmax(0, 1fr) auto 12px; align-items: baseline; column-gap: 6px; }
 .med-progress-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

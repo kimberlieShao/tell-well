@@ -211,28 +211,32 @@ export function mountMedications(doc) {
   }
 
   const render = () => {
-    const meds = loadMedications(windowArg);
-    if (rows) rows.replaceChildren(...(meds.length ? meds.map((med, i) => medRow(doc, med, () => {
+    // While the demo person is shown, demo-toggle.js owns this card and the table. Drawing the browser's
+    // own list here would wipe the example out the next time the window gains focus.
+    if (!doc.body.classList.contains('demo-on')) {
+      const meds = loadMedications(windowArg);
+      if (rows) rows.replaceChildren(...(meds.length ? meds.map((med, i) => medRow(doc, med, () => {
+        try {
+          saveMedications(meds.filter((_, index) => index !== i), windowArg);
+          showError('');
+        } catch (failure) { showError(failure.message); }
+      })) : [emptyRow(doc)]));
       try {
-        saveMedications(meds.filter((_, index) => index !== i), windowArg);
-        showError('');
-      } catch (failure) { showError(failure.message); }
-    })) : [emptyRow(doc)]));
-    try {
-      const progress = getMedicationProgress(windowArg);
-      if (reset) reset.disabled = !progress.some(med => med.taken > 0);
-      const visible = progress.slice(0, MAX_MEDICATION_TYPES);
-      if (tile) {
-        if (visible.length) tile.replaceChildren(...visible.map(med => progressRow(doc, med)));
-        else tile.textContent = '—';
+        const progress = getMedicationProgress(windowArg);
+        if (reset) reset.disabled = !progress.some(med => med.taken > 0);
+        const visible = progress.slice(0, MAX_MEDICATION_TYPES);
+        if (tile) {
+          if (visible.length) tile.replaceChildren(...visible.map(med => progressRow(doc, med)));
+          else tile.textContent = '—';
+        }
+        if (foot) foot.textContent = progress.length > MAX_MEDICATION_TYPES
+          ? 'Showing 5 · manage your list below'
+          : progress.length ? 'Doses recorded / daily doses' : 'No medications added';
+      } catch {
+        if (reset) reset.disabled = true;
+        if (tile) tile.textContent = '—';
+        if (foot) foot.textContent = 'Counts could not be loaded';
       }
-      if (foot) foot.textContent = progress.length > MAX_MEDICATION_TYPES
-        ? 'Showing 5 · manage your list below'
-        : progress.length ? 'Doses recorded / daily doses' : 'No medications added';
-    } catch {
-      if (reset) reset.disabled = true;
-      if (tile) tile.textContent = '—';
-      if (foot) foot.textContent = 'Counts could not be loaded';
     }
     // Construct the next local midnight, including daylight-saving transitions.
     windowArg.clearTimeout(midnightTimer);
