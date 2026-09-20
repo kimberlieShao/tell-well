@@ -7,7 +7,7 @@ RUN npm ci --prefix backend
 COPY --chown=node:node . .
 # Snapshot of real WHOOP nights, example person on and fixed on, HTTPS proxy in front.
 # Secrets (GEMINI_API_KEY, ELEVENLABS_API_KEY) are set on the platform, never here. PORT comes from the platform.
-ENV NODE_ENV=production HOST=0.0.0.0 WEARABLE_MODE=snapshot DEMO_DEFAULT=on DEMO_LOCKED=1 TRUST_PROXY=1 CHECKIN_DAILY_LIMIT=3 CLIENT_IP_HEADER=x-real-ip TZ=America/New_York
+ENV NODE_ENV=production HOST=0.0.0.0 WEARABLE_MODE=snapshot DEMO_DEFAULT=on DEMO_LOCKED=1 TRUST_PROXY=1 CHECKIN_DAILY_TOTAL=200 TZ=America/New_York
 USER node
 WORKDIR /app/backend
 CMD ["node", "--import", "tsx", "src/server.ts"]

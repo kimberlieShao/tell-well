@@ -12,7 +12,7 @@ import { analyzeInputSchema, saveInputSchema } from './schema.js';
 import type { SpeechTokenProvider } from './speech.js';
 import { MAX_SPOKEN_TEXT_LENGTH, SPEECH_VOICE_PRESETS, type SpeechAudioProvider } from './tts.js';
 
-export function createApp(extractor: Extractor, config: { origins?: string[]; store?: Checkins; speechTokenProvider?: SpeechTokenProvider; speechAudioProvider?: SpeechAudioProvider; wearable?: BiometricsSource; log?: CheckinLog; demo?: { on?: boolean; locked?: boolean }; checkinLimit?: number; clientIpHeader?: string } = {}) {
+export function createApp(extractor: Extractor, config: { origins?: string[]; store?: Checkins; speechTokenProvider?: SpeechTokenProvider; speechAudioProvider?: SpeechAudioProvider; wearable?: BiometricsSource; log?: CheckinLog; demo?: { on?: boolean; locked?: boolean }; checkinLimit?: number } = {}) {
   const app = express();
   const store = config.store ?? new Checkins(extractor);
   const log = config.log ?? new CheckinLog();
@@ -24,21 +24,15 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
   const demoLocked = config.demo?.locked ?? false;
   const demoNights = arthritisSource(() => log.today());
   if (demo) log.seed(arthritisCheckins(log.today()).map(c => ({ date: c.date, symptoms: c.symptoms.map(s => ({ name: s.name, score: s.score })) })));
-  // A public deployment spends the owner's Gemini quota, so each visitor (by client address) may start
-  // only so many check-ins per day (CHECKIN_DAILY_LIMIT). 0 means no limit, as on a laptop. The counts sit
-  // in this process's memory, like the sessions: a restart gives everyone a fresh allowance.
-  const perDay = config.checkinLimit ?? 0;
-  const startedToday = new Map<string, number>();
-  // Behind a platform's proxy every request arrives from the proxy, so the visitor is the address the
-  // platform reports in CLIENT_IP_HEADER (Railway: x-real-ip), which it sets itself. Otherwise the socket's.
-  const visitorOf = (req: express.Request) => {
-    const reported = config.clientIpHeader ? req.get(config.clientIpHeader)?.trim() : undefined;
-    return reported || req.ip || 'unknown';
-  };
+  // A public deployment spends the owner's Gemini quota, so it opens only so many check-ins a day in
+  // all (CHECKIN_DAILY_TOTAL), whoever asks: a shared Wi-Fi must not use up one person's turn. 0 means no
+  // limit, as on a laptop. The count sits in this process's memory, like the sessions: a restart resets it.
+  const dailyTotal = config.checkinLimit ?? 0;
+  let openedToday = 0;
   let countedDay = log.today();
-  const started = (visitor: string) => {
-    if (log.today() !== countedDay) { startedToday.clear(); countedDay = log.today(); }
-    return startedToday.get(visitor) ?? 0;
+  const opened = () => {
+    if (log.today() !== countedDay) { openedToday = 0; countedDay = log.today(); }
+    return openedToday;
   };
   const origins = new Set(config.origins ?? ['http://localhost:8081', 'http://localhost:5500', 'http://127.0.0.1:5500']);
   app.disable('x-powered-by');
@@ -86,23 +80,23 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
   app.post('/api/analyze', async (req, res) => {
     const input = analyzeInputSchema.parse(req.body);
     // Only opening a new check-in counts; answering its follow-up questions does not.
-    const opening = perDay > 0 && !input.sessionId;
-    const visitor = visitorOf(req);
+    const opening = dailyTotal > 0 && !input.sessionId;
     if (opening) {
-      if (started(visitor) >= perDay) throw new ApiError(429, 'DAILY_CHECKIN_LIMIT', `This demo allows ${perDay} check-in${perDay === 1 ? '' : 's'} per visitor per day. Please come back tomorrow.`);
-      startedToday.set(visitor, started(visitor) + 1);
+      if (opened() >= dailyTotal) throw new ApiError(429, 'DAILY_CHECKIN_LIMIT', "Today's demo check-ins are used up. Explore Arthur's 30 days of example data in Records and Trends.");
+      openedToday += 1;
     }
+    const day = countedDay;
     try {
       log.screen(input.transcript ?? input.answer?.value); // red-flag screen on everything the person says
       res.json(await store.analyze(input));
     } catch (error) {
-      if (opening) startedToday.set(visitor, Math.max(0, started(visitor) - 1)); // a check-in that never opened is not used up
+      if (opening && day === countedDay) openedToday = Math.max(0, openedToday - 1); // a check-in that never opened is not used up
       throw error;
     }
   });
-  app.get('/api/checkin/limit', (req, res) => {
-    const used = perDay > 0 ? started(visitorOf(req)) : 0;
-    res.json({ perDay: perDay || null, used, remaining: perDay > 0 ? Math.max(0, perDay - used) : null });
+  app.get('/api/checkin/limit', (_req, res) => {
+    const used = dailyTotal > 0 ? opened() : 0;
+    res.json({ dailyTotal: dailyTotal || null, used, remaining: dailyTotal > 0 ? Math.max(0, dailyTotal - used) : null });
   });
   app.post('/api/checkin/save', (req, res) => {
     const saved = store.save(saveInputSchema.parse(req.body));

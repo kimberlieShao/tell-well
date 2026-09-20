@@ -21,8 +21,8 @@ if (!['whoop', 'snapshot', 'demo'].includes(wearableMode)) throw new Error('WEAR
 const wearable = wearableMode === 'demo' ? demoSource(today, [today()])
   : wearableMode === 'snapshot' ? snapshotSource()
   : whoopSource(process.env.WHOOP_URL ?? 'http://127.0.0.1:8000');
-const checkinLimit = Number(process.env.CHECKIN_DAILY_LIMIT ?? 0);
-if (!Number.isInteger(checkinLimit) || checkinLimit < 0) throw new Error('CHECKIN_DAILY_LIMIT must be a whole number, 0 or more.');
+const checkinLimit = Number(process.env.CHECKIN_DAILY_TOTAL ?? 0);
+if (!Number.isInteger(checkinLimit) || checkinLimit < 0) throw new Error('CHECKIN_DAILY_TOTAL must be a whole number, 0 or more.');
 const app = createApp(extractor, {
   origins: process.env.CORS_ORIGINS?.split(',').map(s => s.trim()).filter(Boolean),
   speechTokenProvider: process.env.ELEVENLABS_API_KEY?.trim()
@@ -30,7 +30,7 @@ const app = createApp(extractor, {
   speechAudioProvider: process.env.ELEVENLABS_API_KEY?.trim()
     ? createSpeechAudioProvider({ apiKey: process.env.ELEVENLABS_API_KEY, voiceId: process.env.ELEVENLABS_VOICE_ID || undefined, modelId: process.env.ELEVENLABS_TTS_MODEL || undefined }) : undefined,
   wearable,
-  checkinLimit, clientIpHeader: process.env.CLIENT_IP_HEADER?.trim().toLowerCase() || undefined,
+  checkinLimit,
   demo: { on: process.env.DEMO_DEFAULT === 'on', locked: process.env.DEMO_LOCKED === '1' },
 });
 // Behind a platform's HTTPS proxy the browser's Origin is https while the request arrives as http.
