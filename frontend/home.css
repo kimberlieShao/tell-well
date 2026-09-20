@@ -209,6 +209,12 @@ body.demo-on .med-reset { display: none; }
 .demo-toggle input { accent-color: var(--forest); width: 15px; height: 15px; }
 .demo-toggle label { cursor: pointer; }
 body.demo-on .demo-toggle { color: var(--forest); border-color: #c9dc8a; background: #f6fae6; }
+/* First-visit tip under the switch (public site). In the page flow, so it never covers anything. */
+.demo-hint { position: relative; box-sizing: border-box; display: flex; align-items: flex-start; gap: 8px; width: min(340px, 100%); margin: -22px 0 26px auto; border: 1px solid #c9dc8a; border-radius: 12px; padding: 11px 8px 11px 14px; background: #f6fae6; color: var(--ink); font: 13px/1.45 Arial, sans-serif; box-shadow: 0 6px 16px rgba(23, 74, 59, .08); }
+.demo-hint::before { content: ""; position: absolute; top: -7px; left: var(--arrow-x, calc(100% - 40px)); width: 12px; height: 12px; margin-left: -6px; border-top: 1px solid #c9dc8a; border-left: 1px solid #c9dc8a; background: #f6fae6; transform: rotate(45deg); }
+.demo-hint-text { flex: 1; margin: 0; }
+.demo-hint-close { flex: none; width: 32px; height: 32px; margin: -6px 0; border: 0; border-radius: 50%; background: transparent; color: var(--forest); font: 400 20px/1 Arial, sans-serif; cursor: pointer; }
+.demo-hint-close:hover, .demo-hint-close:focus-visible { background: #e6f0c6; }
 .demo-patterns { display: grid; gap: 7px; border: 1px solid #ddeb9d; border-radius: 12px; padding: 16px 18px; margin-top: 22px; background: #f6fae6; color: var(--ink); font: 13px/1.55 Arial, sans-serif; }
 .demo-patterns[hidden] { display: none; }
 .demo-patterns strong { font: 400 18px/1.3 Georgia, serif; }

@@ -191,13 +191,13 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
   // The patterns quote whichever nights the card is showing, real or example.
   // Enough nights to cover every day the example person checked in on, so the sleep pattern counts them all.
   const nightsInUse = async () => config.wearable ? await config.wearable.fetchDays(40).catch(() => undefined) : undefined;
-  app.get('/api/demo', async (req, res) => { const { demo } = who(req, res); res.json({ on: demo, locked: demoLocked, name: DEMO_NAME, story: demo ? arthritisToday(log.today(), await nightsInUse()) : null }); });
+  app.get('/api/demo', async (req, res) => { const { demo } = who(req, res); res.json({ on: demo, locked: demoLocked, hint: config.visitors !== undefined, name: DEMO_NAME, story: demo ? arthritisToday(log.today(), await nightsInUse()) : null }); });
   app.post('/api/demo', async (req, res) => {
     const { on } = z.strictObject({ on: z.boolean() }).parse(req.body);
     if (config.visitors) {
       if (!demoLocked) remember(req, res, DEMO_COOKIE, on ? 'on' : 'off');
       const current = demoLocked ? config.demo?.on ?? false : on;
-      res.json({ on: current, locked: demoLocked, name: DEMO_NAME, story: current ? arthritisToday(log.today(), await nightsInUse()) : null });
+      res.json({ on: current, locked: demoLocked, hint: config.visitors !== undefined, name: DEMO_NAME, story: current ? arthritisToday(log.today(), await nightsInUse()) : null });
       return;
     }
     if (!demoLocked) {
@@ -205,7 +205,7 @@ export function createApp(extractor: Extractor, config: { origins?: string[]; st
       if (on) log.seed(arthritisCheckins(log.today()).map(c => ({ date: c.date, symptoms: c.symptoms.map(s => ({ name: s.name, score: s.score })) })));
       else log.clearSeed();
     }
-    res.json({ on: demo, locked: demoLocked, name: DEMO_NAME, story: demo ? arthritisToday(log.today(), await nightsInUse()) : null });
+    res.json({ on: demo, locked: demoLocked, hint: config.visitors !== undefined, name: DEMO_NAME, story: demo ? arthritisToday(log.today(), await nightsInUse()) : null });
   });
   // What the Records calendar shows: the example person's check-ins while the demo is on, otherwise the
   // confirmed check-ins this server has kept. Check-ins are in the record format (see RECORDS-DATA-FORMAT.md).

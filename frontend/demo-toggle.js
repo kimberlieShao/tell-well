@@ -33,9 +33,47 @@ export function mountDemoToggle(doc, { apiBase = '' } = {}) {
 
   fetch(`${apiBase}/api/demo`).then(res => res.json()).then(state => {
     input.checked = !!state.on;
+    if (state.hint && !state.on) showHint(doc, box);
     if (state.locked) { input.disabled = true; label.title = 'Fixed on for this public demo'; }
     if (state.on && state.story) apply(doc, state.story);
   }).catch(() => {});
+}
+
+const HINT_KEY = 'tellwell.demo-hint.dismissed';
+const HINT_TEXT = 'New here? Turn on Demo person to explore 30 days of example data from Arthur, a patient with rheumatoid arthritis.';
+const remembered = win => { try { return win.localStorage.getItem(HINT_KEY) === '1'; } catch { return false; } };
+
+/**
+ * First-visit hint under the switch, on the public site only (the server sends hint: true there).
+ * It sits in the page flow, never over anything, and an arrow points at the switch. The person can close it,
+ * and this browser then never shows it again. It is a live region so a screen reader reads it out.
+ */
+function showHint(doc, box) {
+  const win = doc.defaultView;
+  const bar = box.closest('.topbar');
+  if (!bar || remembered(win) || doc.getElementById('demoHint')) return;
+  const hint = el(doc, 'div', 'demo-hint');
+  hint.id = 'demoHint';
+  hint.setAttribute('role', 'status');
+  bar.after(hint);
+  const point = () => { // the arrow sits under the middle of the switch
+    const at = box.getBoundingClientRect(), here = hint.getBoundingClientRect();
+    hint.style.setProperty('--arrow-x', `${Math.max(16, Math.min(here.width - 16, at.left + at.width / 2 - here.left))}px`);
+  };
+  // The message goes in a moment after the live region exists, or a screen reader may miss it.
+  win.setTimeout(() => {
+    const close = el(doc, 'button', 'demo-hint-close', '×');
+    close.type = 'button';
+    close.setAttribute('aria-label', 'Dismiss this tip');
+    close.addEventListener('click', () => {
+      try { win.localStorage.setItem(HINT_KEY, '1'); } catch { /* it just comes back next visit */ }
+      win.removeEventListener('resize', point);
+      hint.remove();
+    });
+    hint.append(el(doc, 'p', 'demo-hint-text', HINT_TEXT), close);
+    point();
+  }, 0);
+  win.addEventListener('resize', point);
 }
 
 function apply(doc, story) {
