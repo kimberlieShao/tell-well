@@ -1,5 +1,5 @@
 import { createApp } from './app.js';
-import { demoSource, whoopSource } from './biometrics.js';
+import { demoSource, snapshotSource, whoopSource } from './biometrics.js';
 import { createGeminiExtractor, demoExtractor } from './extractor.js';
 import { createSpeechTokenProvider } from './speech.js';
 import { createSpeechAudioProvider } from './tts.js';
@@ -13,8 +13,13 @@ const port = Number(process.env.PORT ?? 3001);
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('PORT must be between 1 and 65535.');
 const host = process.env.HOST ?? '127.0.0.1';
 const today = () => new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
-const wearable = process.env.WEARABLE_MODE === 'demo'
-  ? demoSource(today, [today()])
+// whoop (default): ask the connector on every request, the way a laptop with the band does.
+// snapshot: real WHOOP nights captured to a file, for a deployment that cannot reach a connector.
+// demo: invented nights, labelled "Example data" wherever they appear.
+const wearableMode = process.env.WEARABLE_MODE ?? 'whoop';
+if (!['whoop', 'snapshot', 'demo'].includes(wearableMode)) throw new Error('WEARABLE_MODE must be whoop, snapshot or demo.');
+const wearable = wearableMode === 'demo' ? demoSource(today, [today()])
+  : wearableMode === 'snapshot' ? snapshotSource()
   : whoopSource(process.env.WHOOP_URL ?? 'http://127.0.0.1:8000');
 const app = createApp(extractor, {
   origins: process.env.CORS_ORIGINS?.split(',').map(s => s.trim()).filter(Boolean),
@@ -27,7 +32,7 @@ const app = createApp(extractor, {
 const server = app.listen(port, host, () => {
   console.log(`Pulsewise API running at http://${host}:${port} (${mode} extraction)`);
   console.log('POST /api/analyze | POST /api/checkin/save');
-  console.log(`Wearable data: ${wearable.name}`);
+  console.log(`Wearable data: ${wearableMode}${wearableMode === 'whoop' ? ` (${process.env.WHOOP_URL ?? 'http://127.0.0.1:8000'})` : ''}`);
   console.log(`Connected frontend: http://${host}:${port}/app`);
   console.log(`Text-only backend tester: http://${host}:${port}/test/`);
   console.log('Hackathon prototype: in-memory sessions expire after 2 hours of inactivity or on restart.');

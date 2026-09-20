@@ -12,7 +12,8 @@
     "check": "tsc --noEmit",
     "test": "node --import tsx --test test/*.test.ts",
     "schema": "node --import tsx scripts/schema.ts",
-    "demo": "node scripts/demo.mjs"
+    "demo": "node scripts/demo.mjs",
+    "whoop:snapshot": "node --env-file-if-exists=.env --import tsx scripts/whoop-snapshot.ts"
   },
   "dependencies": {
     "express": "^5.1.0",

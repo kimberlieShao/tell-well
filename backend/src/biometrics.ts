@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 export function addDays(day: string, n: number): string {
   const d = new Date(`${day}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + n);
@@ -92,6 +94,30 @@ export function demoSource(today: () => string, driftDays: string[] = []): Biome
       return rows;
     },
     async account() { return 'Demo'; },
+  };
+}
+
+/**
+ * Real WHOOP nights captured to a file, for a deployment that cannot reach the connector.
+ * These are measured numbers, not invented ones, so this reports itself as "whoop" and the app
+ * shows them the way it shows any real night. Refresh with: npm run whoop:snapshot
+ */
+export function snapshotSource(file = new URL('../demo-data/whoop-snapshot.json', import.meta.url)): BiometricsSource {
+  let parsed: unknown;
+  try { parsed = JSON.parse(readFileSync(file, 'utf8')); } catch (cause) {
+    throw new Error(`Could not read the WHOOP snapshot at ${file.pathname}. Create it with: npm run whoop:snapshot`, { cause });
+  }
+  const rows = (parsed as { nights?: unknown }).nights;
+  if (!Array.isArray(rows) || !rows.length) throw new Error('The WHOOP snapshot has no nights in it.');
+  const nights: WearableDay[] = rows.map((row, i) => {
+    const r = row as Record<string, unknown>;
+    if (typeof r.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(r.date)) throw new Error(`WHOOP snapshot night ${i} has no valid date.`);
+    return { date: r.date, ...Object.fromEntries(metricKeys.map(k => [k, num(r[k])])) } as WearableDay;
+  }).sort((a, b) => a.date.localeCompare(b.date));
+  return {
+    name: 'whoop', connectUrl: null,
+    async fetchDays(days) { return nights.slice(-Math.max(1, days)); },
+    async account() { return null; },
   };
 }
 
